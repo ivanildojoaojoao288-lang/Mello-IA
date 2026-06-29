@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>IA Chat</title>
+
+    <!-- CSS externo -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- TOPO -->
+    <div class="header">
+        IVANILDO IA
+    </div>
+
+    <!-- CHAT -->
+    <div id="chat"></div>
+
+    <!-- INPUT -->
+    <div class="input-area">
+        <input id="msg" type="text" placeholder="Escreve aqui...">
+        <button onclick="send()">Enviar</button>
+    </div>
+
+</div>
+
+<!-- JS -->
+<script>
+function send() {
+    let msg = document.getElementById("msg").value;
+
+    if (!msg.trim()) return;
+
+    let chat = document.getElementById("chat");
+
+    // USER MESSAGE
+    let userDiv = document.createElement("div");
+    userDiv.className = "msg-user";
+    userDiv.textContent = msg;
+    chat.appendChild(userDiv);
+
+    // LIMPA INPUT
+    document.getElementById("msg").value = "";
+
+    // LOADING
+    let loading = document.createElement("div");
+    loading.className = "msg-ai";
+    loading.textContent = "A pensar...";
+    chat.appendChild(loading);
+
+    chat.scrollTop = chat.scrollHeight;
+
+    // REQUEST PARA FLASK
+    fetch("/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({message: msg})
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        loading.remove();
+
+        let aiDiv = document.createElement("div");
+        aiDiv.className = "msg-ai";
+        aiDiv.textContent = data.reply;
+
+        chat.appendChild(aiDiv);
+
+        chat.scrollTop = chat.scrollHeight;
+    })
+    .catch(err => {
+        loading.textContent = "Erro na ligação com a IA";
+    });
+}
+</script>
+
+</body>
+</html>

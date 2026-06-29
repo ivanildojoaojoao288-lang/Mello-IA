@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Mello IA</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #f5f7fb;
+    display: flex;
+    justify-content: center;
+    height: 100vh;
+}
+
+/* CONTAINER */
+.container {
+    width: 700px;
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+}
+
+/* HEADER */
+.header {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #111827;
+}
+
+.header a {
+    color: #ef4444;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+/* CHAT BOX */
+.chat-box {
+    flex: 1;
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    overflow-y: auto;
+    height: 450px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+/* MENSAGENS */
+.msg {
+    margin: 10px 0;
+    display: flex;
+}
+
+.user {
+    justify-content: flex-end;
+}
+
+.bot {
+    justify-content: flex-start;
+}
+
+.bubble {
+    max-width: 70%;
+    padding: 12px 15px;
+    border-radius: 15px;
+    font-size: 14px;
+    word-wrap: break-word;
+}
+
+.user .bubble {
+    background: #3b82f6;
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+.bot .bubble {
+    background: #e5e7eb;
+    color: #111827;
+    border-bottom-left-radius: 5px;
+}
+
+/* INPUT */
+.input-area {
+    display: flex;
+    margin-top: 15px;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+
+button {
+    padding: 14px 20px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #2563eb;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h2>🤖 Mello IA</h2>
+        <a href="/logout">Sair</a>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-box" id="chat"></div>
+
+    <!-- INPUT -->
+    <div class="input-area">
+        <input id="msg" placeholder="Escreve para a Mello IA...">
+        <button onclick="send()">Enviar</button>
+    </div>
+
+</div>
+
+<script>
+window.onload = function () {
+    let chat = document.getElementById("chat");
+
+    chat.innerHTML += `
+        <div class="msg bot">
+            <div class="bubble">
+                🤖 Bem-vindo à <b>Mello IA</b>, criada pelo Eng. Ivanildo 👨‍💻
+            </div>
+        </div>
+    `;
+};
+
+function send() {
+    let msg = document.getElementById("msg").value;
+    if (!msg) return;
+
+    let chat = document.getElementById("chat");
+
+    chat.innerHTML += `
+        <div class="msg user">
+            <div class="bubble">${msg}</div>
+        </div>
+    `;
+
+    fetch("/chat", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({message: msg})
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        chat.innerHTML += `
+            <div class="msg bot">
+                <div class="bubble">${data.reply}</div>
+            </div>
+        `;
+
+        document.getElementById("msg").value = "";
+        chat.scrollTop = chat.scrollHeight;
+    });
+}
+</script>
+
+</body>
+</html>
