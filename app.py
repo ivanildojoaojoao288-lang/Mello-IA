@@ -40,6 +40,11 @@ class Message(db.Model):
     bot_msg = db.Column(db.Text, nullable=False)
 
 
+# 🛠️ CRIAÇÃO AUTOMÁTICA DAS TABELAS (Crucial para o Render)
+with app.app_context():
+    db.create_all()
+
+
 @login_manager.user_loader
 def load_user(user_id):
     # db.session.get() é a sintaxe moderna recomendada pelo SQLAlchemy
@@ -148,7 +153,4 @@ def chat():
 
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-
     app.run(debug=True)
