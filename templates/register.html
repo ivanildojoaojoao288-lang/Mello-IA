@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt">
 <head>
 <meta charset="UTF-8">
 <title>Criar Conta</title>
@@ -47,6 +47,7 @@ input {
     border-radius: 10px;
     font-size: 14px;
     transition: 0.2s;
+    box-sizing: border-box;
 }
 
 input:focus {
@@ -67,6 +68,7 @@ button {
     cursor: pointer;
     transition: 0.2s;
     margin-top: 10px;
+    box-sizing: border-box;
 }
 
 button:hover {
@@ -99,7 +101,7 @@ p {
 <div class="card">
     <h2>🚀 Criar Conta</h2>
 
-    <form method="POST">
+    <form method="POST" action="/register">
         <input name="username" placeholder="Nome de utilizador" required>
         <input type="password" name="password" placeholder="Senha segura" required>
         <button type="submit">Registar</button>
