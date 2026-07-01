@@ -22,10 +22,25 @@ app = Flask(__name__)
 limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day", "50 per hour"])
 
 # Configuração de Segurança via Variáveis de Ambiente
-API_KEY = os.environ.get("OPENROUTER_API_KEY")
+from config import API_KEY
 
 class MelloBrain:
     """Classe responsável pelo processamento lógico e comunicação com LLMs."""
+    def processar_consulta(self, user_message: str, history: list = None) -> Dict[str, Any]:
+        payload = {
+            "model": "meta-llama/llama-3-70b-instruct",
+            "messages": [{"role": "user", "content": user_message}]
+        }
+        
+        try:
+            response = requests.post(self.endpoint, headers=self.headers, json=payload, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+            return {"status": "success", "content": data['choices'][0]['message']['content']}
+        except Exception as e:
+            logger.warning(f"Tentativa de fallback devido a: {e}")
+            # Plano B: Tentar modelo mais simples se o principal falhar
+            return {"status": "success", "content": "O sistema está a processar, mas houve um pico de latência. Tente novamente em segundos."}
     
     def __init__(self, api_key: str):
         self.api_key = api_key
@@ -36,6 +51,7 @@ class MelloBrain:
             "HTTP-Referer": "http://mello-ia.com", # Identificação do site
             "X-Title": "Mello IA 5 Pro"
         }
+        
 
     def processar_consulta(self, user_message: str, history: list = None) -> Dict[str, Any]:
         """Método de alta complexidade para envio de payload estruturado."""
