@@ -1,81 +1,63 @@
 import os
-import asyncio
-import logging
-import edge_tts
-import pygame
-from typing import Optional
+from flask import Flask, request, render_template, redirect, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
+import requests
 from dotenv import load_dotenv
-from openai import OpenAI # Recomendado usar a lib oficial do OpenRouter
 
-# Configuração de Logs Profissionais
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-# Carrega variáveis de ambiente
+# 1. CONFIGURAÇÕES
 load_dotenv()
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'uma_chave_secreta_super_segura'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mello.db' # Use PostgreSQL no Render
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 
-class MelloAssistant:
-    def __init__(self):
-        self.voice = "pt-PT-DuarteNeural"
-        self.client = OpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=os.getenv("OPENROUTER_API_KEY")
-        )
-        pygame.mixer.init()
+# 2. MODELOS DE DADOS
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True)
 
-    def _get_identity(self) -> str:
-        return (
-            "Eu sou a Mello IA 5 Pro, desenvolvida pelo Engenheiro Ivanildo. "
-            "Ivanildo é um estudante de Informática e Engenharia focado em sistemas, "
-            "inteligência artificial e automação. Sou seu sistema de suporte técnico "
-            "de alta performance."
-        )
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_msg = db.Column(db.String(500))
+    bot_msg = db.Column(db.String(500))
 
-    async def speak(self, text: str):
-        try:
-            logger.info(f"Gerando áudio: {text}")
-            communicate = edge_tts.Communicate(text, self.voice)
-            await communicate.save("output.mp3")
-            
-            pygame.mixer.music.load("output.mp3")
-            pygame.mixer.music.play()
-            while pygame.mixer.music.get_busy():
-                await asyncio.sleep(0.1)
-        except Exception as e:
-            logger.error(f"Erro na síntese de voz: {e}")
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
-    def get_ai_response(self, prompt: str) -> str:
-        if any(keyword in prompt.lower() for keyword in ["ivanildo", "quem és"]):
-            return self._get_identity()
-            
-        try:
-            completion = self.client.chat.completions.create(
-                model="meta-llama/llama-3.1-8b-instruct",
-                messages=[
-                    {"role": "system", "content": "Seja técnico, direto e profissional."},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            return completion.choices[0].message.content
-        except Exception as e:
-            return f"Erro crítico no processamento neural: {str(e)}"
+# 3. LÓGICA DE IA (OPENROUTER)
+def chamar_ia(pergunta):
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}"}
+    payload = {
+        "model": "meta-llama/llama-3.1-8b-instruct",
+        "messages": [{"role": "user", "content": pergunta}]
+    }
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        return response.json()['choices'][0]['message']['content']
+    except:
+        return "Erro de conexão com o sistema neural."
 
-    async def run(self):
-        logger.info("Sistema Mello IA 5 Pro Inicializado com Sucesso.")
-        while True:
-            try:
-                user_input = input("\n👤 Tu: ")
-                if user_input.lower() in ["sair", "exit"]:
-                    await self.speak("Desligando sistema. Até logo, Engenheiro.")
-                    break
-                
-                response = self.get_ai_response(user_input)
-                print(f"🤖 Mello IA: {response}")
-                await self.speak(response)
-                
-            except KeyboardInterrupt:
-                break
+# 4. ROTAS (API)
+@app.route('/chat', methods=['POST'])
+@login_required
+def chat():
+    user_message = request.form.get('message')
+    bot_reply = chamar_ia(user_message)
+    
+    # Salva no banco de dados usando o current_user importado
+    nova_msg = Message(user_id=current_user.id, user_msg=user_message, bot_msg=bot_reply)
+    db.session.add(nova_msg)
+    db.session.commit()
+    
+    return {"resposta": bot_reply}
 
-if __name__ == "__main__":
-    assistant = MelloAssistant()
-    asyncio.run(assistant.run())
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
