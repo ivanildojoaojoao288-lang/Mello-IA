@@ -1,7 +1,6 @@
-edge-tts
+flask
+flask-sqlalchemy
+flask-login
 requests
-openai
 python-dotenv
 gunicorn
-uvicorn
-fastapi
