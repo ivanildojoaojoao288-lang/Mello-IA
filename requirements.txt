@@ -1,3 +1,6 @@
 edge-tts
 requests
+pygame
+openai
 python-dotenv
+gunicorn
