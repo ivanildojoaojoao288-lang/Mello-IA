@@ -1,6 +1,7 @@
 edge-tts
 requests
-pygame
 openai
 python-dotenv
 gunicorn
+uvicorn
+fastapi
