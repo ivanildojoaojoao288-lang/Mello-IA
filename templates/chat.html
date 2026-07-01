@@ -167,8 +167,9 @@ function send() {
 
     let chat = document.getElementById("chat");
 
+    // Usa .msg-user conforme definido no CSS
     chat.innerHTML += `
-        <div class="msg user">
+        <div class="msg-user">
             <div class="bubble">${msg}</div>
         </div>
     `;
@@ -180,9 +181,9 @@ function send() {
     })
     .then(res => res.json())
     .then(data => {
-
+        // Usa .msg-ai conforme definido no CSS
         chat.innerHTML += `
-            <div class="msg bot">
+            <div class="msg-ai">
                 <div class="bubble">${data.reply}</div>
             </div>
         `;
@@ -191,7 +192,3 @@ function send() {
         chat.scrollTop = chat.scrollHeight;
     });
 }
-</script>
-
-</body>
-</html>
