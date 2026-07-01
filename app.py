@@ -2,60 +2,53 @@ import os
 import asyncio
 import edge_tts
 import requests
-from duckduckgo_search import DDGS
+from playsound import playsound
 
-# CONFIGURAÇÃO DE IDENTIDADE
-API_KEY = os.getenv("OPENROUTER_API_KEY") # Recomendado: Guardar no sistema
+# CONFIGURAÇÃO
+API_KEY = os.getenv("OPENROUTER_API_KEY")
 VOICE = "pt-PT-DuarteNeural"
+AUDIO_FILE = "audio.mp3"
 
 # =========================
-# 🔊 VOZ NATURAL (Async)
+# 🔊 VOZ NATURAL
 # =========================
-async def falar_async(texto):
+async def gerar_audio(texto):
+    """Gera o arquivo de áudio e reproduz."""
     communicate = edge_tts.Communicate(texto, VOICE)
-    await communicate.save("audio.mp3")
-    os.system("start audio.mp3")
+    await communicate.save(AUDIO_FILE)
+    # Toca o áudio (o playsound é compatível com Windows/Mac/Linux)
+    playsound(AUDIO_FILE)
 
 def falar(texto):
     print(f"IA: {texto}")
-    asyncio.run(falar_async(texto))
+    # Executa a função assíncrona de forma síncrona para o loop principal
+    asyncio.run(gerar_audio(texto))
 
 # =========================
-# 📌 REGRAS FIXAS (Identidade)
+# 📌 REGRAS E IA
 # =========================
-def regras(texto):
-    texto_limpo = texto.lower()
-    if "ivanildo" in texto_limpo or "quem és" in texto_limpo:
-        return (
-            "Eu sou a Mello IA 5 Pro, desenvolvida pelo Engenheiro Ivanildo. "
-            "Ivanildo é um estudante de Informática e Engenharia focado em sistemas, "
-            "inteligência artificial e automação. Sou o seu sistema de suporte técnico "
-            "de alta performance."
-        )
-    return None
-
-# =========================
-# 🌐 MOTOR DE IA
-# =========================
-def chamar_api(pergunta):
+def responder(pergunta):
+    # Regras fixas (Identidade)
+    if any(palavra in pergunta.lower() for palavra in ["ivanildo", "quem és"]):
+        return ("Eu sou a Mello IA 5 Pro, desenvolvida pelo Engenheiro Ivanildo. "
+                "Sou o seu sistema de suporte técnico de alta performance.")
+    
+    # Consulta API (OpenRouter)
     try:
         response = requests.post(
             url="https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {API_KEY}",
-                "Content-Type": "application/json"
-            },
+            headers={"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"},
             json={
                 "model": "meta-llama/llama-3.1-8b-instruct",
                 "messages": [
-                    {"role": "system", "content": "Responde de forma técnica, direta e profissional em português."},
+                    {"role": "system", "content": "Responde de forma técnica e profissional em português."},
                     {"role": "user", "content": pergunta}
                 ]
             }
         )
         return response.json()["choices"][0]["message"]["content"]
     except Exception as e:
-        return f"Erro de conexão: {e}"
+        return f"Erro na conexão com a IA: {e}"
 
 # =========================
 # 🚀 LOOP PRINCIPAL
@@ -65,20 +58,15 @@ def main():
     while True:
         try:
             pergunta = input("Tu: ")
-            if pergunta.lower() == "sair":
+            if pergunta.lower() in ["sair", "exit"]:
                 falar("Até logo, Engenheiro.")
                 break
 
-            # 1. Prioridade às Regras Fixas
-            resposta = regras(pergunta)
-            
-            # 2. Se não for regra, consulta a IA
-            if not resposta:
-                resposta = chamar_api(pergunta)
-            
+            resposta = responder(pergunta)
             falar(resposta)
             
         except KeyboardInterrupt:
+            print("\nEncerrando sistema...")
             break
 
 if __name__ == "__main__":
