@@ -13,7 +13,8 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-API_KEY = "SUA_API_KEY_AQUI" # Substitua pela sua chave real
+# IMPORTANTE: Coloque a sua chave real aqui entre as aspas
+API_KEY = "SUA_API_KEY_AQUI" 
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -33,6 +34,16 @@ def login():
             return redirect(url_for("home"))
     return render_template("login.html")
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        hashed = generate_password_hash(request.form["password"])
+        new_user = User(username=request.form["username"], password=hashed)
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for("login"))
+    return render_template("register.html")
+
 @app.route("/")
 @login_required
 def home():
@@ -41,21 +52,21 @@ def home():
 @app.route("/chat", methods=["POST"])
 @login_required
 def chat():
-    data = request.json
-    user_message = data.get("message", "")
-    
-    if not user_message:
-        return jsonify({"reply": "Mensagem vazia."})
-
-    system_prompt = (
-        "Tu és a Mello IA, Versão 5 Pro (2026). Criada pelo Engenheiro Ivanildo João. "
-        "Não és da OpenAI. Responde de forma técnica, profissional e direta."
-    )
-
     try:
+        data = request.json
+        user_message = data.get("message", "")
+        
+        # Teste de depuração no terminal
+        print(f"DEBUG: Mensagem recebida: {user_message}")
+
+        system_prompt = "Tu és a Mello IA, Versão 5 Pro (2026), criada por Ivanildo João."
+
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
-            headers={"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"},
+            headers={
+                "Authorization": f"Bearer {API_KEY}", 
+                "Content-Type": "application/json"
+            },
             json={
                 "model": "meta-llama/llama-3-70b-instruct",
                 "messages": [
@@ -65,12 +76,15 @@ def chat():
             },
             timeout=15
         )
-        result = response.json()
-        reply = result['choices'][0]['message']['content']
+        
+        # Mostrará no terminal se a API aceitou a chave (Código 200 é sucesso)
+        print(f"DEBUG: Status da API: {response.status_code}")
+        
+        return jsonify({"reply": response.json()['choices'][0]['message']['content']})
+
     except Exception as e:
-        reply = f"Erro crítico na conexão: {str(e)}"
-    
-    return jsonify({"reply": reply})
+        print(f"ERRO FATAL: {str(e)}") 
+        return jsonify({"reply": "Erro interno do servidor. Verifique o terminal."}), 500
 
 if __name__ == "__main__":
     with app.app_context():
