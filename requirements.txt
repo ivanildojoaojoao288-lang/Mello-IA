@@ -1,4 +1,5 @@
 edge-tts
 requests
 pygame
-# (outras dependências que você instalou)
+openai
+python-dotenv
