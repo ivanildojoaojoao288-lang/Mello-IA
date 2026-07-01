@@ -1,63 +1,47 @@
 import os
-from flask import Flask, request, render_template, redirect, url_for, flash
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import requests
-from dotenv import load_dotenv
 
-# 1. CONFIGURAÇÕES
-load_dotenv()
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'uma_chave_secreta_super_segura'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mello.db' # Use PostgreSQL no Render
-db = SQLAlchemy(app)
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
+CORS(app)  # Permite que qualquer front-end conecte na sua API
 
-# 2. MODELOS DE DADOS
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True)
+# Histórico simulado (Em produção, use Redis ou Banco de Dados)
+historico = []
 
-class Message(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user_msg = db.Column(db.String(500))
-    bot_msg = db.Column(db.String(500))
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({"status": "Mello IA 5 Pro Online", "versao": "5.0.0", "engine": "Production"})
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+@app.route('/chat', methods=['POST'])
+def chat():
+    data = request.get_json()
+    user_msg = data.get("message")
+    
+    if not user_msg:
+        return jsonify({"error": "Mensagem vazia"}), 400
 
-# 3. LÓGICA DE IA (OPENROUTER)
-def chamar_ia(pergunta):
-    url = "https://openrouter.ai/api/v1/chat/completions"
-    headers = {"Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}"}
+    # Adiciona ao histórico (Memória)
+    historico.append({"role": "user", "content": user_msg})
+
+    # Chamada otimizada para OpenRouter
+    headers = {"Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}", "Content-Type": "application/json"}
     payload = {
         "model": "meta-llama/llama-3.1-8b-instruct",
-        "messages": [{"role": "user", "content": pergunta}]
+        "messages": historico,
+        "max_tokens": 500
     }
-    try:
-        response = requests.post(url, headers=headers, json=payload)
-        return response.json()['choices'][0]['message']['content']
-    except:
-        return "Erro de conexão com o sistema neural."
 
-# 4. ROTAS (API)
-@app.route('/chat', methods=['POST'])
-@login_required
-def chat():
-    user_message = request.form.get('message')
-    bot_reply = chamar_ia(user_message)
-    
-    # Salva no banco de dados usando o current_user importado
-    nova_msg = Message(user_id=current_user.id, user_msg=user_message, bot_msg=bot_reply)
-    db.session.add(nova_msg)
-    db.session.commit()
-    
-    return {"resposta": bot_reply}
+    try:
+        response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
+        bot_reply = response.json()['choices'][0]['message']['content']
+        
+        # Salva resposta no histórico
+        historico.append({"role": "assistant", "content": bot_reply})
+        
+        return jsonify({"reply": bot_reply, "history_size": len(historico)})
+    except Exception as e:
+        return jsonify({"error": "Falha na comunicação neural", "details": str(e)}), 503
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
