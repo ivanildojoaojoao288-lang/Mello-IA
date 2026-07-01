@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Mello IA 5 Pro | 2026</title>
+    <!-- Inclua o seu estilo CSS aqui ou num ficheiro separado -->
+    <style>
+        /* Cole aqui o código CSS que você enviou acima */
+        :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent: #38bdf8; --text-main: #f1f5f9; }
+        body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; }
+        .chat-container { max-width: 700px; width: 100%; margin: 20px auto; background: var(--card-bg); padding: 25px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+        #chat-box { flex-grow: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 10px; }
+        .input-area { display: flex; gap: 10px; }
+        input { flex: 1; background: #334155; border: none; padding: 15px; border-radius: 12px; color: white; }
+        button { background: var(--accent); border: none; padding: 10px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        button:hover { filter: brightness(1.2); }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <h2 style="text-align: center;">Mello IA 5 Pro</h2>
+        <div id="chat-box"></div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Comande a Mello IA...">
+            <button onclick="enviarMensagem()">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        async function enviarMensagem() {
+            const input = document.getElementById('user-input');
+            const msg = input.value;
+            if (!msg) return;
+
+            // Exibir a sua mensagem
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML += `<p style="text-align: right; color: #38bdf8;"><b>Você:</b> ${msg}</p>`;
+            input.value = '';
+
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: msg})
+                });
+                const data = await res.json();
+                chatBox.innerHTML += `<p><b>Mello IA:</b> ${data.reply}</p>`;
+                chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
+            } catch (e) {
+                chatBox.innerHTML += `<p style="color:red;">Erro de conexão.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
