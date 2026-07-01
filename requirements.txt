@@ -1,4 +1,4 @@
 edge-tts
 requests
-duckduckgo-search
 pygame
+# (outras dependências que você instalou)
