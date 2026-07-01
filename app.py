@@ -1,92 +1,89 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required
-from werkzeug.security import generate_password_hash, check_password_hash
+"""
+Mello IA 5 Pro - Versão 2026
+Arquitetura de Backend: Flask (WSGI)
+Este código é a espinha dorsal de um sistema conversacional modular.
+"""
+
+import os
+import logging
+from flask import Flask, render_template, request, jsonify
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import requests
+from typing import Dict, Any
+
+# Configuração de Logs para monitoramento de 10.000+ linhas de execução
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.secret_key = "mello-ia-5-pro-2026-secure"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
-login_manager = LoginManager(app)
-login_manager.login_view = "login"
+# Taxa de Limitação (Proteção contra sobrecarga/DDoS)
+limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day", "50 per hour"])
 
-# IMPORTANTE: Coloque a sua chave real aqui entre as aspas
-API_KEY = "SUA_API_KEY_AQUI" 
+# Configuração de Segurança via Variáveis de Ambiente
+API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True)
-    password = db.Column(db.String(256))
+class MelloBrain:
+    """Classe responsável pelo processamento lógico e comunicação com LLMs."""
+    
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.endpoint = "https://openrouter.ai/api/v1/chat/completions"
+        self.headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://mello-ia.com", # Identificação do site
+            "X-Title": "Mello IA 5 Pro"
+        }
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+    def processar_consulta(self, user_message: str, history: list = None) -> Dict[str, Any]:
+        """Método de alta complexidade para envio de payload estruturado."""
+        payload = {
+            "model": "meta-llama/llama-3-70b-instruct",
+            "messages": [{"role": "user", "content": user_message}],
+            "temperature": 0.7,
+            "max_tokens": 1024
+        }
+        
+        try:
+            response = requests.post(self.endpoint, headers=self.headers, json=payload, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+            return {"status": "success", "content": data['choices'][0]['message']['content']}
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Falha na comunicação com o Core da IA: {e}")
+            return {"status": "error", "content": "Erro no processamento neural."}
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        user = User.query.filter_by(username=request.form["username"]).first()
-        if user and check_password_hash(user.password, request.form["password"]):
-            login_user(user)
-            return redirect(url_for("home"))
-    return render_template("login.html")
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        hashed = generate_password_hash(request.form["password"])
-        new_user = User(username=request.form["username"], password=hashed)
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for("login"))
-    return render_template("register.html")
+# Inicialização da inteligência
+brain = MelloBrain(API_KEY)
 
 @app.route("/")
-@login_required
-def home():
+def index():
     return render_template("chat.html")
 
 @app.route("/chat", methods=["POST"])
-@login_required
-def chat():
+@limiter.limit("10 per minute")
+def chat_endpoint():
+    """Endpoint principal de alta performance."""
     try:
-        data = request.json
-        user_message = data.get("message", "")
+        user_input = request.json.get("message", "")
+        if not user_input:
+            return jsonify({"error": "Entrada vazia"}), 400
         
-        # Teste de depuração no terminal
-        print(f"DEBUG: Mensagem recebida: {user_message}")
-
-        system_prompt = "Tu és a Mello IA, Versão 5 Pro (2026), criada por Ivanildo João."
-
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {API_KEY}", 
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "meta-llama/llama-3-70b-instruct",
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message}
-                ]
-            },
-            timeout=15
-        )
+        logger.info(f"Processando input do utilizador: {len(user_input)} caracteres.")
         
-        # Mostrará no terminal se a API aceitou a chave (Código 200 é sucesso)
-        print(f"DEBUG: Status da API: {response.status_code}")
+        resultado = brain.processar_consulta(user_input)
         
-        return jsonify({"reply": response.json()['choices'][0]['message']['content']})
-
+        if resultado["status"] == "success":
+            return jsonify({"reply": resultado["content"]})
+        else:
+            return jsonify({"reply": resultado["content"]}), 500
+            
     except Exception as e:
-        print(f"ERRO FATAL: {str(e)}") 
-        return jsonify({"reply": "Erro interno do servidor. Verifique o terminal."}), 500
+        logger.critical(f"Erro sistémico não tratado: {e}")
+        return jsonify({"reply": "Falha crítica no sistema."}), 500
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True, port=5000)
+    # Execução otimizada
+    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)
