@@ -3,52 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <title>Mello IA 5 Pro | 2026</title>
-    <!-- Inclua o seu estilo CSS aqui ou num ficheiro separado -->
     <style>
-        /* Cole aqui o código CSS que você enviou acima */
-        :root { --bg-dark: #0f172a; --card-bg: #1e293b; --accent: #38bdf8; --text-main: #f1f5f9; }
-        body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; }
-        .chat-container { max-width: 700px; width: 100%; margin: 20px auto; background: var(--card-bg); padding: 25px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
-        #chat-box { flex-grow: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 10px; }
-        .input-area { display: flex; gap: 10px; }
-        input { flex: 1; background: #334155; border: none; padding: 15px; border-radius: 12px; color: white; }
-        button { background: var(--accent); border: none; padding: 10px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        button:hover { filter: brightness(1.2); }
+        :root { 
+            --bg-dark: #0f172a; 
+            --card-bg: #1e293b; 
+            --accent: #38bdf8; 
+            --text-main: #f1f5f9; 
+        }
+        body { 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            display: flex; 
+            height: 100vh; 
+            align-items: center; 
+            justify-content: center;
+        }
+        .chat-container { 
+            max-width: 700px; 
+            width: 100%; 
+            height: 80vh; /* Altura fixa para o container do chat fazer sentido */
+            margin: 20px; 
+            background: var(--card-bg); 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5); 
+            display: flex; 
+            flex-direction: column; 
+        }
+        #chat-box { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            margin-bottom: 20px; 
+            padding-right: 10px; 
+        }
+        .input-area { 
+            display: flex; 
+            gap: 10px; 
+        }
+        input { 
+            flex: 1; 
+            background: #334155; 
+            border: none; 
+            padding: 15px; 
+            border-radius: 12px; 
+            color: white; 
+            outline: none;
+        }
+        button { 
+            background: var(--accent); 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            color: #0f172a;
+        }
+        button:hover { 
+            filter: brightness(1.2); 
+        }
+        .msg-line { margin: 10px 0; line-height: 1.5; }
     </style>
 </head>
 <body>
 
     <div class="chat-container">
-        <h2 style="text-align: center;">Mello IA 5 Pro</h2>
+        <h2 style="text-align: center; margin-top: 0; color: var(--accent);">Mello IA 5 Pro</h2>
         <div id="chat-box"></div>
         <div class="input-area">
-            <input type="text" id="user-input" placeholder="Comande a Mello IA...">
+            <!-- ⌨️ Adicionado onkeydown para aceitar o Enter -->
+            <input type="text" id="user-input" placeholder="Comande a Mello IA..." onkeydown="if(event.key === 'Enter') enviarMensagem()">
             <button onclick="enviarMensagem()">Enviar</button>
         </div>
     </div>
 
     <script>
+        // 🧠 Variável global para reter a memória da conversa no navegador
+        let chatHistory = []; 
+
         async function enviarMensagem() {
             const input = document.getElementById('user-input');
             const msg = input.value;
-            if (!msg) return;
+            if (!msg.trim()) return;
 
             // Exibir a sua mensagem
             const chatBox = document.getElementById('chat-box');
-            chatBox.innerHTML += `<p style="text-align: right; color: #38bdf8;"><b>Você:</b> ${msg}</p>`;
+            chatBox.innerHTML += `<div class="msg-line" style="text-align: right; color: #38bdf8;"><b>Você:</b> ${msg}</div>`;
             input.value = '';
 
+            // Loading temporário
+            const loadingId = 'loading-' + Date.now();
+            chatBox.innerHTML += `<div class="msg-line" id="${loadingId}"><b>Mello IA:</b> <span style="color: #64748b;">A processar...</span></div>`;
+            chatBox.scrollTop = chatBox.scrollHeight; 
+
             try {
+                // Envio com o histórico estruturado para a API
                 const res = await fetch('/chat', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({message: msg})
+                    body: JSON.stringify({
+                        message: msg,
+                        history: chatHistory
+                    })
                 });
+                
                 const data = await res.json();
-                chatBox.innerHTML += `<p><b>Mello IA:</b> ${data.reply}</p>`;
+                
+                // Remover o indicador de loading
+                document.getElementById(loadingId).remove();
+
+                if (data.error) {
+                    chatBox.innerHTML += `<div class="msg-line" style="color:red;"><b>Erro:</b> ${data.error}</div>`;
+                } else {
+                    // 🚀 Atualiza o histórico local recebido do Flask
+                    chatHistory = data.history; 
+                    
+                    chatBox.innerHTML += `<div class="msg-line"><b>Mello IA:</b> ${data.reply}</div>`;
+                }
+                
                 chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
             } catch (e) {
-                chatBox.innerHTML += `<p style="color:red;">Erro de conexão.</p>`;
+                document.getElementById(loadingId).remove();
+                chatBox.innerHTML += `<div class="msg-line" style="color:red;"><b>Erro:</b> Falha na ligação com o servidor.</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
             }
         }
     </script>
