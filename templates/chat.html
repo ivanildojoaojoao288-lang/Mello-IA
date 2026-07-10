@@ -142,16 +142,19 @@ button:hover {
 
     <!-- INPUT -->
     <div class="input-area">
-        <input id="msg" placeholder="Escreve para a Mello IA...">
+        <!-- ⌨️ Adicionado onkeydown para poderes enviar com o Enter do teclado -->
+        <input id="msg" placeholder="Escreve para a Mello IA..." onkeydown="if(event.key === 'Enter') send()">
         <button onclick="send()">Enviar</button>
     </div>
 
 </div>
 
 <script>
+// 🧠 Histórico guardado localmente no browser
+let chatHistory = []; 
+
 window.onload = function () {
     let chat = document.getElementById("chat");
-
     chat.innerHTML += `
         <div class="msg bot">
             <div class="bubble">
@@ -162,32 +165,72 @@ window.onload = function () {
 };
 
 function send() {
-    let msg = document.getElementById("msg").value;
-    if (!msg) return;
+    let msgInput = document.getElementById("msg");
+    let msg = msgInput.value;
+    if (!msg.trim()) return;
 
     let chat = document.getElementById("chat");
 
+    // 1. Mostra a mensagem do utilizador no ecrã
     chat.innerHTML += `
         <div class="msg user">
             <div class="bubble">${msg}</div>
         </div>
     `;
 
+    // 2. Limpa o input IMEDIATAMENTE antes do fetch para evitar bugs com o innerHTML
+    msgInput.value = "";
+    chat.scrollTop = chat.scrollHeight;
+
+    // 3. Cria um ID único para a mensagem de "A pensar..."
+    let loadingId = "loading-" + Date.now();
+    chat.innerHTML += `
+        <div class="msg bot" id="${loadingId}">
+            <div class="bubble" style="color: #64748b;">A processar...</div>
+        </div>
+    `;
+    chat.scrollTop = chat.scrollHeight;
+
+    // 4. Faz o pedido à API Flask passando o histórico
     fetch("/chat", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({message: msg})
+        body: JSON.stringify({
+            message: msg,
+            history: chatHistory
+        })
     })
     .then(res => res.json())
     .then(data => {
+        // Remove a mensagem de carregamento
+        document.getElementById(loadingId).remove();
 
+        if (data.error) {
+            chat.innerHTML += `
+                <div class="msg bot">
+                    <div class="bubble" style="color: red;">⚠️ Erro: ${data.error}</div>
+                </div>
+            `;
+        } else {
+            // 🚀 Atualiza o histórico local recebido do Flask
+            chatHistory = data.history; 
+
+            // Coloca a resposta real da IA no ecrã usando data.reply
+            chat.innerHTML += `
+                <div class="msg bot">
+                    <div class="bubble">${data.reply}</div>
+                </div>
+            `;
+        }
+        chat.scrollTop = chat.scrollHeight;
+    })
+    .catch(err => {
+        document.getElementById(loadingId).remove();
         chat.innerHTML += `
             <div class="msg bot">
-                <div class="bubble">${data.reply}</div>
+                <div class="bubble" style="color: red;">⚠️ Falha na ligação ao servidor.</div>
             </div>
         `;
-
-        document.getElementById("msg").value = "";
         chat.scrollTop = chat.scrollHeight;
     });
 }
