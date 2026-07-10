@@ -1,25 +1,24 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template  # 👈 Adicionado render_template aqui
 from flask_cors import CORS
 import requests
 
 app = Flask(__name__)
 CORS(app)
 
+# 🌐 ROTA PRINCIPAL: Agora serve o teu lindo Front-end escuro
 @app.route('/', methods=['GET'])
 def index():
-    return jsonify({
-        "status": "Mello IA 5 Pro Online", 
-        "versao": "5.0.0", 
-        "engine": "Production"
-    })
+    # Renderiza o ficheiro chat.html que guardaste dentro da pasta templates/
+    return render_template('chat.html')
 
+# 🧠 ROTA DE PROCESSAMENTO: Continua a gerir a comunicação com a API de IA
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.get_json() or {}
     user_msg = data.get("message")
     
-    # 🧠 Recebe o histórico que vem do Front-end (se não vier, começa um novo)
+    # Recebe o histórico que vem do Front-end (se não vier, começa um novo)
     chat_history = data.get("history", [])
     
     if not user_msg:
