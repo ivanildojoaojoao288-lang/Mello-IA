@@ -22,7 +22,7 @@
 
     <!-- INPUT -->
     <div class="input-area">
-        <input id="msg" type="text" placeholder="Escreve aqui...">
+        <input id="msg" type="text" placeholder="Escreve aqui..." onkeydown="if(event.key === 'Enter') send()">
         <button onclick="send()">Enviar</button>
     </div>
 
@@ -30,6 +30,9 @@
 
 <!-- JS -->
 <script>
+// 🧠 Variável global para reter o histórico da sessão atual do utilizador
+let chatHistory = []; 
+
 function send() {
     let msg = document.getElementById("msg").value;
 
@@ -54,29 +57,43 @@ function send() {
 
     chat.scrollTop = chat.scrollHeight;
 
-    // REQUEST PARA FLASK
+    // REQUEST PARA FLASK (Agora enviando o histórico acumulado)
     fetch("/chat", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({message: msg})
+        body: JSON.stringify({
+            message: msg,
+            history: chatHistory // 🚀 Enviamos o histórico atualizado
+        })
     })
     .then(res => res.json())
     .then(data => {
-
         loading.remove();
+
+        if (data.error) {
+            let errorDiv = document.createElement("div");
+            errorDiv.className = "msg-ai";
+            errorDiv.style.color = "red";
+            errorDiv.textContent = "Erro: " + data.error;
+            chat.appendChild(errorDiv);
+            return;
+        }
+
+        // 🧠 Atualizamos o histórico local com o que o backend nos devolveu
+        chatHistory = data.history;
 
         let aiDiv = document.createElement("div");
         aiDiv.className = "msg-ai";
         aiDiv.textContent = data.reply;
 
         chat.appendChild(aiDiv);
-
         chat.scrollTop = chat.scrollHeight;
     })
     .catch(err => {
         loading.textContent = "Erro na ligação com a IA";
+        loading.style.color = "red";
     });
 }
 </script>
