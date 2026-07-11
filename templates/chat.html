@@ -8,7 +8,7 @@
 body {
     margin: 0;
     font-family: "Segoe UI", sans-serif;
-    background: #0f172a; /* Fundo escuro premium */
+    background: #0f172a;
     color: #e2e8f0;
     display: flex;
     justify-content: center;
@@ -38,6 +38,18 @@ body {
     font-size: 18px;
     color: #f8fafc;
 }
+
+.btn-sair {
+    background: #ef4444;
+    color: white;
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+.btn-sair:hover { background: #dc2626; }
 
 .chat-box {
     flex: 1;
@@ -93,11 +105,8 @@ input {
     outline: none;
 }
 
-input:focus {
-    border-color: #3b82f6;
-}
+input:focus { border-color: #3b82f6; }
 
-/* BOTÕES ESTILIZADOS */
 button {
     padding: 14px 20px;
     background: #3b82f6;
@@ -108,12 +117,9 @@ button {
     font-weight: bold;
     transition: background 0.2s;
 }
-
 button:hover { background: #2563eb; }
 
-.btn-mic {
-    background: #ef4444;
-}
+.btn-mic { background: #ef4444; }
 .btn-mic:hover { background: #dc2626; }
 
 .btn-mic.gravando {
@@ -133,18 +139,18 @@ button:hover { background: #2563eb; }
 
 <div class="container">
 
-    <!-- HEADER -->
     <div class="header">
-        <h2>🤖 Mello IA - Modo Conversação Ativo</h2>
-        <button id="btnVoz" class="btn-mic" onclick="alternarModoVoz()">🎙️ Ativar Mãos Livres</button>
+        <h2>🤖 Mello IA - Modo Conversação</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="btnVoz" class="btn-mic" onclick="alternarModoVoz()">🎙️ Ativar Mãos Livres</button>
+            <a href="/logout" class="btn-sair">Sair</a>
+        </div>
     </div>
 
-    <!-- CHAT -->
     <div class="chat-box" id="chat"></div>
 
-    <!-- INPUT -->
     <div class="input-area">
-        <input id="msg" placeholder="Escreve ou clica no microfone para falar..." onkeydown="if(event.key === 'Enter') send()">
+        <input id="msg" placeholder="Escreve ou ativa o microfone..." onkeydown="if(event.key === 'Enter') send()">
         <button onclick="send()">Enviar</button>
     </div>
 
@@ -161,35 +167,32 @@ window.onload = function () {
     chat.innerHTML += `
         <div class="msg bot">
             <div class="bubble">
-                🤖 Olá! Sou a <b>Mello IA</b>. Ativa o botão <b>🎙️ Ativar Mãos Livres</b> acima, fala comigo e eu responderei diretamente por voz!
+                🤖 Infraestrutura neural ativa. Clica em <b>🎙️ Ativar Mãos Livres</b>, fala o teu comando e eu responderei diretamente por áudio!
             </div>
         </div>
     `;
     inicializarRecursosVoz();
 };
 
-// ⚙️ Inicializa as APIs de reconhecimento de áudio nativo do navegador
 function inicializarRecursosVoz() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-        alert("O teu navegador não suporta reconhecimento de voz direto. Recomendo usar o Google Chrome ou Edge.");
+        alert("O teu navegador não suporta a API de áudio nativa.");
         return;
     }
 
     recognition = new SpeechRecognition();
-    recognition.lang = 'pt-PT'; // Sotaque refinado para captação estável
+    recognition.lang = 'pt-PT';
     recognition.continuous = false;
     recognition.interimResults = false;
 
-    // Quando tu terminas de falar, ele processa o áudio e envia automaticamente
     recognition.onresult = function(event) {
         let textoCapturado = event.results[0][0].transcript;
         document.getElementById("msg").value = textoCapturado;
-        send(); // Envia automaticamente para o pipeline da IA
+        send();
     };
 
     recognition.onend = function() {
-        // Se o modo contínuo estiver ligado e a IA NÃO estiver a falar, reativa o microfone
         if (modoVozAtivo && deveraGravar) {
             recognition.start();
         } else if (!modoVozAtivo) {
@@ -198,15 +201,14 @@ function inicializarRecursosVoz() {
     };
 
     recognition.onerror = function(e) {
-        console.log("Erro no microfone:", e.error);
+        console.log("Erro de captura:", e.error);
         if (e.error === 'not-allowed') {
-            alert("Dá permissão ao microfone no teu navegador para poderes falar.");
+            alert("Ativa as permissões de gravação do teu microfone.");
             desativarModoVozCompleto();
         }
     };
 }
 
-// 🎙️ Liga/Desliga o microfone e o modo contínuo de conversação de áudio
 function alternarModoVoz() {
     if (!recognition) return;
 
@@ -215,7 +217,7 @@ function alternarModoVoz() {
         deveraGravar = true;
         document.getElementById("btnVoz").innerText = "🎙️ Ouvindo...";
         document.getElementById("btnVoz").classList.add("gravando");
-        window.speechSynthesis.cancel(); // Para qualquer fala ativa
+        window.speechSynthesis.cancel();
         recognition.start();
     } else {
         desativarModoVozCompleto();
@@ -235,26 +237,22 @@ function desativarModoVozCompleto() {
     window.speechSynthesis.cancel();
 }
 
-// 🔊 Executa a síntese de áudio da resposta da IA
 function falarTexto(texto) {
     if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // Evita gargalos de enfileiramento de áudio
+        window.speechSynthesis.cancel();
         
-        // Limpa marcações complexas de markdown ou emojis para o áudio sair limpo
         let textoLimpo = texto.replace(/<\/?[^>]+(>|$)/g, "")
                               .replace(/[\*#_`~]/g, "")
                               .replace(/[🤖⚠️👨‍💻]/g, "");
         
         let utterance = new SpeechSynthesisUtterance(textoLimpo);
         utterance.lang = 'pt-PT';
-        utterance.rate = 1.05; // Cadência natural de conversação
+        utterance.rate = 1.05;
         
-        // Bloqueia o microfone temporariamente ENQUANTO a IA fala, para ela não se ouvir a ela própria
         deveraGravar = false;
         if(recognition) recognition.stop();
 
         utterance.onend = function() {
-            // Assim que a IA acaba de falar, se o modo de voz estiver ativo, ela volta a ouvir-te na hora!
             if (modoVozAtivo) {
                 deveraGravar = true;
                 recognition.start();
@@ -265,7 +263,6 @@ function falarTexto(texto) {
     }
 }
 
-// 🚀 Envio de mensagens unificado (Voz e Teclado)
 function send() {
     let msgInput = document.getElementById("msg");
     let msg = msgInput.value;
@@ -311,9 +308,7 @@ function send() {
             </div>
         `;
         
-        // 🚀 Executa o output de voz imediato
         falarTexto(data.reply);
-
         chat.scrollTop = chat.scrollHeight;
     })
     .catch(err => {
@@ -322,7 +317,7 @@ function send() {
         
         chat.innerHTML += `
             <div class="msg bot">
-                <div class="bubble" style="color: #f87171;">⚠️ Falha de comunicação neural.</div>
+                <div class="bubble" style="color: #f87171;">⚠️ Falha no fluxo.</div>
             </div>
         `;
         chat.scrollTop = chat.scrollHeight;
