@@ -1,81 +1,59 @@
 import os
-import asyncio
+from flask import Flask, request, jsonify, render_template, redirect
+from flask_cors import CORS
 import requests
-import pyttsx3
-import edge_tts
-from duckduckgo_search import DDGS
 
-# ==========================================
-# 🔑 SEGURANÇA E CONFIGURAÇÕES DE SESSÃO
-# ==========================================
-# A API KEY é extraída de forma segura do sistema para evitar espionagem de tokens
-API_KEY = os.getenv("OPENROUTER_API_KEY")
-MODELO = "meta-llama/llama-3.1-8b-instruct"
+app = Flask(__name__)
+CORS(app)
 
 # Mantém os sockets HTTP persistentes para acelerar as respostas em 300%
 http_session = requests.Session()
+MODELO = "meta-llama/llama-3.1-8b-instruct"
 
-# Histórico dinâmico de conversação (Memory Buffer)
-CONVERSATION_HISTORY = []
-MAX_HISTORY_LEN = 10  # Mantém as últimas 10 interações para contexto profundo
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('chat.html')
 
-# ==========================================
-# 🔊 PIPELINE DE ÁUDIO HÍBRIDO (ASSÍNCRONO)
-# ==========================================
-async def _gerar_audio_neural(texto):
-    """Gera áudio em alta definição usando os servidores neurais da Microsoft."""
-    voice = "pt-PT-DuarteNeural"
-    communicate = edge_tts.Communicate(texto, voice)
-    await communicate.save("audio.mp3")
+@app.route('/logout', methods=['GET'])
+def logout():
+    # Redireciona de volta para a raiz para limpar o ecrã sem dar erro 404
+    return redirect('/')
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    data = request.get_json() or {}
+    user_msg = data.get("message")
+    chat_history = data.get("history", [])
     
-    # Execução nativa do player do sistema operacional sem bloquear a thread
-    if os.name == 'nt':  # Windows
-        os.system("start /min "" audio.mp3")
-    else:  # Linux / MacOS
-        os.system("aplay audio.mp3 &" if os.name == 'posix' else "open audio.mp3 &")
+    if not user_msg:
+        return jsonify({"error": "Mensagem vazia"}), 400
 
-def falar(texto):
-    """Gerencia a saída de voz e aplica Fallback local se a rede falhar."""
-    print(f"\n🤖 Mello IA: {texto}\n")
-    try:
-        asyncio.run(_gerar_audio_neural(texto))
-    except Exception as e:
-        # HARD FALLBACK: Se o edge-tts falhar, usa síntese local estável
-        engine = pyttsx3.init()
-        engine.setProperty('rate', 170)
-        engine.say(texto)
-        engine.runAndWait()
-
-# ==========================================
-# 🧠 SISTEMA DE REGRAS HEURÍSTICAS
-# ==========================================
-def processar_regras_estáticas(texto_normalizado):
-    """Interpolação de padrões locais com maior prioridade de execução."""
-    if "ivanildo" in texto_normalizado:
-        return (
+    # Camada de Regras Locais Hardcoded diretamente na API
+    pergunta_limpa = user_msg.lower().strip()
+    if "ivanildo" in pergunta_limpa:
+        bot_reply = (
             "Ivanildo João Paulo é um engenheiro de sistemas e especialista em redes em formação. "
             "Desenvolvedor focado em arquiteturas robustas de software, infraestruturas de rede Cisco, Linux, e "
             "o arquiteto responsável pelo desenvolvimento do ecossistema neural da Mello IA."
         )
-    return None
+        chat_history.append({"role": "user", "content": user_msg})
+        chat_history.append({"role": "assistant", "content": bot_reply})
+        return jsonify({"reply": bot_reply, "history": chat_history})
 
-# ==========================================
-# 🌐 MOTOR DA API OPENROUTER (COM CONTEXTO)
-# ==========================================
-def chamar_api_neural(pergunta):
-    """Executa chamadas HTTP estruturadas com injeção de contexto e histórico evolutivo."""
-    if not API_KEY:
-        return "⚠️ Erro: A variável de ambiente OPENROUTER_API_KEY não foi configurada no sistema!"
+    # Adiciona a interração atual ao histórico dinâmico recebido do front-end
+    chat_history.append({"role": "user", "content": user_msg})
 
-    url = "https://openrouter.ai/api/v1/chat/completions"
+    api_key = os.getenv('OPENROUTER_API_KEY')
+    if not api_key:
+        return jsonify({"reply": "⚠️ Erro: A variável de ambiente OPENROUTER_API_KEY não foi configurada!", "history": chat_history})
     
     headers = {
-        "Authorization": f"Bearer {API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://mello-ia-oficial.onrender.com",
         "X-Title": "Mello IA Core"
     }
-
+    
     # Injeção de System Prompt de alta fidelidade
     messages = [
         {
@@ -88,12 +66,8 @@ def chamar_api_neural(pergunta):
         }
     ]
     
-    # Alimenta o payload com o histórico real da conversa
-    for interacao in CONVERSATION_HISTORY:
-        messages.append(interacao)
-        
-    # Adiciona o input atual do utilizador
-    messages.append({"role": "user", "content": pergunta})
+    # Concatena o histórico dinâmico (Janela de Contexto)
+    messages.extend(chat_history)
 
     payload = {
         "model": MODELO,
@@ -104,66 +78,26 @@ def chamar_api_neural(pergunta):
     }
 
     try:
-        response = http_session.post(url, headers=headers, json=payload, timeout=15)
+        response = http_session.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=20)
         
         if response.status_code == 401:
-            return "⚠️ Erro de Autenticação: A chave OPENROUTER_API_KEY fornecida é inválida."
+            return jsonify({"reply": "⚠️ Erro de Autenticação: A chave fornecida é inválida.", "history": chat_history})
         elif response.status_code != 200:
-            return f"Erro Crítico de Comunicação (Código HTTP {response.status_code})."
+            return jsonify({"reply": f"Erro Crítico de Comunicação (HTTP {response.status_code}).", "history": chat_history})
             
-        data = response.json()
-        resposta_ia = data["choices"][0]["message"]["content"]
+        response_data = response.json()
+        bot_reply = response_data['choices'][0]['message']['content']
         
-        # Atualiza a memória de curto prazo se o pedido foi bem-sucedido
-        CONVERSATION_HISTORY.append({"role": "user", "content": pergunta})
-        CONVERSATION_HISTORY.append({"role": "assistant", "content": resposta_ia})
+        chat_history.append({"role": "assistant", "content": bot_reply})
         
-        # Impede o estouro de memória da janela de contexto
-        if len(CONVERSATION_HISTORY) > MAX_HISTORY_LEN * 2:
-            CONVERSATION_HISTORY.pop(0)
-            CONVERSATION_HISTORY.pop(0)
-            
-        return resposta_ia
-
+        return jsonify({
+            "reply": bot_reply, 
+            "history": chat_history
+        })
+        
     except Exception as e:
-        return f"Falha na inferência neural: {str(e)}"
+        return jsonify({"reply": f"Falha na inferência neural: {str(e)}", "history": chat_history})
 
-# ==========================================
-# 🚀 EXECUÇÃO DO LOOP PRINCIPAL
-# ==========================================
-if __name__ == "__main__":
-    print("\n" + "="*50)
-    print("🧠 CORE MELLO IA V5 PRO - ENGINE INICIADA")
-    print("="*50 + "\n")
-    
-    if not API_KEY:
-        print("⚠️ AVISO: A variável de ambiente 'OPENROUTER_API_KEY' não foi detetada.")
-        print("Certifica-te de configurá-la no terminal antes de rodar o script.")
-    
-    while True:
-        try:
-            pergunta = input("Tu ⌨️ : ")
-            
-            if not pergunta.strip():
-                continue
-                
-            if pergunta.lower().strip() in ["sair", "exit", "quit"]:
-                falar("Sessão terminada. Desligando módulos neurais.")
-                break
-
-            # Normalização de strings para parsing local
-            pergunta_limpa = pergunta.lower().strip()
-
-            # Camada 1: Regras Locais Hardcoded
-            resposta_local = processar_regras_estáticas(pergunta_limpa)
-            if resposta_local:
-                falar(resposta_local)
-                continue
-
-            # Camada 2: Inteligência Generativa via OpenRouter
-            resposta_ia = chamar_api_neural(pergunta)
-            falar(resposta_ia)
-
-        except KeyboardInterrupt:
-            print("\nInterrupção forçada pelo operador.")
-            break
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
