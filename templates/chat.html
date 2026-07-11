@@ -1,44 +1,24 @@
+<div id="chat-box"></div>
+<input type="text" id="user-input" placeholder="Escreva algo...">
+<button onclick="enviarMensagem()">Enviar</button>
+
 <script>
-window.onload = function () {
-    let chat = document.getElementById("chat");
-    chat.innerHTML += `
-        <div class="msg bot">
-            <div class="bubble">
-                🤖 Bem-vindo à <b>Mello IA</b>, criada pelo Eng. Ivanildo 👨‍💻
-            </div>
-        </div>
-    `;
-};
+async function enviarMensagem() {
+    const input = document.getElementById('user-input');
+    const msg = input.value;
+    console.log("A enviar:", msg); // Verificamos se isto aparece no F12
 
-function send() {
-    let msg = document.getElementById("msg").value;
-    if (!msg) return;
-
-    let chat = document.getElementById("chat");
-
-    // Correção: Agora usa as classes .msg e .user que tens no CSS
-    chat.innerHTML += `
-        <div class="msg user">
-            <div class="bubble">${msg}</div>
-        </div>
-    `;
-
-    fetch("/chat", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({message: msg})
-    })
-    .then(res => res.json())
-    .then(data => {
-        // Correção: Agora usa as classes .msg e .bot que tens no CSS
-        chat.innerHTML += `
-            <div class="msg bot">
-                <div class="bubble">${data.reply}</div>
-            </div>
-        `;
-
-        document.getElementById("msg").value = "";
-        chat.scrollTop = chat.scrollHeight;
-    });
+    try {
+        const res = await fetch('/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: msg})
+        });
+        const data = await res.json();
+        console.log("Resposta recebida:", data.reply); // Verificamos a resposta
+        document.getElementById('chat-box').innerHTML += `<p>IA: ${data.reply}</p>`;
+    } catch (e) {
+        console.error("Erro no Fetch:", e);
+    }
 }
 </script>
