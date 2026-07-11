@@ -1,24 +1,277 @@
-<div id="chat-box"></div>
-<input type="text" id="user-input" placeholder="Escreva algo...">
-<button onclick="enviarMensagem()">Enviar</button>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mello IA</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
 
-<script>
-async function enviarMensagem() {
-    const input = document.getElementById('user-input');
-    const msg = input.value;
-    console.log("A enviar:", msg); // Verificamos se isto aparece no F12
+        .header {
+            background: #1e293b;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    try {
-        const res = await fetch('/chat', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({message: msg})
-        });
-        const data = await res.json();
-        console.log("Resposta recebida:", data.reply); // Verificamos a resposta
-        document.getElementById('chat-box').innerHTML += `<p>IA: ${data.reply}</p>`;
-    } catch (e) {
-        console.error("Erro no Fetch:", e);
-    }
-}
-</script>
+        .btn-mic {
+            background: #ef4444 !important;
+            color: white !important;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-mic:hover { background: #dc2626 !important; }
+        .btn-mic:active { transform: scale(0.98); }
+
+        .btn-mic.gravando {
+            background: #22c55e !important;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        .btn-sair {
+            background: #334155;
+            color: #f8fafc;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.2s;
+            border: 1px solid #475569;
+        }
+        .btn-sair:hover { background: #f1f5f9; color: #0f172a; }
+
+        .chat-container {
+            flex: 1;
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+        }
+
+        .mensagem {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 75%;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .user-msg {
+            background: #2563eb;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .ia-msg {
+            background: #334155;
+            color: #f8fafc;
+            align-self: flex-start;
+            border: 1px solid #475569;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: #1e293b;
+            border: 1px solid #475569;
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+        input[type="text"]:focus { border-color: #2563eb; }
+
+        .btn-enviar {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-enviar:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+
+    <!-- CABEÇALHO CORRIGIDO -->
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">🤖</span>
+            <h2 style="margin: 0; font-size: 20px; color: #f8fafc;">Mello IA</h2>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <button id="btnVoz" class="btn-mic" onclick="alternarModoVoz()">🎙️ Ativar Mãos Livres</button>
+            <a href="/logout" class="btn-sair">Sair</a>
+        </div>
+    </div>
+
+    <!-- ÁREA DE MENSAGENS -->
+    <div class="chat-container" id="chatContainer">
+        <div class="mensagem ia-msg">
+            🤖 Bem-vindo à <strong>Mello IA</strong>, criada pelo Eng. Ivanildo 💻
+        </div>
+    </div>
+
+    <!-- CAMPO DE ENTRADA -->
+    <div class="input-container">
+        <input type="text" id="userInput" placeholder="Escreve para a Mello IA..." onkeypress="verificarEnter(event)">
+        <button class="btn-enviar" onclick="enviarMensagem()">Enviar</button>
+    </div>
+
+    <script>
+        let modoVozAtivo = false;
+        let reconhecimento = null;
+
+        // Inicializa o reconhecimento de voz do navegador
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            reconhecimento = new SpeechRecognition();
+            reconhecimento.lang = 'pt-PT';
+            reconhecimento.continuous = true;
+            reconhecimento.interimResults = false;
+
+            reconhecimento.onresult = function(event) {
+                const resultado = event.results[event.results.length - 1][0].transcript;
+                if (resultado.trim() !== "") {
+                    adicionarMensagem(resultado, 'user-msg');
+                    enviarAoBackend(resultado);
+                }
+            };
+
+            reconhecimento.onerror = function(event) {
+                console.error("Erro no reconhecimento: ", event.error);
+            };
+
+            reconhecimento.onend = function() {
+                if (modoVozAtivo) {
+                    try { reconhecimento.start(); } catch(e) {}
+                }
+            };
+        }
+
+        function alternarModoVoz() {
+            const btn = document.getElementById('btnVoz');
+            if (!reconhecimento) {
+                alert("O teu navegador não suporta reconhecimento de voz.");
+                return;
+            }
+
+            modoVozAtivo = !modoVozAtivo;
+
+            if (modoVozAtivo) {
+                btn.classList.add('gravando');
+                btn.innerHTML = "🟢 Ouvindo...";
+                try { reconhecimento.start(); } catch(e) {}
+            } else {
+                btn.classList.remove('gravando');
+                btn.innerHTML = "🎙️ Ativar Mãos Livres";
+                try { reconhecimento.stop(); } catch(e) {}
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                }
+            }
+        }
+
+        function falarTexto(texto) {
+            if ('speechSynthesis' in window && modoVozAtivo) {
+                // Remove emojis para evitar ruídos na leitura
+                const textoLimpo = texto.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+                
+                const utterance = new SpeechSynthesisUtterance(textoLimpo);
+                utterance.lang = 'pt-PT';
+                utterance.rate = 1.0;
+
+                if (reconhecimento) reconhecimento.stop();
+
+                utterance.onend = function() {
+                    if (modoVozAtivo && reconhecimento) {
+                        try { reconhecimento.start(); } catch(e) {}
+                    }
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function verificarEnter(event) {
+            if (event.key === 'Enter') enviarMensagem();
+        }
+
+        function enviarMensagem() {
+            const input = document.getElementById('userInput');
+            const texto = input.value.trim();
+            if (texto === "") return;
+
+            adicionarMensagem(texto, 'user-msg');
+            input.value = "";
+            enviarAoBackend(texto);
+        }
+
+        function adicionarMensagem(texto, classe) {
+            const container = document.getElementById('chatContainer');
+            const div = document.createElement('div');
+            div.className = `mensagem ${classe}`;
+            div.innerText = texto;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function enviarAoBackend(texto) {
+            fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: texto })
+            })
+            .then(res => res.json())
+            .then(data => {
+                adicionarMensagem(data.response, 'ia-msg');
+                falarTexto(data.response);
+            })
+            .catch(err => {
+                console.error("Erro:", err);
+                adicionarMensagem("Erro ao contactar o servidor.", 'ia-msg');
+            });
+        }
+    </script>
+</body>
+</html>
