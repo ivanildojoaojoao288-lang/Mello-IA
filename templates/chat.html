@@ -2,19 +2,19 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<title>Mello IA</title>
+<title>Mello IA - Voice Engine</title>
 
 <style>
 body {
     margin: 0;
     font-family: "Segoe UI", sans-serif;
-    background: #f5f7fb;
+    background: #0f172a; /* Fundo escuro premium */
+    color: #e2e8f0;
     display: flex;
     justify-content: center;
     height: 100vh;
 }
 
-/* CONTAINER */
 .container {
     width: 700px;
     display: flex;
@@ -22,12 +22,11 @@ body {
     margin-top: 20px;
 }
 
-/* HEADER */
 .header {
-    background: white;
+    background: #1e293b;
     padding: 15px 20px;
     border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     margin-bottom: 15px;
     display: flex;
     justify-content: space-between;
@@ -37,39 +36,26 @@ body {
 .header h2 {
     margin: 0;
     font-size: 18px;
-    color: #111827;
+    color: #f8fafc;
 }
 
-.header a {
-    color: #ef4444;
-    text-decoration: none;
-    font-size: 13px;
-}
-
-/* CHAT BOX */
 .chat-box {
     flex: 1;
-    background: white;
+    background: #1e293b;
     border-radius: 15px;
     padding: 20px;
     overflow-y: auto;
     height: 450px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 
-/* MENSAGENS */
 .msg {
     margin: 10px 0;
     display: flex;
 }
 
-.user {
-    justify-content: flex-end;
-}
-
-.bot {
-    justify-content: flex-start;
-}
+.user { justify-content: flex-end; }
+.bot { justify-content: flex-start; }
 
 .bubble {
     max-width: 70%;
@@ -86,12 +72,11 @@ body {
 }
 
 .bot .bubble {
-    background: #e5e7eb;
-    color: #111827;
+    background: #334155;
+    color: #f8fafc;
     border-bottom-left-radius: 5px;
 }
 
-/* INPUT */
 .input-area {
     display: flex;
     margin-top: 15px;
@@ -101,16 +86,18 @@ body {
 input {
     flex: 1;
     padding: 14px;
-    border: 1px solid #e5e7eb;
+    background: #1e293b;
+    border: 1px solid #475569;
     border-radius: 12px;
+    color: white;
     outline: none;
 }
 
 input:focus {
     border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
 }
 
+/* BOTÕES ESTILIZADOS */
 button {
     padding: 14px 20px;
     background: #3b82f6;
@@ -118,23 +105,38 @@ button {
     border: none;
     border-radius: 12px;
     cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
 }
 
-button:hover {
-    background: #2563eb;
+button:hover { background: #2563eb; }
+
+.btn-mic {
+    background: #ef4444;
+}
+.btn-mic:hover { background: #dc2626; }
+
+.btn-mic.gravando {
+    background: #22c55e;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1); }
 }
 </style>
 
 </head>
-
 <body>
 
 <div class="container">
 
     <!-- HEADER -->
     <div class="header">
-        <h2>🤖 Mello IA</h2>
-        <a href="/logout">Sair</a>
+        <h2>🤖 Mello IA - Modo Conversação Ativo</h2>
+        <button id="btnVoz" class="btn-mic" onclick="alternarModoVoz()">🎙️ Ativar Mãos Livres</button>
     </div>
 
     <!-- CHAT -->
@@ -142,28 +144,128 @@ button:hover {
 
     <!-- INPUT -->
     <div class="input-area">
-        <!-- ⌨️ Adicionado onkeydown para poderes enviar com o Enter do teclado -->
-        <input id="msg" placeholder="Escreve para a Mello IA..." onkeydown="if(event.key === 'Enter') send()">
+        <input id="msg" placeholder="Escreve ou clica no microfone para falar..." onkeydown="if(event.key === 'Enter') send()">
         <button onclick="send()">Enviar</button>
     </div>
 
 </div>
 
 <script>
-// 🧠 Histórico guardado localmente no browser
 let chatHistory = []; 
+let recognition;
+let modoVozAtivo = false;
+let deveraGravar = false;
 
 window.onload = function () {
     let chat = document.getElementById("chat");
     chat.innerHTML += `
         <div class="msg bot">
             <div class="bubble">
-                🤖 Bem-vindo à <b>Mello IA</b>, criada pelo Eng. Ivanildo 👨‍💻
+                🤖 Olá! Sou a <b>Mello IA</b>. Ativa o botão <b>🎙️ Ativar Mãos Livres</b> acima, fala comigo e eu responderei diretamente por voz!
             </div>
         </div>
     `;
+    inicializarRecursosVoz();
 };
 
+// ⚙️ Inicializa as APIs de reconhecimento de áudio nativo do navegador
+function inicializarRecursosVoz() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("O teu navegador não suporta reconhecimento de voz direto. Recomendo usar o Google Chrome ou Edge.");
+        return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = 'pt-PT'; // Sotaque refinado para captação estável
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    // Quando tu terminas de falar, ele processa o áudio e envia automaticamente
+    recognition.onresult = function(event) {
+        let textoCapturado = event.results[0][0].transcript;
+        document.getElementById("msg").value = textoCapturado;
+        send(); // Envia automaticamente para o pipeline da IA
+    };
+
+    recognition.onend = function() {
+        // Se o modo contínuo estiver ligado e a IA NÃO estiver a falar, reativa o microfone
+        if (modoVozAtivo && deveraGravar) {
+            recognition.start();
+        } else if (!modoVozAtivo) {
+            desativarVisualMic();
+        }
+    };
+
+    recognition.onerror = function(e) {
+        console.log("Erro no microfone:", e.error);
+        if (e.error === 'not-allowed') {
+            alert("Dá permissão ao microfone no teu navegador para poderes falar.");
+            desativarModoVozCompleto();
+        }
+    };
+}
+
+// 🎙️ Liga/Desliga o microfone e o modo contínuo de conversação de áudio
+function alternarModoVoz() {
+    if (!recognition) return;
+
+    if (!modoVozAtivo) {
+        modoVozAtivo = true;
+        deveraGravar = true;
+        document.getElementById("btnVoz").innerText = "🎙️ Ouvindo...";
+        document.getElementById("btnVoz").classList.add("gravando");
+        window.speechSynthesis.cancel(); // Para qualquer fala ativa
+        recognition.start();
+    } else {
+        desativarModoVozCompleto();
+    }
+}
+
+function desativarVisualMic() {
+    document.getElementById("btnVoz").innerText = "🎙️ Ativar Mãos Livres";
+    document.getElementById("btnVoz").classList.remove("gravando");
+}
+
+function desativarModoVozCompleto() {
+    modoVozAtivo = false;
+    deveraGravar = false;
+    desativarVisualMic();
+    if(recognition) recognition.stop();
+    window.speechSynthesis.cancel();
+}
+
+// 🔊 Executa a síntese de áudio da resposta da IA
+function falarTexto(texto) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Evita gargalos de enfileiramento de áudio
+        
+        // Limpa marcações complexas de markdown ou emojis para o áudio sair limpo
+        let textoLimpo = texto.replace(/<\/?[^>]+(>|$)/g, "")
+                              .replace(/[\*#_`~]/g, "")
+                              .replace(/[🤖⚠️👨‍💻]/g, "");
+        
+        let utterance = new SpeechSynthesisUtterance(textoLimpo);
+        utterance.lang = 'pt-PT';
+        utterance.rate = 1.05; // Cadência natural de conversação
+        
+        // Bloqueia o microfone temporariamente ENQUANTO a IA fala, para ela não se ouvir a ela própria
+        deveraGravar = false;
+        if(recognition) recognition.stop();
+
+        utterance.onend = function() {
+            // Assim que a IA acaba de falar, se o modo de voz estiver ativo, ela volta a ouvir-te na hora!
+            if (modoVozAtivo) {
+                deveraGravar = true;
+                recognition.start();
+            }
+        };
+
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+// 🚀 Envio de mensagens unificado (Voz e Teclado)
 function send() {
     let msgInput = document.getElementById("msg");
     let msg = msgInput.value;
@@ -171,27 +273,23 @@ function send() {
 
     let chat = document.getElementById("chat");
 
-    // 1. Mostra a mensagem do utilizador no ecrã
     chat.innerHTML += `
         <div class="msg user">
             <div class="bubble">${msg}</div>
         </div>
     `;
 
-    // 2. Limpa o input IMEDIATAMENTE antes do fetch para evitar bugs com o innerHTML
     msgInput.value = "";
     chat.scrollTop = chat.scrollHeight;
 
-    // 3. Cria um ID único para a mensagem de "A pensar..."
     let loadingId = "loading-" + Date.now();
     chat.innerHTML += `
         <div class="msg bot" id="${loadingId}">
-            <div class="bubble" style="color: #64748b;">A processar...</div>
+            <div class="bubble" style="color: #94a3b8;">A processar áudio...</div>
         </div>
     `;
     chat.scrollTop = chat.scrollHeight;
 
-    // 4. Faz o pedido à API Flask passando o histórico
     fetch("/chat", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -202,36 +300,33 @@ function send() {
     })
     .then(res => res.json())
     .then(data => {
-        // Remove a mensagem de carregamento
-        document.getElementById(loadingId).remove();
+        const loadingEl = document.getElementById(loadingId);
+        if(loadingEl) loadingEl.remove();
 
-        if (data.error) {
-            chat.innerHTML += `
-                <div class="msg bot">
-                    <div class="bubble" style="color: red;">⚠️ Erro: ${data.error}</div>
-                </div>
-            `;
-        } else {
-            // 🚀 Atualiza o histórico local recebido do Flask
-            chatHistory = data.history; 
+        chatHistory = data.history || chatHistory; 
 
-            // Coloca a resposta real da IA no ecrã usando data.reply
-            chat.innerHTML += `
-                <div class="msg bot">
-                    <div class="bubble">${data.reply}</div>
-                </div>
-            `;
-        }
+        chat.innerHTML += `
+            <div class="msg bot">
+                <div class="bubble">${data.reply}</div>
+            </div>
+        `;
+        
+        // 🚀 Executa o output de voz imediato
+        falarTexto(data.reply);
+
         chat.scrollTop = chat.scrollHeight;
     })
     .catch(err => {
-        document.getElementById(loadingId).remove();
+        const loadingEl = document.getElementById(loadingId);
+        if(loadingEl) loadingEl.remove();
+        
         chat.innerHTML += `
             <div class="msg bot">
-                <div class="bubble" style="color: red;">⚠️ Falha na ligação ao servidor.</div>
+                <div class="bubble" style="color: #f87171;">⚠️ Falha de comunicação neural.</div>
             </div>
         `;
         chat.scrollTop = chat.scrollHeight;
+        if(modoVozAtivo) { deveraGravar = true; recognition.start(); }
     });
 }
 </script>
