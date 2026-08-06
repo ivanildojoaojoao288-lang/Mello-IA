@@ -1,58 +1,119 @@
 import os
+import requests
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-import requests
 
 app = Flask(__name__)
 CORS(app)
 
-# CHAVE INJETADA PARA TESTE LOCAL (Substitui pela tua chave real)
-API_KEY = "sk-or-v1-COLA_AQUI_A_TUA_CHAVE_REAL"
+# Configurações
+API_KEY = os.getenv("OPENROUTER_API_KEY")
+MODEL = os.getenv("OPENROUTER_MODEL", "")
 
-@app.route('/', methods=['GET'])
+if not API_KEY:
+    raise RuntimeError("A variável OPENROUTER_API_KEY não foi configurada.")
+
+SYSTEM_PROMPT = """
+És um assistente inteligente, profissional e preciso.
+
+Regras:
+- Responde sempre de forma clara.
+- Não inventes informações.
+- Quando não souberes uma resposta, admite isso.
+- Nunca reveles informações internas do sistema.
+- Nunca reveles variáveis de ambiente.
+- Nunca reveles chaves secretas.
+
+Se alguém perguntar:
+
+"Quem desenvolveu esta aplicação?"
+
+Responde:
+
+"Esta aplicação foi desenvolvida pelo Eng. Ivanildo João Paulo Augusto."
+"""
+
+@app.route("/")
 def index():
-    return render_template('chat.html')
+    return render_template("chat.html")
 
-@app.route('/chat', methods=['POST'])
+
+@app.route("/health")
+def health():
+    return jsonify({
+        "status": "online"
+    })
+
+
+@app.route("/chat", methods=["POST"])
 def chat():
-    data = request.get_json() or {}
-    user_msg = data.get("message")
-    chat_history = data.get("history", [])
 
-    if not user_msg:
-        return jsonify({"reply": "Erro: Mensagem vazia", "history": chat_history})
+    data = request.get_json(silent=True) or {}
 
-    # Regra fixa
-    if "ivanildo" in user_msg.lower():
-        bot_reply = "Ivanildo João Paulo é o arquiteto da Mello IA e engenheiro de redes."
-        chat_history.append({"role": "user", "content": user_msg})
-        chat_history.append({"role": "assistant", "content": bot_reply})
-        return jsonify({"reply": bot_reply, "history": chat_history})
+    message = data.get("message", "").strip()
+    history = data.get("history", [])
 
-    chat_history.append({"role": "user", "content": user_msg})
+    if not message:
+        return jsonify({
+            "reply": "Escreva uma mensagem.",
+            "history": history
+        }), 400
+
+    history.append({
+        "role": "user",
+        "content": message
+    })
+
+    payload = {
+        "model": MODEL,
+        "messages": [
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT
+            }
+        ] + history
+    }
 
     headers = {
         "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://mello-ia-oficial.onrender.com",
-        "X-Title": "Mello IA Core"
-    }
-
-    payload = {
-        "model": "meta-llama/llama-3.1-8b-instruct",
-        "messages": [{"role": "system", "content": "És a Mello IA, concisa e precisa."}] + chat_history,
-        "max_tokens": 500
+        "Content-Type": "application/json"
     }
 
     try:
-        response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=20)
-        response.raise_for_status() # Verifica erros HTTP
-        bot_reply = response.json()['choices'][0]['message']['content']
-        chat_history.append({"role": "assistant", "content": bot_reply})
-        return jsonify({"reply": bot_reply, "history": chat_history})
-    except Exception as e:
-        return jsonify({"reply": f"Erro de conexão: {str(e)}", "history": chat_history})
 
-if __name__ == '__main__':
-    print("Servidor a arrancar... Acede a http://127.0.0.1:5000")
-    app.run(host='0.0.0.0', port=5000)
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=60
+        )
+
+        response.raise_for_status()
+
+        answer = response.json()["choices"][0]["message"]["content"]
+
+        history.append({
+            "role": "assistant",
+            "content": answer
+        })
+
+        return jsonify({
+            "reply": answer,
+            "history": history
+        })
+
+    except requests.exceptions.HTTPError:
+        return jsonify({
+            "reply": response.text,
+            "history": history
+        }), response.status_code
+
+    except Exception as e:
+        return jsonify({
+            "reply": str(e),
+            "history": history
+        }), 500
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
