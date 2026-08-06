@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Mello IA</title>
+
 
 <style>
 
@@ -20,180 +22,349 @@ body{
     height:100vh;
 
     background:
-    linear-gradient(135deg,#020617,#0f172a,#075985);
+    linear-gradient(135deg,#003b73,#0066cc,#ffffff);
 
     display:flex;
     justify-content:center;
     align-items:center;
 
-    color:white;
-
 }
 
 
+
+/* Caixa principal */
 
 .container{
 
     width:95%;
-    max-width:900px;
+    max-width:950px;
 
-    background:rgba(255,255,255,0.08);
+    background:white;
 
-    backdrop-filter:blur(20px);
+    border-radius:35px;
 
-    border-radius:30px;
+    padding:35px;
 
-    padding:30px;
-
-    box-shadow:0 0 40px rgba(0,0,0,0.5);
+    box-shadow:
+    0 20px 60px rgba(0,80,180,0.25);
 
 }
 
 
+
+/* Logo */
 
 .logo{
 
-    text-align:center;
+    display:flex;
+
+    justify-content:center;
+
+}
+
+
+.logo-icon{
+
+
+    width:95px;
+
+    height:95px;
+
+
+    border-radius:35px;
+
+
+    background:
+
+    linear-gradient(135deg,#0057ff,#00c6ff);
+
+
+
+    color:white;
+
 
     font-size:60px;
 
+
+    font-weight:800;
+
+
+    display:flex;
+
+
+    justify-content:center;
+
+
+    align-items:center;
+
+
+
+    box-shadow:
+
+    0 15px 35px rgba(0,100,255,.4);
+
+
 }
+
+
 
 
 h1{
 
+
     text-align:center;
+
+
+    color:#0057b8;
+
 
     font-size:45px;
 
-    margin:10px;
+
+    margin:15px 0 5px;
+
 
 }
+
+
 
 
 .subtitle{
 
+
     text-align:center;
 
-    color:#67e8f9;
 
-    margin-bottom:25px;
+    color:#2563eb;
+
+
+    font-size:18px;
+
 
 }
+
 
 
 
 .creator{
 
-    text-align:center;
 
-    padding:15px;
+    margin:25px 0;
 
-    background:rgba(255,255,255,.08);
+
+    padding:18px;
+
+
+    background:#eff6ff;
+
 
     border-radius:20px;
 
-    margin-bottom:20px;
+
+    text-align:center;
+
+
+    color:#1e3a8a;
+
 
 }
 
+
+
+
+.creator strong{
+
+
+    color:#0057ff;
+
+
+}
+
+
+
+
+
+/* Área das mensagens */
 
 
 #console{
 
-    height:350px;
+
+    height:380px;
+
 
     overflow-y:auto;
 
-    background:#020617;
-
-    border-radius:20px;
 
     padding:20px;
 
+
+    background:#f8fafc;
+
+
+    border-radius:25px;
+
+
+    border:1px solid #dbeafe;
+
+
 }
+
+
 
 
 
 .message{
 
-    padding:12px 18px;
-
-    margin:10px 0;
-
-    border-radius:20px;
 
     max-width:80%;
 
+
+    padding:15px 20px;
+
+
+    margin:12px 0;
+
+
+    border-radius:20px;
+
+
+    font-size:16px;
+
+
+    line-height:1.5;
+
+
 }
+
+
 
 
 
 .user{
 
-    background:#334155;
 
     margin-left:auto;
 
+
+    background:#0057ff;
+
+
+    color:white;
+
+
+    border-bottom-right-radius:5px;
+
+
 }
+
+
 
 
 
 .bot{
 
-    background:#0284c7;
+
+    background:#e0f2fe;
+
+
+    color:#0f172a;
+
+
+    border-bottom-left-radius:5px;
+
 
 }
 
+
+
+
+
+/* Entrada */
 
 
 .input-area{
 
+
     display:flex;
 
-    gap:10px;
 
-    margin-top:20px;
+    gap:15px;
+
+
+    margin-top:25px;
+
 
 }
+
 
 
 
 input{
 
+
     flex:1;
 
-    padding:15px;
 
-    border:none;
+    padding:16px 20px;
+
 
     border-radius:30px;
 
-    background:#020617;
 
-    color:white;
+    border:2px solid #bfdbfe;
+
+
+    outline:none;
+
 
     font-size:16px;
+
 
 }
 
 
 
+input:focus{
+
+
+    border-color:#0066ff;
+
+
+}
+
+
+
+
+
 button{
 
-    padding:15px 30px;
+
+    padding:16px 35px;
+
 
     border:none;
 
+
     border-radius:30px;
 
-    background:#06b6d4;
+
+    background:
+
+    linear-gradient(135deg,#0057ff,#00bfff);
+
 
     color:white;
 
+
+    font-size:16px;
+
+
     font-weight:bold;
 
+
     cursor:pointer;
+
 
 }
 
@@ -201,12 +372,37 @@ button{
 
 button:hover{
 
-    background:#0891b2;
+
+    transform:scale(1.05);
+
 
 }
 
 
+
+
+
+.footer{
+
+
+    text-align:center;
+
+
+    margin-top:20px;
+
+
+    color:#64748b;
+
+
+    font-size:14px;
+
+
+}
+
+
+
 </style>
+
 
 </head>
 
@@ -215,66 +411,103 @@ button:hover{
 <body>
 
 
+
 <div class="container">
 
 
-<div class="logo">
-🤖
+
+    <div class="logo">
+
+        <div class="logo-icon">
+            M
+        </div>
+
+    </div>
+
+
+
+    <h1>
+        Mello IA
+    </h1>
+
+
+
+    <div class="subtitle">
+
+        Assistente inteligente de tecnologia e inovação
+
+    </div>
+
+
+
+    <div class="creator">
+
+        Desenvolvida por
+
+        <strong>
+            Eng. Ivanildo João Paulo Augusto
+        </strong>
+
+    </div>
+
+
+
+
+    <div id="console">
+
+
+        <div class="message bot">
+
+            Olá! Eu sou a Mello IA.
+            Como posso ajudar hoje?
+
+        </div>
+
+
+
+    </div>
+
+
+
+
+    <div class="input-area">
+
+
+        <input
+
+        id="cmd"
+
+        placeholder="Digite sua mensagem..."
+
+        onkeydown="if(event.key==='Enter') send()"
+
+        >
+
+
+
+        <button onclick="send()">
+
+            Enviar
+
+        </button>
+
+
+
+    </div>
+
+
+
+
+    <div class="footer">
+
+        © 2026 Mello IA - Inteligência Artificial
+
+    </div>
+
+
+
 </div>
 
-
-<h1>Mello IA</h1>
-
-
-<div class="subtitle">
-Assistente inteligente criado para tecnologia, estudos e inovação
-</div>
-
-
-
-<div class="creator">
-
-Desenvolvida por <strong>Eng. Ivanildo João Paulo Augusto</strong>
-
-</div>
-
-
-
-<div id="console">
-
-<div class="message bot">
-
-Olá! Eu sou a Mello IA. Como posso ajudar?
-
-</div>
-
-
-</div>
-
-
-
-<div class="input-area">
-
-
-<input 
-id="cmd"
-placeholder="Digite sua mensagem..."
-onkeydown="if(event.key==='Enter') send()"
-/>
-
-
-<button onclick="send()">
-
-Enviar
-
-</button>
-
-
-</div>
-
-
-
-</div>
 
 
 
@@ -285,76 +518,105 @@ Enviar
 async function send(){
 
 
-const input=document.getElementById("cmd");
-
-const msg=input.value.trim();
-
-
-if(!msg) return;
+    const input =
+    document.getElementById("cmd");
 
 
-
-const consoleBox=document.getElementById("console");
+    const msg =
+    input.value.trim();
 
 
 
-consoleBox.innerHTML +=
-
-`
-<div class="message user">
-${msg}
-</div>
-`;
+    if(!msg) return;
 
 
 
-input.value="";
+    const consoleBox =
+    document.getElementById("console");
 
 
 
-const res=await fetch("/chat",{
+    consoleBox.innerHTML +=
 
-method:"POST",
-
-headers:{
-
-"Content-Type":"application/json"
-
-},
-
-body:JSON.stringify({
-
-message:msg
-
-})
-
-});
+    `
+    <div class="message user">
+        ${msg}
+    </div>
+    `;
 
 
 
-const data=await res.json();
+    input.value="";
 
 
 
-consoleBox.innerHTML +=
-
-`
-<div class="message bot">
-
-${data.reply || "Erro ao receber resposta"}
-
-</div>
-`;
+    consoleBox.scrollTop =
+    consoleBox.scrollHeight;
 
 
 
-consoleBox.scrollTop=consoleBox.scrollHeight;
+    const resposta =
+    await fetch("/chat",{
+
+
+        method:"POST",
+
+
+        headers:{
+
+
+            "Content-Type":"application/json"
+
+
+        },
+
+
+        body:JSON.stringify({
+
+
+            message:msg
+
+
+        })
+
+
+    });
+
+
+
+
+    const data =
+    await resposta.json();
+
+
+
+
+    consoleBox.innerHTML +=
+
+
+    `
+
+    <div class="message bot">
+
+        ${data.reply || "Erro ao responder"}
+
+    </div>
+
+    `;
+
+
+
+    consoleBox.scrollTop =
+    consoleBox.scrollHeight;
+
 
 
 }
 
 
+
 </script>
+
 
 
 
