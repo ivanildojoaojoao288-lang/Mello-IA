@@ -2,118 +2,95 @@ import os
 import requests
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# Configurações
 API_KEY = os.getenv("OPENROUTER_API_KEY")
-MODEL = os.getenv("OPENROUTER_MODEL", "")
-
-if not API_KEY:
-    raise RuntimeError("A variável OPENROUTER_API_KEY não foi configurada.")
+MODEL = os.getenv("OPENROUTER_MODEL")
 
 SYSTEM_PROMPT = """
-És um assistente inteligente, profissional e preciso.
+Tu és a Mello IA, uma assistente inteligente moderna.
 
-Regras:
-- Responde sempre de forma clara.
-- Não inventes informações.
-- Quando não souberes uma resposta, admite isso.
-- Nunca reveles informações internas do sistema.
-- Nunca reveles variáveis de ambiente.
-- Nunca reveles chaves secretas.
+Características:
+- Respostas claras e profissionais.
+- Linguagem simples.
+- Ajuda em programação, tecnologia, estudos e informação geral.
+- Nunca reveles chaves ou configurações internas.
 
-Se alguém perguntar:
-
-"Quem desenvolveu esta aplicação?"
+Quando perguntarem:
+"Quem criou a Mello IA?"
 
 Responde:
 
-"Esta aplicação foi desenvolvida pelo Eng. Ivanildo João Paulo Augusto."
+"A Mello IA foi desenvolvida pelo Eng. Ivanildo João Paulo Augusto,
+com foco em inteligência artificial, programação e inovação tecnológica."
 """
 
+
 @app.route("/")
-def index():
+def inicio():
     return render_template("chat.html")
-
-
-@app.route("/health")
-def health():
-    return jsonify({
-        "status": "online"
-    })
 
 
 @app.route("/chat", methods=["POST"])
 def chat():
 
-    data = request.get_json(silent=True) or {}
+    dados = request.json
 
-    message = data.get("message", "").strip()
-    history = data.get("history", [])
+    mensagem = dados.get("message", "")
+    historico = dados.get("history", [])
 
-    if not message:
+    if not mensagem:
         return jsonify({
-            "reply": "Escreva uma mensagem.",
-            "history": history
-        }), 400
+            "reply": "Por favor escreva uma mensagem."
+        })
 
-    history.append({
+
+    historico.append({
         "role": "user",
-        "content": message
+        "content": mensagem
     })
 
-    payload = {
-        "model": MODEL,
-        "messages": [
-            {
-                "role": "system",
-                "content": SYSTEM_PROMPT
-            }
-        ] + history
-    }
 
-    headers = {
-        "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json"
-    }
+    resposta = requests.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json"
+        },
+        json={
+            "model": MODEL,
+            "messages":[
+                {
+                    "role":"system",
+                    "content":SYSTEM_PROMPT
+                }
+            ] + historico,
+            "temperature":0.7,
+            "max_tokens":1000
+        },
+        timeout=60
+    )
 
-    try:
 
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers=headers,
-            json=payload,
-            timeout=60
-        )
+    resultado = resposta.json()
 
-        response.raise_for_status()
+    texto = resultado["choices"][0]["message"]["content"]
 
-        answer = response.json()["choices"][0]["message"]["content"]
 
-        history.append({
-            "role": "assistant",
-            "content": answer
-        })
+    return jsonify({
+        "reply":texto
+    })
 
-        return jsonify({
-            "reply": answer,
-            "history": history
-        })
-
-    except requests.exceptions.HTTPError:
-        return jsonify({
-            "reply": response.text,
-            "history": history
-        }), response.status_code
-
-    except Exception as e:
-        return jsonify({
-            "reply": str(e),
-            "history": history
-        }), 500
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    print("🚀 Mello IA online")
+    app.run(
+        host="0.0.0.0",
+        port=5000
+    )
