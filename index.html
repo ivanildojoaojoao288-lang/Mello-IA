@@ -1,102 +1,141 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <title>IA Chat</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- CSS externo -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<title>Mello IA</title>
+
+<link rel="stylesheet" href="/static/style.css">
+
 </head>
 
 <body>
 
 <div class="container">
 
-    <!-- TOPO -->
-    <div class="header">
-        IVANILDO IA
+    <div class="card">
+
+        <div class="logo">
+            🤖
+        </div>
+
+        <h1>
+            MELLO IA
+        </h1>
+
+        <p class="subtitle">
+            Inteligência Artificial de Nova Geração
+        </p>
+
+
+        <div class="creator">
+
+            <span>🚀</span>
+
+            <p>
+            Criada pelo<br>
+            <strong>Eng. Ivanildo João Paulo Augusto</strong>
+            </p>
+
+        </div>
+
+
+        <div id="chat">
+
+            <div class="message bot">
+                Olá 👋 Sou a Mello IA.
+                Como posso ajudar hoje?
+            </div>
+
+        </div>
+
+
+        <div class="input-area">
+
+            <input 
+            id="message"
+            placeholder="Escreva uma mensagem..."
+            >
+
+            <button onclick="sendMessage()">
+                Enviar 🚀
+            </button>
+
+        </div>
+
+
     </div>
 
-    <!-- CHAT -->
-    <div id="chat"></div>
-
-    <!-- INPUT -->
-    <div class="input-area">
-        <input id="msg" type="text" placeholder="Escreve aqui..." onkeydown="if(event.key === 'Enter') send()">
-        <button onclick="send()">Enviar</button>
-    </div>
 
 </div>
 
-<!-- JS -->
+
 <script>
-// 🧠 Variável global para reter o histórico da sessão atual do utilizador
-let chatHistory = []; 
 
-function send() {
-    let msg = document.getElementById("msg").value;
+let history=[];
 
-    if (!msg.trim()) return;
 
-    let chat = document.getElementById("chat");
+async function sendMessage(){
 
-    // USER MESSAGE
-    let userDiv = document.createElement("div");
-    userDiv.className = "msg-user";
-    userDiv.textContent = msg;
-    chat.appendChild(userDiv);
+let input=document.getElementById("message");
 
-    // LIMPA INPUT
-    document.getElementById("msg").value = "";
+let text=input.value;
 
-    // LOADING
-    let loading = document.createElement("div");
-    loading.className = "msg-ai";
-    loading.textContent = "A pensar...";
-    chat.appendChild(loading);
+if(!text)return;
 
-    chat.scrollTop = chat.scrollHeight;
 
-    // REQUEST PARA FLASK (Agora enviando o histórico acumulado)
-    fetch("/chat", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            message: msg,
-            history: chatHistory // 🚀 Enviamos o histórico atualizado
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        loading.remove();
+let chat=document.getElementById("chat");
 
-        if (data.error) {
-            let errorDiv = document.createElement("div");
-            errorDiv.className = "msg-ai";
-            errorDiv.style.color = "red";
-            errorDiv.textContent = "Erro: " + data.error;
-            chat.appendChild(errorDiv);
-            return;
-        }
 
-        // 🧠 Atualizamos o histórico local com o que o backend nos devolveu
-        chatHistory = data.history;
+chat.innerHTML += `
+<div class="message user">
+${text}
+</div>
+`;
 
-        let aiDiv = document.createElement("div");
-        aiDiv.className = "msg-ai";
-        aiDiv.textContent = data.reply;
 
-        chat.appendChild(aiDiv);
-        chat.scrollTop = chat.scrollHeight;
-    })
-    .catch(err => {
-        loading.textContent = "Erro na ligação com a IA";
-        loading.style.color = "red";
-    });
+input.value="";
+
+
+let response=await fetch("/chat",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+message:text,
+
+history:history
+
+})
+
+});
+
+
+let data=await response.json();
+
+
+chat.innerHTML += `
+
+<div class="message bot">
+${data.reply}
+</div>
+
+`;
+
+
+chat.scrollTop=chat.scrollHeight;
+
+
 }
+
 </script>
+
 
 </body>
 </html>
