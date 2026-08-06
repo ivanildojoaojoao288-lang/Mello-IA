@@ -12,6 +12,7 @@ CORS(app)
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 MODEL = os.getenv("OPENROUTER_MODEL")
 
+
 SYSTEM_PROMPT = """
 Tu és a Mello IA, uma assistente inteligente moderna.
 
@@ -39,15 +40,16 @@ def inicio():
 @app.route("/chat", methods=["POST"])
 def chat():
 
-    dados = request.json
+    dados = request.get_json(silent=True) or {}
 
-    mensagem = dados.get("message", "")
+    mensagem = dados.get("message", "").strip()
     historico = dados.get("history", [])
+
 
     if not mensagem:
         return jsonify({
             "reply": "Por favor escreva uma mensagem."
-        })
+        }), 400
 
 
     historico.append({
@@ -56,40 +58,77 @@ def chat():
     })
 
 
-    resposta = requests.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        headers={
-            "Authorization": f"Bearer {API_KEY}",
-            "Content-Type": "application/json"
-        },
-        json={
-            "model": MODEL,
-            "messages":[
-                {
-                    "role":"system",
-                    "content":SYSTEM_PROMPT
-                }
-            ] + historico,
-            "temperature":0.7,
-            "max_tokens":1000
-        },
-        timeout=60
-    )
+    try:
+
+        resposta = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+
+            headers={
+                "Authorization": f"Bearer {API_KEY}",
+                "Content-Type": "application/json"
+            },
+
+            json={
+                "model": MODEL,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": SYSTEM_PROMPT
+                    }
+                ] + historico,
+
+                "temperature": 0.7,
+                "max_tokens": 1000
+            },
+
+            timeout=60
+        )
 
 
-    resultado = resposta.json()
+        resultado = resposta.json()
 
-    texto = resultado["choices"][0]["message"]["content"]
+        print("RESPOSTA OPENROUTER:")
+        print(resultado)
 
 
-    return jsonify({
-        "reply":texto
-    })
+        if "choices" not in resultado:
+
+            return jsonify({
+
+                "reply": "Erro na comunicação com o serviço de IA.",
+
+                "detalhes": resultado
+
+            }), 500
+
+
+
+        texto = resultado["choices"][0]["message"]["content"]
+
+
+        return jsonify({
+
+            "reply": texto
+
+        })
+
+
+    except Exception as erro:
+
+        return jsonify({
+
+            "reply": "Erro interno da Mello IA.",
+
+            "detalhes": str(erro)
+
+        }), 500
 
 
 
 if __name__ == "__main__":
+
     print("🚀 Mello IA online")
+
     app.run(
         host="0.0.0.0",
         port=5000
