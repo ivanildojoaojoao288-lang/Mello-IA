@@ -12,6 +12,9 @@ CORS(app)
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 MODEL = os.getenv("OPENROUTER_MODEL")
 
+print("CHAVE CARREGADA:", bool(API_KEY))
+print("MODELO:", MODEL)
+
 
 SYSTEM_PROMPT = """
 Tu és a Mello IA, uma assistente inteligente moderna.
@@ -43,19 +46,11 @@ def chat():
     dados = request.get_json(silent=True) or {}
 
     mensagem = dados.get("message", "").strip()
-    historico = dados.get("history", [])
-
 
     if not mensagem:
         return jsonify({
             "reply": "Por favor escreva uma mensagem."
         }), 400
-
-
-    historico.append({
-        "role": "user",
-        "content": mensagem
-    })
 
 
     try:
@@ -74,11 +69,13 @@ def chat():
                     {
                         "role": "system",
                         "content": SYSTEM_PROMPT
+                    },
+                    {
+                        "role": "user",
+                        "content": mensagem
                     }
-                ] + historico,
-
-                "temperature": 0.7,
-                "max_tokens": 1000
+                ],
+                "temperature": 0.7
             },
 
             timeout=60
@@ -92,35 +89,22 @@ def chat():
 
 
         if "choices" not in resultado:
-
             return jsonify({
-
-                "reply": "Erro na comunicação com o serviço de IA.",
-
+                "reply": "Erro na comunicação com a IA.",
                 "detalhes": resultado
-
             }), 500
 
 
-
-        texto = resultado["choices"][0]["message"]["content"]
-
-
         return jsonify({
-
-            "reply": texto
-
+            "reply": resultado["choices"][0]["message"]["content"]
         })
 
 
     except Exception as erro:
 
         return jsonify({
-
             "reply": "Erro interno da Mello IA.",
-
             "detalhes": str(erro)
-
         }), 500
 
 
