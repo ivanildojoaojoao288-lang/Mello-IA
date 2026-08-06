@@ -1,116 +1,37 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-<meta charset="UTF-8">
-<title>Login</title>
+from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask_login import LoginManager, login_user, login_required, UserMixin
 
-<style>
-body {
-    margin: 0;
-    font-family: "Segoe UI", sans-serif;
-    background: #f4f6fb;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
+app = Flask(__name__)
+app.secret_key = 'chave_secreta_super_segura' # Necessário para o login
 
-/* CARD CENTRAL */
-.card {
-    background: white;
-    width: 360px;
-    padding: 40px;
-    border-radius: 18px;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.12);
-    text-align: center;
-    animation: fadeIn 0.6s ease;
-}
+# 1. Configuração do LoginManager
+login_manager = LoginManager()
+login_manager.init_app(app)
+# Define exatamente o nome da função abaixo como o login_view
+login_manager.login_view = 'fazer_login' 
 
-@keyframes fadeIn {
-    from {opacity: 0; transform: translateY(20px);}
-    to {opacity: 1; transform: translateY(0);}
-}
+# Mock de utilizador para teste (podes ligar à tua base de dados depois)
+class User(UserMixin):
+    id = 1
 
-/* TÍTULO */
-h2 {
-    margin-bottom: 25px;
-    font-size: 28px;
-    color: #111827;
-}
+@login_manager.user_loader
+def load_user(user_id):
+    return User()
 
-/* INPUTS */
-input {
-    width: 100%;
-    padding: 14px;
-    margin: 10px 0;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    font-size: 14px;
-    transition: 0.2s;
-    outline: none;
-}
+# 2. Rota de Login (O ENDPOINT agora chama-se 'fazer_login')
+@app.route('/login', methods=['GET', 'POST'])
+def fazer_login():
+    if request.method == 'POST':
+        # Aqui entra a tua lógica de verificação de credenciais
+        user = User()
+        login_user(user)
+        return redirect(url_for('index'))
+    return render_template('login.html')
 
-input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
-}
+# 3. Rota Protegida
+@app.route('/')
+@login_required
+def index():
+    return render_template('chat.html')
 
-/* BOTÃO */
-button {
-    width: 100%;
-    padding: 14px;
-    margin-top: 10px;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
-    font-size: 15px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-button:hover {
-    transform: scale(1.03);
-}
-
-/* LINKS */
-a {
-    color: #3b82f6;
-    text-decoration: none;
-    font-size: 13px;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-/* TEXTO ABAIXO */
-.footer {
-    margin-top: 15px;
-    font-size: 13px;
-    color: #6b7280;
-}
-</style>
-
-</head>
-
-<body>
-
-<div class="card">
-
-    <h2>Bem-vindo 👋</h2>
-
-    <form method="POST">
-        <input name="username" placeholder="Nome de utilizador" required>
-        <input type="password" name="password" placeholder="Senha segura" required>
-        <button type="submit">Entrar</button>
-    </form>
-
-    <div class="footer">
-        Não tens conta? <a href="/register">Criar agora</a>
-    </div>
-
-</div>
-
-</body>
-</html>
+# ... Resto da tua lógica de chat ...
