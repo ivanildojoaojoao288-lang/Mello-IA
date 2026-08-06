@@ -1,20 +1,363 @@
-<script>
-async function send() {
-    const msg = document.getElementById('cmd').value;
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    const res = await fetch('/chat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            message: msg
-        })
-    });
+<title>Mello IA</title>
 
-    const data = await res.json();
+<style>
 
-    document.getElementById('console').innerHTML += 
-    `<div>> ${data.reply}</div>`;
+*{
+    box-sizing:border-box;
+    font-family:"Segoe UI", Arial, sans-serif;
 }
+
+
+body{
+
+    margin:0;
+    height:100vh;
+
+    background:
+    linear-gradient(135deg,#020617,#0f172a,#075985);
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    color:white;
+
+}
+
+
+
+.container{
+
+    width:95%;
+    max-width:900px;
+
+    background:rgba(255,255,255,0.08);
+
+    backdrop-filter:blur(20px);
+
+    border-radius:30px;
+
+    padding:30px;
+
+    box-shadow:0 0 40px rgba(0,0,0,0.5);
+
+}
+
+
+
+.logo{
+
+    text-align:center;
+
+    font-size:60px;
+
+}
+
+
+h1{
+
+    text-align:center;
+
+    font-size:45px;
+
+    margin:10px;
+
+}
+
+
+.subtitle{
+
+    text-align:center;
+
+    color:#67e8f9;
+
+    margin-bottom:25px;
+
+}
+
+
+
+.creator{
+
+    text-align:center;
+
+    padding:15px;
+
+    background:rgba(255,255,255,.08);
+
+    border-radius:20px;
+
+    margin-bottom:20px;
+
+}
+
+
+
+#console{
+
+    height:350px;
+
+    overflow-y:auto;
+
+    background:#020617;
+
+    border-radius:20px;
+
+    padding:20px;
+
+}
+
+
+
+.message{
+
+    padding:12px 18px;
+
+    margin:10px 0;
+
+    border-radius:20px;
+
+    max-width:80%;
+
+}
+
+
+
+.user{
+
+    background:#334155;
+
+    margin-left:auto;
+
+}
+
+
+
+.bot{
+
+    background:#0284c7;
+
+}
+
+
+
+.input-area{
+
+    display:flex;
+
+    gap:10px;
+
+    margin-top:20px;
+
+}
+
+
+
+input{
+
+    flex:1;
+
+    padding:15px;
+
+    border:none;
+
+    border-radius:30px;
+
+    background:#020617;
+
+    color:white;
+
+    font-size:16px;
+
+}
+
+
+
+button{
+
+    padding:15px 30px;
+
+    border:none;
+
+    border-radius:30px;
+
+    background:#06b6d4;
+
+    color:white;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+}
+
+
+
+button:hover{
+
+    background:#0891b2;
+
+}
+
+
+</style>
+
+</head>
+
+
+
+<body>
+
+
+<div class="container">
+
+
+<div class="logo">
+🤖
+</div>
+
+
+<h1>Mello IA</h1>
+
+
+<div class="subtitle">
+Assistente inteligente criado para tecnologia, estudos e inovação
+</div>
+
+
+
+<div class="creator">
+
+Desenvolvida por <strong>Eng. Ivanildo João Paulo Augusto</strong>
+
+</div>
+
+
+
+<div id="console">
+
+<div class="message bot">
+
+Olá! Eu sou a Mello IA. Como posso ajudar?
+
+</div>
+
+
+</div>
+
+
+
+<div class="input-area">
+
+
+<input 
+id="cmd"
+placeholder="Digite sua mensagem..."
+onkeydown="if(event.key==='Enter') send()"
+/>
+
+
+<button onclick="send()">
+
+Enviar
+
+</button>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+<script>
+
+
+async function send(){
+
+
+const input=document.getElementById("cmd");
+
+const msg=input.value.trim();
+
+
+if(!msg) return;
+
+
+
+const consoleBox=document.getElementById("console");
+
+
+
+consoleBox.innerHTML +=
+
+`
+<div class="message user">
+${msg}
+</div>
+`;
+
+
+
+input.value="";
+
+
+
+const res=await fetch("/chat",{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":"application/json"
+
+},
+
+body:JSON.stringify({
+
+message:msg
+
+})
+
+});
+
+
+
+const data=await res.json();
+
+
+
+consoleBox.innerHTML +=
+
+`
+<div class="message bot">
+
+${data.reply || "Erro ao receber resposta"}
+
+</div>
+`;
+
+
+
+consoleBox.scrollTop=consoleBox.scrollHeight;
+
+
+}
+
+
 </script>
+
+
+
+</body>
+
+</html>
