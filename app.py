@@ -47,6 +47,7 @@ def chat():
 
     mensagem = dados.get("message", "").strip()
 
+
     if not mensagem:
         return jsonify({
             "reply": "Por favor escreva uma mensagem."
@@ -56,6 +57,7 @@ def chat():
     try:
 
         resposta = requests.post(
+
             "https://openrouter.ai/api/v1/chat/completions",
 
             headers={
@@ -64,7 +66,9 @@ def chat():
             },
 
             json={
+
                 "model": MODEL,
+
                 "messages": [
                     {
                         "role": "system",
@@ -75,6 +79,7 @@ def chat():
                         "content": mensagem
                     }
                 ],
+
                 "temperature": 0.7
             },
 
@@ -89,22 +94,34 @@ def chat():
 
 
         if "choices" not in resultado:
+
             return jsonify({
+
                 "reply": "Erro na comunicação com a IA.",
+
                 "detalhes": resultado
+
             }), 500
 
 
+        texto = resultado["choices"][0]["message"]["content"]
+
+
         return jsonify({
-            "reply": resultado["choices"][0]["message"]["content"]
+
+            "reply": texto
+
         })
 
 
     except Exception as erro:
 
         return jsonify({
+
             "reply": "Erro interno da Mello IA.",
+
             "detalhes": str(erro)
+
         }), 500
 
 
