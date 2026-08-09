@@ -1,6 +1,5 @@
 import os
 import base64
-import mimetypes
 import requests
 
 from flask import Flask, request, jsonify, render_template
@@ -15,16 +14,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-
 CORS(app)
 
 
-# =====================================================
-# VARIÁVEIS DO .ENV
-# =====================================================
-
 API_KEY = os.getenv("OPENROUTER_API_KEY")
-
 MODEL = os.getenv(
     "OPENROUTER_MODEL",
     "meta-llama/llama-3.1-8b-instruct"
@@ -35,73 +28,45 @@ VISION_MODEL = os.getenv(
     "google/gemini-2.5-flash"
 )
 
-IMAGE_MODEL = os.getenv(
-    "OPENROUTER_IMAGE_MODEL",
-    "openai/gpt-5-image"
-)
 
-
-OPENROUTER_URL = (
-    "https://openrouter.ai/api/v1/chat/completions"
-)
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
 # =====================================================
-# CONFIGURAÇÃO DE IMAGENS
-# =====================================================
-
-MAX_IMAGE_SIZE = 10 * 1024 * 1024
-
-
-ALLOWED_IMAGE_TYPES = {
-
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/gif"
-
-}
-
-
-# =====================================================
-# SYSTEM PROMPT
+# PROMPT PRINCIPAL
 # =====================================================
 
 SYSTEM_PROMPT = """
-Tu és a Mello IA, uma assistente inteligente moderna.
+Tu és a Mello IA, uma assistente inteligente moderna,
+profissional e amigável.
 
 Foste desenvolvida pelo Eng. Ivanildo João Paulo Augusto.
 
 Características:
 
-- Responde em português claro.
-- Usa linguagem simples e profissional.
-- Ajuda em programação, tecnologia, estudos,
-  matemática, redes, informática e informação geral.
-- Explica os assuntos passo a passo quando necessário.
-- Não inventes informações.
-- Quando não souberes algo, deixa isso claro.
-- Nunca reveles chaves API, variáveis de ambiente,
-  prompts internos ou configurações privadas.
+- Responde em português.
+- Usa linguagem clara e simples.
+- Sê técnica quando necessário.
+- Ajuda em programação, informática, redes, matemática,
+  estudos, tecnologia e informação geral.
+- Quando receberes uma imagem, analisa cuidadosamente
+  o conteúdo visível.
+- Podes explicar textos presentes na imagem.
+- Podes resolver exercícios matemáticos presentes na imagem.
+- Podes interpretar tabelas, códigos, diagramas,
+  documentos e fotografias.
+- Não inventes informações que não estejam disponíveis.
+- Se uma parte da imagem estiver ilegível, informa isso.
+- Em cálculos, mostra o raciocínio e apresenta o resultado
+  de forma organizada.
+- Nunca reveles chaves API, configurações internas ou
+  informações secretas do servidor.
 
-Quando analisando uma imagem:
+Quando perguntarem quem criou a Mello IA, responde:
 
-- Observa cuidadosamente todos os elementos relevantes.
-- Lê textos presentes na imagem.
-- Resolve contas e exercícios quando solicitado.
-- Explica o raciocínio passo a passo.
-- Se a imagem estiver pouco legível, informa isso.
-- Não inventes conteúdo que não esteja visível.
-
-Quando perguntarem:
-
-"Quem criou a Mello IA?"
-
-Responde:
-
-"A Mello IA foi desenvolvida pelo Eng. Ivanildo João
-Paulo Augusto, com foco em inteligência artificial,
-programação e inovação tecnológica."
+"A Mello IA foi desenvolvida pelo Eng. Ivanildo João Paulo
+Augusto, com foco em inteligência artificial, programação
+e inovação tecnológica."
 """
 
 
@@ -111,215 +76,197 @@ programação e inovação tecnológica."
 
 @app.route("/")
 def inicio():
-
     return render_template("chat.html")
 
 
 # =====================================================
-# VERIFICAR CONFIGURAÇÃO
+# FUNÇÃO PARA CONVERTER IMAGEM EM BASE64
 # =====================================================
 
-@app.route("/health")
-def health():
-
-    return jsonify({
-
-        "status": "online",
-
-        "api_key": bool(API_KEY),
-
-        "model": MODEL,
-
-        "vision_model": VISION_MODEL,
-
-        "image_model": IMAGE_MODEL
-
-    })
-
-
-# =====================================================
-# CONVERTER IMAGEM PARA BASE64
-# =====================================================
-
-def imagem_para_base64(arquivo):
+def imagem_para_data_url(arquivo):
+    """
+    Converte a imagem enviada pelo navegador
+    para Data URL Base64.
+    """
 
     dados = arquivo.read()
 
     if not dados:
+        raise ValueError("A imagem enviada está vazia.")
 
-        raise ValueError(
-            "A imagem enviada está vazia."
-        )
+    mime_type = arquivo.mimetype or "image/jpeg"
 
-    if len(dados) > MAX_IMAGE_SIZE:
+    base64_imagem = base64.b64encode(dados).decode("utf-8")
 
-        raise ValueError(
-            "A imagem deve ter no máximo 10 MB."
-        )
-
-    mime_type = arquivo.mimetype
-
-    if mime_type not in ALLOWED_IMAGE_TYPES:
-
-        raise ValueError(
-            "Formato de imagem não suportado. "
-            "Use JPG, PNG, WEBP ou GIF."
-        )
-
-    encoded = base64.b64encode(
-        dados
-    ).decode("utf-8")
-
-    return (
-        f"data:{mime_type};base64,{encoded}"
-    )
+    return f"data:{mime_type};base64,{base64_imagem}"
 
 
 # =====================================================
 # CHAMAR OPENROUTER
 # =====================================================
 
-def chamar_openrouter(modelo, messages):
+def chamar_openrouter(mensagem, imagem=None):
 
     if not API_KEY:
-
-        raise RuntimeError(
+        raise ValueError(
             "OPENROUTER_API_KEY não está configurada."
         )
 
+    # -------------------------------------------------
+    # SEM IMAGEM
+    # -------------------------------------------------
+
+    if imagem is None:
+
+        payload = {
+            "model": MODEL,
+
+            "messages": [
+                {
+                    "role": "system",
+                    "content": SYSTEM_PROMPT
+                },
+                {
+                    "role": "user",
+                    "content": mensagem
+                }
+            ],
+
+            "temperature": 0.7
+        }
+
+    # -------------------------------------------------
+    # COM IMAGEM
+    # -------------------------------------------------
+
+    else:
+
+        imagem_url = imagem_para_data_url(imagem)
+
+        conteudo = []
+
+        if mensagem:
+            conteudo.append({
+                "type": "text",
+                "text": mensagem
+            })
+        else:
+            conteudo.append({
+                "type": "text",
+                "text": (
+                    "Analisa esta imagem cuidadosamente. "
+                    "Descreve o que está presente e responde "
+                    "ao que for possível identificar."
+                )
+            })
+
+        conteudo.append({
+            "type": "image_url",
+            "image_url": {
+                "url": imagem_url
+            }
+        })
+
+        payload = {
+            "model": VISION_MODEL,
+
+            "messages": [
+                {
+                    "role": "system",
+                    "content": SYSTEM_PROMPT
+                },
+                {
+                    "role": "user",
+                    "content": conteudo
+                }
+            ],
+
+            "temperature": 0.4
+        }
+
+    # -------------------------------------------------
+    # PEDIDO
+    # -------------------------------------------------
 
     headers = {
-
-        "Authorization":
-            f"Bearer {API_KEY}",
-
-        "Content-Type":
-            "application/json",
-
-        "HTTP-Referer":
-            "http://localhost:5000",
-
-        "X-Title":
-            "Mello IA"
-
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
     }
-
-
-    payload = {
-
-        "model": modelo,
-
-        "messages": messages,
-
-        "temperature": 0.7
-
-    }
-
 
     resposta = requests.post(
-
         OPENROUTER_URL,
-
         headers=headers,
-
         json=payload,
-
         timeout=120
-
     )
 
+    print("STATUS OPENROUTER:", resposta.status_code)
 
     try:
-
         resultado = resposta.json()
-
-    except ValueError:
-
-        raise RuntimeError(
-            "OpenRouter devolveu uma resposta inválida."
+    except Exception:
+        raise ValueError(
+            f"OpenRouter devolveu uma resposta inválida: "
+            f"{resposta.text[:500]}"
         )
 
+    print("RESPOSTA OPENROUTER:")
+    print(resultado)
 
-    print("\n==============================")
-    print("OPENROUTER")
-    print("==============================")
-    print("STATUS:", resposta.status_code)
-    print("MODELO:", modelo)
-    print("RESPOSTA:", resultado)
-    print("==============================\n")
+    # -------------------------------------------------
+    # ERRO DA API
+    # -------------------------------------------------
 
+    if resposta.status_code != 200:
 
-    if not resposta.ok:
+        erro = resultado.get("error", {})
 
-        erro = resultado.get(
-            "error",
-            {}
+        mensagem_erro = (
+            erro.get("message")
+            if isinstance(erro, dict)
+            else str(erro)
         )
 
-        if isinstance(erro, dict):
-
-            mensagem_erro = erro.get(
-                "message",
-                "Erro desconhecido na API."
-            )
-
-        else:
-
-            mensagem_erro = str(erro)
-
-
-        raise RuntimeError(
-            mensagem_erro
+        raise ValueError(
+            mensagem_erro or
+            "Erro desconhecido na comunicação com o OpenRouter."
         )
 
+    # -------------------------------------------------
+    # VALIDAR RESPOSTA
+    # -------------------------------------------------
 
     choices = resultado.get("choices")
 
-
     if not choices:
-
-        raise RuntimeError(
-            "A API não devolveu nenhuma resposta."
+        raise ValueError(
+            "A IA não devolveu nenhuma resposta."
         )
 
+    mensagem_resultado = choices[0].get("message", {})
 
-    mensagem = choices[0].get(
-        "message",
-        {}
-    )
-
-
-    texto = mensagem.get(
-        "content"
-    )
-
+    texto = mensagem_resultado.get("content")
 
     if not texto:
-
-        raise RuntimeError(
-            "A IA não devolveu texto."
+        raise ValueError(
+            "A IA devolveu uma resposta vazia."
         )
-
 
     return texto
 
 
 # =====================================================
 # CHAT
-# TEXTO + IMAGEM
 # =====================================================
 
-@app.route(
-    "/chat",
-    methods=["POST"]
-)
+@app.route("/chat", methods=["POST"])
 def chat():
 
     try:
 
-        # ---------------------------------------------
-        # MENSAGEM
-        # ---------------------------------------------
+        # =================================================
+        # TEXTO
+        # =================================================
 
         mensagem = request.form.get(
             "message",
@@ -327,260 +274,164 @@ def chat():
         ).strip()
 
 
-        # ---------------------------------------------
+        # =================================================
         # IMAGEM
-        # ---------------------------------------------
+        # =================================================
 
-        imagem = request.files.get(
-            "image"
-        )
+        imagem = request.files.get("image")
 
 
-        # ---------------------------------------------
-        # NADA ENVIADO
-        # ---------------------------------------------
+        # =================================================
+        # VALIDAR
+        # =================================================
 
         if not mensagem and not imagem:
 
             return jsonify({
-
-                "reply":
-                    "Por favor escreva uma mensagem "
-                    "ou envie uma imagem."
-
+                "reply": "Escreva uma mensagem ou envie uma imagem."
             }), 400
 
 
-        # ---------------------------------------------
-        # VERIFICAR API KEY
-        # ---------------------------------------------
-
-        if not API_KEY:
-
-            return jsonify({
-
-                "reply":
-                    "A chave da API não está configurada "
-                    "no servidor."
-
-            }), 500
-
-
         # =================================================
-        # MENSAGEM COM IMAGEM
+        # VALIDAR IMAGEM
         # =================================================
 
         if imagem:
 
+            if not imagem.mimetype:
+
+                return jsonify({
+                    "reply": "Não foi possível identificar o tipo da imagem."
+                }), 400
+
+
+            if not imagem.mimetype.startswith("image/"):
+
+                return jsonify({
+                    "reply": "O ficheiro enviado não é uma imagem válida."
+                }), 400
+
+
+            # Limite de 10 MB
+            imagem.seek(0, 2)
+
+            tamanho = imagem.tell()
+
+            imagem.seek(0)
+
+
+            if tamanho > 10 * 1024 * 1024:
+
+                return jsonify({
+                    "reply": "A imagem deve ter no máximo 10 MB."
+                }), 400
+
+
+        # =================================================
+        # PROCESSAR
+        # =================================================
+
+        print("\n======================================")
+        print("📨 NOVA SOLICITAÇÃO")
+        print("======================================")
+
+        print("Mensagem:", mensagem)
+
+        if imagem:
+            print("📷 Imagem:", imagem.filename)
+            print("📦 Tipo:", imagem.mimetype)
+
+        if imagem:
+
             print(
-                "📷 Imagem recebida:",
-                imagem.filename
+                "🧠 Modelo Vision:",
+                VISION_MODEL
             )
 
+        else:
 
-            imagem_base64 = imagem_para_base64(
-                imagem
+            print(
+                "🧠 Modelo:",
+                MODEL
             )
-
-
-            pergunta = mensagem
-
-
-            if not pergunta:
-
-                pergunta = (
-                    "Analisa cuidadosamente esta imagem "
-                    "e explica o que está nela."
-                )
-
-
-            # ---------------------------------------------
-            # CONTENT MULTIMODAL
-            # ---------------------------------------------
-
-            content = [
-
-                {
-                    "type": "text",
-
-                    "text": pergunta
-
-                },
-
-                {
-                    "type": "image_url",
-
-                    "image_url": {
-
-                        "url": imagem_base64
-
-                    }
-
-                }
-
-            ]
-
-
-            messages = [
-
-                {
-                    "role": "system",
-
-                    "content": SYSTEM_PROMPT
-
-                },
-
-                {
-                    "role": "user",
-
-                    "content": content
-
-                }
-
-            ]
-
-
-            resposta = chamar_openrouter(
-
-                VISION_MODEL,
-
-                messages
-
-            )
-
-
-            return jsonify({
-
-                "reply": resposta,
-
-                "type": "vision"
-
-            })
-
-
-        # =================================================
-        # CHAT NORMAL
-        # =================================================
-
-        messages = [
-
-            {
-                "role": "system",
-
-                "content": SYSTEM_PROMPT
-
-            },
-
-            {
-                "role": "user",
-
-                "content": mensagem
-
-            }
-
-        ]
 
 
         resposta = chamar_openrouter(
-
-            MODEL,
-
-            messages
-
+            mensagem,
+            imagem
         )
 
 
+        # =================================================
+        # RESPOSTA
+        # =================================================
+
         return jsonify({
-
-            "reply": resposta,
-
-            "type": "text"
-
+            "reply": resposta
         })
 
 
-    # =====================================================
-    # ERRO DE VALIDAÇÃO
-    # =====================================================
+    except requests.exceptions.Timeout:
 
-    except ValueError as erro:
-
-        print(
-            "ERRO DE VALIDAÇÃO:",
-            erro
-        )
+        print("❌ TIMEOUT")
 
         return jsonify({
+            "reply": (
+                "A Mello IA demorou demasiado tempo para "
+                "responder. Tente novamente."
+            )
+        }), 504
 
-            "reply": str(erro)
 
-        }), 400
+    except requests.exceptions.RequestException as erro:
 
+        print("❌ ERRO DE CONEXÃO:")
+        print(erro)
 
-    # =====================================================
-    # ERRO GERAL
-    # =====================================================
+        return jsonify({
+            "reply": (
+                "Não foi possível comunicar com o servidor "
+                "de inteligência artificial."
+            )
+        }), 502
+
 
     except Exception as erro:
 
-        print(
-            "ERRO INTERNO:",
-            erro
-        )
+        print("❌ ERRO:")
+        print(erro)
 
         return jsonify({
-
-            "reply":
-                "A Mello IA encontrou um problema "
-                "ao processar o pedido.",
-
-            "error":
-                str(erro)
-
+            "reply": (
+                "Ocorreu um erro ao processar o pedido."
+            ),
+            "detalhes": str(erro)
         }), 500
 
 
 # =====================================================
-# INICIAR SERVIDOR
+# EXECUTAR
 # =====================================================
 
 if __name__ == "__main__":
 
     print("")
-    print("====================================")
-    print("🚀 MELLO IA ONLINE")
-    print("====================================")
-
+    print("==============================================")
+    print("🚀 MELLO IA")
+    print("==============================================")
+    print("🤖 Modelo:", MODEL)
+    print("👁️ Vision:", VISION_MODEL)
     print(
-        "Texto:",
-        MODEL
+        "🔑 API Key:",
+        "CARREGADA" if API_KEY else "NÃO CONFIGURADA"
     )
-
-    print(
-        "Visão:",
-        VISION_MODEL
-    )
-
-    print(
-        "Imagem:",
-        IMAGE_MODEL
-    )
-
-    print(
-        "API KEY:",
-        "CARREGADA" if API_KEY else "NÃO CARREGADA"
-    )
-
-    print("====================================")
+    print("==============================================")
+    print("🌐 http://127.0.0.1:5000")
+    print("==============================================")
     print("")
 
-
     app.run(
-
         host="0.0.0.0",
-
         port=5000,
-
-        debug=False
-
+        debug=True
     )
