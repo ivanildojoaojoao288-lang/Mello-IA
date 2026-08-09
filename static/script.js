@@ -1,4 +1,3 @@
-
 // ===============================
 // MELLO IA - SCRIPT PRINCIPAL
 // ===============================
@@ -164,7 +163,7 @@ function adicionarLoading() {
         <span></span>
         <span></span>
         <span></span>
-    `;
+    ;
 
     content.appendChild(loading);
 
@@ -293,7 +292,7 @@ function novaConversa() {
             </button>
 
         </div>
-    `;
+    ;
 
     chatBox.appendChild(novaTela);
 
