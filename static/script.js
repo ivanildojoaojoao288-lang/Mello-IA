@@ -1,6 +1,5 @@
 // =====================================================
 // MELLO IA — SCRIPT PRINCIPAL
-// Texto + Imagem + Histórico
 // =====================================================
 
 
@@ -8,14 +7,26 @@
 // ELEMENTOS
 // =====================================================
 
-const input = document.getElementById("user-input");
-const chatBox = document.getElementById("chat-box");
-const sendButton = document.getElementById("send-button");
+const input =
+    document.getElementById("user-input");
 
-const imageInput = document.getElementById("image-input");
-const imagePreview = document.getElementById("image-preview");
-const previewImage = document.getElementById("preview-image");
-const imageName = document.getElementById("image-name");
+const chatBox =
+    document.getElementById("chat-box");
+
+const sendButton =
+    document.getElementById("send-button");
+
+const imageInput =
+    document.getElementById("image-input");
+
+const imagePreview =
+    document.getElementById("image-preview");
+
+const previewImage =
+    document.getElementById("preview-image");
+
+const imageName =
+    document.getElementById("image-name");
 
 
 // =====================================================
@@ -26,98 +37,80 @@ let imagemSelecionada = null;
 
 
 // =====================================================
-// VERIFICAR ELEMENTOS
-// =====================================================
-
-if (!input) {
-    console.error("Mello IA: #user-input não encontrado.");
-}
-
-if (!chatBox) {
-    console.error("Mello IA: #chat-box não encontrado.");
-}
-
-if (!sendButton) {
-    console.error("Mello IA: #send-button não encontrado.");
-}
-
-
-// =====================================================
 // SELECIONAR IMAGEM
 // =====================================================
 
 if (imageInput) {
 
-    imageInput.addEventListener("change", function () {
+    imageInput.addEventListener(
+        "change",
+        function () {
 
-        const arquivo = this.files[0];
-
-        if (!arquivo) {
-            return;
-        }
-
-
-        // Verificar tipo
-        if (!arquivo.type.startsWith("image/")) {
-
-            alert("Selecione uma imagem válida.");
-
-            this.value = "";
-
-            return;
-        }
+            const arquivo =
+                this.files[0];
 
 
-        // Limite de 10 MB
-        if (arquivo.size > 10 * 1024 * 1024) {
+            if (!arquivo) {
+                return;
+            }
 
-            alert(
-                "A imagem é demasiado grande. " +
-                "O limite máximo é 10 MB."
+
+            if (!arquivo.type.startsWith("image/")) {
+
+                alert(
+                    "Selecione uma imagem válida."
+                );
+
+                this.value = "";
+
+                return;
+            }
+
+
+            if (
+                arquivo.size >
+                10 * 1024 * 1024
+            ) {
+
+                alert(
+                    "A imagem deve ter no máximo 10 MB."
+                );
+
+                this.value = "";
+
+                return;
+            }
+
+
+            imagemSelecionada =
+                arquivo;
+
+
+            const leitor =
+                new FileReader();
+
+
+            leitor.onload =
+                function (event) {
+
+                    previewImage.src =
+                        event.target.result;
+
+                    imageName.textContent =
+                        arquivo.name;
+
+                    imagePreview.style.display =
+                        "flex";
+
+                };
+
+
+            leitor.readAsDataURL(
+                arquivo
             );
 
-            this.value = "";
-
-            return;
         }
-
-
-        imagemSelecionada = arquivo;
-
-
-        // Criar preview
-        const leitor = new FileReader();
-
-
-        leitor.onload = function (event) {
-
-            if (previewImage) {
-                previewImage.src = event.target.result;
-            }
-
-            if (imageName) {
-                imageName.textContent = arquivo.name;
-            }
-
-            if (imagePreview) {
-                imagePreview.style.display = "flex";
-            }
-
-        };
-
-
-        leitor.onerror = function () {
-
-            alert("Não foi possível carregar a imagem.");
-
-            removerImagem();
-
-        };
-
-
-        leitor.readAsDataURL(arquivo);
-
-    });
+    );
 
 }
 
@@ -128,7 +121,8 @@ if (imageInput) {
 
 function removerImagem() {
 
-    imagemSelecionada = null;
+    imagemSelecionada =
+        null;
 
 
     if (imageInput) {
@@ -147,40 +141,53 @@ function removerImagem() {
 
 
     if (imagePreview) {
-        imagePreview.style.display = "none";
+
+        imagePreview.style.display =
+            "none";
+
     }
 
 }
 
 
 // =====================================================
-// ENVIAR MENSAGEM
+// ENVIAR
 // =====================================================
 
 async function enviarMensagem() {
 
-    const mensagem = input
-        ? input.value.trim()
-        : "";
+    const mensagem =
+        input.value.trim();
 
 
-    // Não enviar vazio
-    if (!mensagem && !imagemSelecionada) {
+    if (
+        !mensagem &&
+        !imagemSelecionada
+    ) {
+
         return;
+
     }
 
 
-    // Esconder tela inicial
+    // esconder welcome
+
     const welcome =
-        document.getElementById("welcome");
+        document.getElementById(
+            "welcome"
+        );
 
 
     if (welcome) {
-        welcome.style.display = "none";
+
+        welcome.style.display =
+            "none";
+
     }
 
 
-    // Guardar imagem antes de limpar
+    // guardar imagem antes de limpar
+
     const imagemEnviar =
         imagemSelecionada;
 
@@ -189,7 +196,8 @@ async function enviarMensagem() {
         mensagem;
 
 
-    // Mostrar mensagem do utilizador
+    // mostrar utilizador
+
     if (imagemEnviar) {
 
         adicionarMensagemImagem(
@@ -208,33 +216,27 @@ async function enviarMensagem() {
     }
 
 
-    // Limpar input
-    if (input) {
-        input.value = "";
-    }
+    // limpar
 
+    input.value = "";
 
     removerImagem();
 
     ajustarTextarea();
 
 
-    // Desativar botão
-    if (sendButton) {
-        sendButton.disabled = true;
-    }
+    sendButton.disabled =
+        true;
 
 
-    // Mostrar loading
+    // loading
+
     const loading =
         adicionarLoading();
 
 
     try {
 
-        // =================================================
-        // FORMDATA
-        // =================================================
 
         const formData =
             new FormData();
@@ -260,10 +262,6 @@ async function enviarMensagem() {
         }
 
 
-        // =================================================
-        // ENVIAR PARA FLASK
-        // =================================================
-
         const resposta =
             await fetch(
                 "/chat",
@@ -274,11 +272,7 @@ async function enviarMensagem() {
             );
 
 
-        // =================================================
-        // LER RESPOSTA
-        // =================================================
-
-        let data = null;
+        let data;
 
 
         try {
@@ -288,44 +282,30 @@ async function enviarMensagem() {
 
         } catch (erro) {
 
-            console.error(
-                "Resposta inválida:",
-                erro
-            );
-
             data = {
+
                 reply:
                     "O servidor devolveu uma resposta inválida."
+
             };
 
         }
 
 
-        // Remover loading
-        if (loading) {
-            loading.remove();
-        }
+        loading.remove();
 
-
-        // =================================================
-        // ERRO DO SERVIDOR
-        // =================================================
 
         if (!resposta.ok) {
 
             adicionarMensagem(
                 "bot",
                 data.reply ||
-                "Ocorreu um erro ao processar a mensagem."
+                "Ocorreu um erro."
             );
 
             return;
         }
 
-
-        // =================================================
-        // RESPOSTA DA MELLO IA
-        // =================================================
 
         adicionarMensagem(
             "bot",
@@ -333,10 +313,6 @@ async function enviarMensagem() {
             "Não consegui gerar uma resposta."
         );
 
-
-        // =================================================
-        // HISTÓRICO
-        // =================================================
 
         adicionarHistorico(
             mensagemEnviar ||
@@ -347,33 +323,26 @@ async function enviarMensagem() {
     } catch (erro) {
 
         console.error(
-            "Erro na comunicação:",
+            "Erro:",
             erro
         );
 
 
-        if (loading) {
-            loading.remove();
-        }
+        loading.remove();
 
 
         adicionarMensagem(
             "bot",
-            "Não consegui conectar ao servidor da Mello IA. " +
-            "Verifique se o servidor está online."
+            "Não consegui conectar ao servidor da Mello IA."
         );
 
 
     } finally {
 
-        if (sendButton) {
-            sendButton.disabled = false;
-        }
+        sendButton.disabled =
+            false;
 
-
-        if (input) {
-            input.focus();
-        }
+        input.focus();
 
     }
 
@@ -381,10 +350,695 @@ async function enviarMensagem() {
 
 
 // =====================================================
-// ADICIONAR MENSAGEM NORMAL
+// MENSAGEM NORMAL
 // =====================================================
 
-function adicionarMensagem(tipo, texto) {
+function adicionarMensagem(
+    tipo,
+    texto
+) {
 
     const message =
-       
+        document.createElement(
+            "div"
+        );
+
+
+    message.className =
+        `message ${tipo}`;
+
+
+    const avatar =
+        document.createElement(
+            "div"
+        );
+
+
+    avatar.className =
+        "message-avatar";
+
+
+    avatar.textContent =
+        tipo === "bot"
+            ? "M"
+            : "👤";
+
+
+    const content =
+        document.createElement(
+            "div"
+        );
+
+
+    content.className =
+        "message-content";
+
+
+    // =================================================
+    // RESPOSTA DA IA
+    // =================================================
+
+    if (
+        tipo === "bot" &&
+        typeof marked !== "undefined"
+    ) {
+
+        const html =
+            marked.parse(
+                texto
+            );
+
+
+        if (
+            typeof DOMPurify !==
+            "undefined"
+        ) {
+
+            content.innerHTML =
+                DOMPurify.sanitize(
+                    html
+                );
+
+        } else {
+
+            content.textContent =
+                texto;
+
+        }
+
+
+    } else {
+
+        content.textContent =
+            texto;
+
+    }
+
+
+    message.appendChild(
+        avatar
+    );
+
+    message.appendChild(
+        content
+    );
+
+
+    chatBox.appendChild(
+        message
+    );
+
+
+    scrollChat();
+
+
+    return message;
+}
+
+
+// =====================================================
+// MENSAGEM COM IMAGEM
+// =====================================================
+
+function adicionarMensagemImagem(
+    tipo,
+    texto,
+    arquivo
+) {
+
+    const message =
+        document.createElement(
+            "div"
+        );
+
+
+    message.className =
+        `message ${tipo}`;
+
+
+    const avatar =
+        document.createElement(
+            "div"
+        );
+
+
+    avatar.className =
+        "message-avatar";
+
+
+    avatar.textContent =
+        tipo === "bot"
+            ? "M"
+            : "👤";
+
+
+    const content =
+        document.createElement(
+            "div"
+        );
+
+
+    content.className =
+        "message-content";
+
+
+    const img =
+        document.createElement(
+            "img"
+        );
+
+
+    img.className =
+        "message-image";
+
+
+    img.alt =
+        "Imagem enviada";
+
+
+    const url =
+        URL.createObjectURL(
+            arquivo
+        );
+
+
+    img.src =
+        url;
+
+
+    content.appendChild(
+        img
+    );
+
+
+    if (texto) {
+
+        const textoElemento =
+            document.createElement(
+                "div"
+            );
+
+
+        textoElemento.className =
+            "image-message-text";
+
+
+        textoElemento.textContent =
+            texto;
+
+
+        content.appendChild(
+            textoElemento
+        );
+
+    }
+
+
+    message.appendChild(
+        avatar
+    );
+
+
+    message.appendChild(
+        content
+    );
+
+
+    chatBox.appendChild(
+        message
+    );
+
+
+    scrollChat();
+
+
+    return message;
+}
+
+
+// =====================================================
+// LOADING
+// =====================================================
+
+function adicionarLoading() {
+
+    const message =
+        document.createElement(
+            "div"
+        );
+
+
+    message.className =
+        "message bot";
+
+
+    const avatar =
+        document.createElement(
+            "div"
+        );
+
+
+    avatar.className =
+        "message-avatar";
+
+
+    avatar.textContent =
+        "M";
+
+
+    const content =
+        document.createElement(
+            "div"
+        );
+
+
+    content.className =
+        "message-content";
+
+
+    const loading =
+        document.createElement(
+            "div"
+        );
+
+
+    loading.className =
+        "typing";
+
+
+    loading.innerHTML = `
+        <span></span>
+        <span></span>
+        <span></span>
+    `;
+
+
+    content.appendChild(
+        loading
+    );
+
+
+    message.appendChild(
+        avatar
+    );
+
+
+    message.appendChild(
+        content
+    );
+
+
+    chatBox.appendChild(
+        message
+    );
+
+
+    scrollChat();
+
+
+    return message;
+}
+
+
+// =====================================================
+// SCROLL
+// =====================================================
+
+function scrollChat() {
+
+    chatBox.scrollTo({
+
+        top:
+            chatBox.scrollHeight,
+
+        behavior:
+            "smooth"
+
+    });
+
+}
+
+
+// =====================================================
+// ENTER
+// =====================================================
+
+function handleKey(event) {
+
+    if (
+        event.key === "Enter" &&
+        !event.shiftKey
+    ) {
+
+        event.preventDefault();
+
+        enviarMensagem();
+
+    }
+
+}
+
+
+// =====================================================
+// TEXTAREA
+// =====================================================
+
+input.addEventListener(
+    "input",
+    ajustarTextarea
+);
+
+
+function ajustarTextarea() {
+
+    input.style.height =
+        "auto";
+
+
+    input.style.height =
+        Math.min(
+            input.scrollHeight,
+            130
+        ) + "px";
+
+}
+
+
+// =====================================================
+// SUGESTÕES
+// =====================================================
+
+function usarSugestao(
+    texto
+) {
+
+    input.value =
+        texto;
+
+
+    ajustarTextarea();
+
+    input.focus();
+
+    enviarMensagem();
+
+}
+
+
+// =====================================================
+// NOVA CONVERSA
+// =====================================================
+
+function novaConversa() {
+
+    chatBox.innerHTML =
+        "";
+
+
+    const novaTela =
+        document.createElement(
+            "div"
+        );
+
+
+    novaTela.className =
+        "welcome";
+
+
+    novaTela.id =
+        "welcome";
+
+
+    novaTela.innerHTML = `
+
+        <div class="welcome-logo">
+            M
+        </div>
+
+        <h1>
+            Olá! Eu sou a
+            <span>Mello IA</span>
+        </h1>
+
+        <p>
+            Assistente inteligente de tecnologia,
+            programação, estudos e inovação.
+        </p>
+
+        <div class="suggestions">
+
+            <button onclick="usarSugestao('Explique-me inteligência artificial de forma simples')">
+
+                🤖
+
+                <span>
+
+                    <strong>
+                        Inteligência Artificial
+                    </strong>
+
+                    Aprender conceitos de IA
+
+                </span>
+
+            </button>
+
+
+            <button onclick="usarSugestao('Ajude-me a aprender programação')">
+
+                💻
+
+                <span>
+
+                    <strong>
+                        Programação
+                    </strong>
+
+                    Aprender a programar
+
+                </span>
+
+            </button>
+
+
+            <button onclick="usarSugestao('Ajude-me com os meus estudos')">
+
+                📚
+
+                <span>
+
+                    <strong>
+                        Estudos
+                    </strong>
+
+                    Explicar matérias
+
+                </span>
+
+            </button>
+
+
+            <button onclick="usarSugestao('Explique redes de computadores')">
+
+                🌐
+
+                <span>
+
+                    <strong>
+                        Tecnologia
+                    </strong>
+
+                    Redes e informática
+
+                </span>
+
+            </button>
+
+        </div>
+
+    `;
+
+
+    chatBox.appendChild(
+        novaTela
+    );
+
+
+    removerImagem();
+
+
+    input.value =
+        "";
+
+
+    ajustarTextarea();
+
+
+    input.focus();
+
+}
+
+
+// =====================================================
+// SIDEBAR
+// =====================================================
+
+function toggleSidebar() {
+
+    const sidebar =
+        document.getElementById(
+            "sidebar"
+        );
+
+
+    if (sidebar) {
+
+        sidebar.classList.toggle(
+            "open"
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// HISTÓRICO
+// =====================================================
+
+function adicionarHistorico(
+    mensagem
+) {
+
+    const history =
+        document.getElementById(
+            "history"
+        );
+
+
+    if (!history) {
+        return;
+    }
+
+
+    let titulo =
+        mensagem;
+
+
+    if (
+        titulo.length >
+        35
+    ) {
+
+        titulo =
+            titulo.substring(
+                0,
+                35
+            ) + "...";
+
+    }
+
+
+    const item =
+        document.createElement(
+            "button"
+        );
+
+
+    item.className =
+        "history-item";
+
+
+    item.textContent =
+        "💬 " + titulo;
+
+
+    item.onclick =
+        function () {
+
+            input.value =
+                mensagem;
+
+            ajustarTextarea();
+
+            input.focus();
+
+        };
+
+
+    history.prepend(
+        item
+    );
+
+
+    while (
+        history.children.length >
+        10
+    ) {
+
+        history.removeChild(
+            history.lastChild
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// FECHAR SIDEBAR
+// =====================================================
+
+document.addEventListener(
+    "click",
+    function (event) {
+
+        const sidebar =
+            document.getElementById(
+                "sidebar"
+            );
+
+
+        const menu =
+            document.querySelector(
+                ".menu-button"
+            );
+
+
+        if (
+
+            window.innerWidth <= 800 &&
+
+            sidebar &&
+
+            sidebar.classList.contains(
+                "open"
+            ) &&
+
+            !sidebar.contains(
+                event.target
+            ) &&
+
+            menu &&
+
+            !menu.contains(
+                event.target
+            )
+
+        ) {
+
+            sidebar.classList.remove(
+                "open"
+            );
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// INICIAR
+// =====================================================
+
+input.focus();
