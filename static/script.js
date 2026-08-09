@@ -1,49 +1,24 @@
 // =====================================================
 // MELLO IA — SCRIPT PRINCIPAL
-// Chat + Imagens + Histórico + Interface
 // =====================================================
+
+
+// ELEMENTOS
 
 const input = document.getElementById("user-input");
 const chatBox = document.getElementById("chat-box");
 const sendButton = document.getElementById("send-button");
 const welcome = document.getElementById("welcome");
 
-// =====================================================
-// CRIAR INPUT DE IMAGEM
-// =====================================================
+const imageInput = document.getElementById("image-input");
+const imagePreview = document.getElementById("image-preview");
+const previewImage = document.getElementById("preview-image");
+const imageName = document.getElementById("image-name");
 
-let imageInput = document.getElementById("image-input");
 
-if (!imageInput) {
-    imageInput = document.createElement("input");
+// IMAGEM SELECIONADA
 
-    imageInput.type = "file";
-    imageInput.id = "image-input";
-    imageInput.accept = "image/png,image/jpeg,image/webp,image/gif";
-    imageInput.style.display = "none";
-
-    document.body.appendChild(imageInput);
-}
-
-// Imagem atualmente selecionada
 let imagemSelecionada = null;
-
-
-// =====================================================
-// BOTÃO + / ANEXAR
-// =====================================================
-
-const attachButton = document.querySelector(".attach-button");
-
-if (attachButton) {
-
-    attachButton.addEventListener("click", function () {
-
-        imageInput.click();
-
-    });
-
-}
 
 
 // =====================================================
@@ -54,94 +29,66 @@ imageInput.addEventListener("change", function () {
 
     const arquivo = this.files[0];
 
-    if (!arquivo) return;
-
-    // Limite de 10 MB
-    if (arquivo.size > 10 * 1024 * 1024) {
-
-        adicionarMensagem(
-            "bot",
-            "A imagem é muito grande. Escolha uma imagem com no máximo 10 MB."
-        );
-
-        this.value = "";
+    if (!arquivo) {
         return;
     }
 
+    if (!arquivo.type.startsWith("image/")) {
+
+        alert("Selecione uma imagem válida.");
+
+        this.value = "";
+
+        return;
+    }
+
+    if (arquivo.size > 10 * 1024 * 1024) {
+
+        alert("A imagem deve ter no máximo 10 MB.");
+
+        this.value = "";
+
+        return;
+    }
+
+
     imagemSelecionada = arquivo;
 
-    mostrarPreviewImagem(arquivo);
 
-    input.focus();
+    const leitor = new FileReader();
+
+
+    leitor.onload = function (event) {
+
+        previewImage.src = event.target.result;
+
+        imageName.textContent = arquivo.name;
+
+        imagePreview.style.display = "flex";
+
+    };
+
+
+    leitor.readAsDataURL(arquivo);
 
 });
 
 
 // =====================================================
-// PREVIEW DA IMAGEM
+// REMOVER IMAGEM
 // =====================================================
 
-function mostrarPreviewImagem(arquivo) {
+function removerImagem() {
 
-    let preview = document.getElementById("image-preview");
+    imagemSelecionada = null;
 
-    if (!preview) {
+    imageInput.value = "";
 
-        preview = document.createElement("div");
+    previewImage.src = "";
 
-        preview.id = "image-preview";
+    imageName.textContent = "";
 
-        preview.className = "image-preview";
-
-        const inputWrapper =
-            document.querySelector(".input-wrapper");
-
-        if (inputWrapper) {
-            inputWrapper.insertBefore(
-                preview,
-                inputWrapper.firstChild
-            );
-        } else {
-            document.body.appendChild(preview);
-        }
-    }
-
-    const url = URL.createObjectURL(arquivo);
-
-    preview.innerHTML = "";
-
-    const img = document.createElement("img");
-
-    img.src = url;
-    img.alt = "Imagem selecionada";
-
-    const info = document.createElement("div");
-
-    info.className = "image-preview-info";
-
-    const nome = document.createElement("span");
-
-    nome.textContent = arquivo.name;
-
-    const remover = document.createElement("button");
-
-    remover.type = "button";
-    remover.textContent = "×";
-    remover.title = "Remover imagem";
-
-    remover.onclick = function () {
-
-        imagemSelecionada = null;
-        imageInput.value = "";
-
-        preview.remove();
-    };
-
-    info.appendChild(nome);
-    info.appendChild(remover);
-
-    preview.appendChild(img);
-    preview.appendChild(info);
+    imagePreview.style.display = "none";
 
 }
 
@@ -154,64 +101,104 @@ async function enviarMensagem() {
 
     const mensagem = input.value.trim();
 
-    // Permitir enviar apenas imagem
+
+    // Não enviar vazio
     if (!mensagem && !imagemSelecionada) {
         return;
     }
 
-    // Esconder tela inicial
-    if (welcome) {
-        welcome.style.display = "none";
+
+    // Esconder welcome
+
+    const telaWelcome =
+        document.getElementById("welcome");
+
+    if (telaWelcome) {
+        telaWelcome.style.display = "none";
     }
 
-    // Guardar imagem atual
-    const imagemAtual = imagemSelecionada;
 
     // Mostrar mensagem do utilizador
-    adicionarMensagemUsuario(
-        mensagem || "Analisa esta imagem.",
-        imagemAtual
-    );
 
-    // Limpar campo
+    if (imagemSelecionada) {
+
+        adicionarMensagemImagem(
+            "user",
+            mensagem,
+            imagemSelecionada
+        );
+
+    } else {
+
+        adicionarMensagem(
+            "user",
+            mensagem
+        );
+
+    }
+
+
+    // Guardar valores
+
+    const mensagemEnviar = mensagem;
+    const imagemEnviar = imagemSelecionada;
+
+
+    // Limpar
+
     input.value = "";
+
+    removerImagem();
 
     ajustarTextarea();
 
+
     // Desativar botão
+
     sendButton.disabled = true;
 
-    // Mostrar loading
+
+    // Loading
+
     const loading = adicionarLoading();
+
 
     try {
 
         const formData = new FormData();
 
-        formData.append(
-            "message",
-            mensagem || "Analisa esta imagem e explica o que encontraste."
-        );
 
-        if (imagemAtual) {
+        if (mensagemEnviar) {
 
             formData.append(
-                "image",
-                imagemAtual
+                "message",
+                mensagemEnviar
             );
+
         }
 
 
-        const resposta = await fetch("/chat", {
+        if (imagemEnviar) {
 
-            method: "POST",
+            formData.append(
+                "image",
+                imagemEnviar
+            );
 
-            body: formData
+        }
 
-        });
+
+        const resposta = await fetch(
+            "/chat",
+            {
+                method: "POST",
+                body: formData
+            }
+        );
 
 
         let data;
+
 
         try {
 
@@ -220,15 +207,19 @@ async function enviarMensagem() {
         } catch (erro) {
 
             data = {
-                reply: "O servidor devolveu uma resposta inválida."
+                reply:
+                    "O servidor devolveu uma resposta inválida."
             };
 
         }
 
 
         // Remover loading
+
         loading.remove();
 
+
+        // Erro
 
         if (!resposta.ok) {
 
@@ -242,7 +233,8 @@ async function enviarMensagem() {
         }
 
 
-        // Resposta da IA
+        // Resposta
+
         adicionarMensagem(
             "bot",
             data.reply ||
@@ -251,17 +243,23 @@ async function enviarMensagem() {
 
 
         // Histórico
+
         adicionarHistorico(
-            mensagem ||
-            "Análise de imagem"
+            mensagemEnviar ||
+            "📷 Imagem enviada"
         );
 
 
     } catch (erro) {
 
-        console.error("Erro:", erro);
+        console.error(
+            "Erro:",
+            erro
+        );
+
 
         loading.remove();
+
 
         adicionarMensagem(
             "bot",
@@ -273,12 +271,551 @@ async function enviarMensagem() {
 
         sendButton.disabled = false;
 
-        // Limpar imagem
-        imagemSelecionada = null;
+        input.focus();
 
-        imageInput.value = "";
+    }
 
-        const preview =
-            document.getElementById("image-preview");
+}
 
-        if (preview
+
+// =====================================================
+// ADICIONAR MENSAGEM NORMAL
+// =====================================================
+
+function adicionarMensagem(tipo, texto) {
+
+    const message =
+        document.createElement("div");
+
+    message.className =
+        `message ${tipo}`;
+
+
+    const avatar =
+        document.createElement("div");
+
+    avatar.className =
+        "message-avatar";
+
+
+    avatar.textContent =
+        tipo === "bot"
+            ? "M"
+            : "👤";
+
+
+    const content =
+        document.createElement("div");
+
+    content.className =
+        "message-content";
+
+
+    // Segurança
+
+    content.textContent =
+        texto;
+
+
+    message.appendChild(avatar);
+
+    message.appendChild(content);
+
+    chatBox.appendChild(message);
+
+
+    scrollChat();
+
+
+    return message;
+}
+
+
+// =====================================================
+// ADICIONAR MENSAGEM COM IMAGEM
+// =====================================================
+
+function adicionarMensagemImagem(
+    tipo,
+    texto,
+    arquivo
+) {
+
+    const message =
+        document.createElement("div");
+
+    message.className =
+        `message ${tipo}`;
+
+
+    const avatar =
+        document.createElement("div");
+
+    avatar.className =
+        "message-avatar";
+
+
+    avatar.textContent =
+        tipo === "bot"
+            ? "M"
+            : "👤";
+
+
+    const content =
+        document.createElement("div");
+
+    content.className =
+        "message-content";
+
+
+    const img =
+        document.createElement("img");
+
+
+    img.className =
+        "message-image";
+
+
+    img.alt =
+        "Imagem enviada";
+
+
+    const url =
+        URL.createObjectURL(arquivo);
+
+
+    img.src = url;
+
+
+    content.appendChild(img);
+
+
+    if (texto) {
+
+        const textoElemento =
+            document.createElement("div");
+
+        textoElemento.className =
+            "image-message-text";
+
+        textoElemento.textContent =
+            texto;
+
+        content.appendChild(
+            textoElemento
+        );
+
+    }
+
+
+    message.appendChild(avatar);
+
+    message.appendChild(content);
+
+    chatBox.appendChild(message);
+
+
+    scrollChat();
+
+
+    return message;
+}
+
+
+// =====================================================
+// LOADING
+// =====================================================
+
+function adicionarLoading() {
+
+    const message =
+        document.createElement("div");
+
+    message.className =
+        "message bot";
+
+
+    const avatar =
+        document.createElement("div");
+
+    avatar.className =
+        "message-avatar";
+
+    avatar.textContent =
+        "M";
+
+
+    const content =
+        document.createElement("div");
+
+    content.className =
+        "message-content";
+
+
+    const loading =
+        document.createElement("div");
+
+    loading.className =
+        "typing";
+
+
+    loading.innerHTML = `
+        <span></span>
+        <span></span>
+        <span></span>
+    `;
+
+
+    content.appendChild(loading);
+
+    message.appendChild(avatar);
+
+    message.appendChild(content);
+
+    chatBox.appendChild(message);
+
+
+    scrollChat();
+
+
+    return message;
+}
+
+
+// =====================================================
+// SCROLL
+// =====================================================
+
+function scrollChat() {
+
+    chatBox.scrollTo({
+        top: chatBox.scrollHeight,
+        behavior: "smooth"
+    });
+
+}
+
+
+// =====================================================
+// ENTER
+// =====================================================
+
+function handleKey(event) {
+
+    if (
+        event.key === "Enter" &&
+        !event.shiftKey
+    ) {
+
+        event.preventDefault();
+
+        enviarMensagem();
+
+    }
+
+}
+
+
+// =====================================================
+// TEXTAREA
+// =====================================================
+
+input.addEventListener(
+    "input",
+    ajustarTextarea
+);
+
+
+function ajustarTextarea() {
+
+    input.style.height =
+        "auto";
+
+
+    input.style.height =
+        Math.min(
+            input.scrollHeight,
+            130
+        ) + "px";
+
+}
+
+
+// =====================================================
+// SUGESTÃO
+// =====================================================
+
+function usarSugestao(texto) {
+
+    input.value =
+        texto;
+
+
+    ajustarTextarea();
+
+    input.focus();
+
+    enviarMensagem();
+
+}
+
+
+// =====================================================
+// NOVA CONVERSA
+// =====================================================
+
+function novaConversa() {
+
+    chatBox.innerHTML = "";
+
+
+    const novaTela =
+        document.createElement("div");
+
+
+    novaTela.className =
+        "welcome";
+
+
+    novaTela.id =
+        "welcome";
+
+
+    novaTela.innerHTML = `
+
+        <div class="welcome-logo">
+            M
+        </div>
+
+        <h1>
+            Olá! Eu sou a
+            <span>Mello IA</span>
+        </h1>
+
+        <p>
+            Assistente inteligente de tecnologia,
+            programação, estudos e inovação.
+        </p>
+
+        <div class="suggestions">
+
+            <button
+                onclick="usarSugestao('Explique-me inteligência artificial de forma simples')"
+            >
+                🤖
+
+                <span>
+                    <strong>
+                        Inteligência Artificial
+                    </strong>
+
+                    Aprender conceitos de IA
+                </span>
+            </button>
+
+
+            <button
+                onclick="usarSugestao('Ajude-me a aprender programação')"
+            >
+                💻
+
+                <span>
+                    <strong>
+                        Programação
+                    </strong>
+
+                    Aprender a programar
+                </span>
+            </button>
+
+
+            <button
+                onclick="usarSugestao('Ajude-me com os meus estudos')"
+            >
+                📚
+
+                <span>
+                    <strong>
+                        Estudos
+                    </strong>
+
+                    Explicar matérias
+                </span>
+            </button>
+
+
+            <button
+                onclick="usarSugestao('Explique redes de computadores')"
+            >
+                🌐
+
+                <span>
+                    <strong>
+                        Tecnologia
+                    </strong>
+
+                    Redes e informática
+                </span>
+            </button>
+
+        </div>
+    `;
+
+
+    chatBox.appendChild(
+        novaTela
+    );
+
+
+    removerImagem();
+
+
+    input.value = "";
+
+    ajustarTextarea();
+
+    input.focus();
+
+}
+
+
+// =====================================================
+// SIDEBAR MOBILE
+// =====================================================
+
+function toggleSidebar() {
+
+    const sidebar =
+        document.getElementById(
+            "sidebar"
+        );
+
+
+    sidebar.classList.toggle(
+        "open"
+    );
+
+}
+
+
+// =====================================================
+// HISTÓRICO
+// =====================================================
+
+function adicionarHistorico(
+    mensagem
+) {
+
+    const history =
+        document.getElementById(
+            "history"
+        );
+
+
+    if (!history) {
+        return;
+    }
+
+
+    let titulo =
+        mensagem;
+
+
+    if (titulo.length > 35) {
+
+        titulo =
+            titulo.substring(
+                0,
+                35
+            ) + "...";
+
+    }
+
+
+    const item =
+        document.createElement(
+            "button"
+        );
+
+
+    item.className =
+        "history-item";
+
+
+    item.textContent =
+        "💬 " + titulo;
+
+
+    item.onclick =
+        function () {
+
+            input.value =
+                mensagem;
+
+            ajustarTextarea();
+
+            input.focus();
+
+        };
+
+
+    history.prepend(item);
+
+
+    while (
+        history.children.length > 10
+    ) {
+
+        history.removeChild(
+            history.lastChild
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// FECHAR SIDEBAR
+// =====================================================
+
+document.addEventListener(
+    "click",
+    function (event) {
+
+        const sidebar =
+            document.getElementById(
+                "sidebar"
+            );
+
+
+        const menu =
+            document.querySelector(
+                ".menu-button"
+            );
+
+
+        if (
+            window.innerWidth <= 800 &&
+            sidebar &&
+            sidebar.classList.contains("open") &&
+            !sidebar.contains(event.target) &&
+            menu &&
+            !menu.contains(event.target)
+        ) {
+
+            sidebar.classList.remove(
+                "open"
+            );
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// INICIAR
+// =====================================================
+
+input.focus();
