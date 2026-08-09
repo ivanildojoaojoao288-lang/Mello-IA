@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
 
     <meta charset="UTF-8">
 
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
-
-    <meta name="description"
-          content="Mello IA — Assistente inteligente de tecnologia, programação, estudos e inovação.">
 
     <title>Mello IA</title>
 
@@ -21,22 +19,17 @@
 <body>
 
 
-<!-- =========================================
-     APLICAÇÃO
-     ========================================= -->
-
 <div class="app">
 
 
-    <!-- =========================================
-         MENU LATERAL
-         ========================================= -->
+    <!-- =====================================================
+         SIDEBAR
+         ===================================================== -->
 
-    <aside class="sidebar"
-           id="sidebar">
+    <aside class="sidebar" id="sidebar">
 
 
-        <!-- MARCA -->
+        <!-- LOGO -->
 
         <div class="brand">
 
@@ -62,19 +55,16 @@
         <!-- NOVA CONVERSA -->
 
         <button class="new-chat"
-                type="button"
                 onclick="novaConversa()">
 
             <span>＋</span>
 
-            <span>
-                Nova conversa
-            </span>
+            Nova conversa
 
         </button>
 
 
-        <!-- SECÇÃO -->
+        <!-- CONVERSAS -->
 
         <div class="sidebar-section">
 
@@ -83,12 +73,8 @@
         </div>
 
 
-        <!-- HISTÓRICO -->
-
         <div id="history"
              class="history">
-
-            <!-- As conversas serão adicionadas pelo JavaScript -->
 
         </div>
 
@@ -98,10 +84,9 @@
         <div class="sidebar-bottom">
 
 
-            <button class="sidebar-button"
-                    type="button">
+            <button class="sidebar-button">
 
-                <span>⚙️</span>
+                ⚙️
 
                 <span>
                     Definições
@@ -110,10 +95,9 @@
             </button>
 
 
-            <button class="sidebar-button"
-                    type="button">
+            <button class="sidebar-button">
 
-                <span>ℹ️</span>
+                ℹ️
 
                 <span>
                     Sobre a Mello IA
@@ -140,33 +124,25 @@
 
 
 
-    <!-- =========================================
+    <!-- =====================================================
          ÁREA PRINCIPAL
-         ========================================= -->
+         ===================================================== -->
 
     <main class="main">
 
 
-        <!-- =========================================
-             TOPO
-             ========================================= -->
+        <!-- TOPBAR -->
 
         <header class="topbar">
 
 
-            <!-- MENU MOBILE -->
-
             <button class="menu-button"
-                    type="button"
-                    onclick="toggleSidebar()"
-                    aria-label="Abrir menu">
+                    onclick="toggleSidebar()">
 
                 ☰
 
             </button>
 
-
-            <!-- IDENTIDADE -->
 
             <div class="topbar-title">
 
@@ -192,12 +168,8 @@
             </div>
 
 
-            <!-- NOVA CONVERSA MOBILE -->
-
             <button class="new-mobile"
-                    type="button"
-                    onclick="novaConversa()"
-                    aria-label="Nova conversa">
+                    onclick="novaConversa()">
 
                 ＋
 
@@ -208,17 +180,15 @@
 
 
 
-        <!-- =========================================
-             ÁREA DO CHAT
-             ========================================= -->
+        <!-- =====================================================
+             CHAT
+             ===================================================== -->
 
         <section class="chat-area"
                  id="chat-box">
 
 
-            <!-- =====================================
-                 BOAS-VINDAS
-                 ===================================== -->
+            <!-- TELA INICIAL -->
 
             <div class="welcome"
                  id="welcome">
@@ -232,9 +202,7 @@
                 <h1>
 
                     Olá! Eu sou a
-                    <span>
-                        Mello IA
-                    </span>
+                    <span>Mello IA</span>
 
                 </h1>
 
@@ -247,20 +215,16 @@
                 </p>
 
 
-                <!-- =================================
-                     SUGESTÕES
-                     ================================= -->
+
+                <!-- SUGESTÕES -->
 
                 <div class="suggestions">
 
 
                     <button
-                        type="button"
                         onclick="usarSugestao('Explique-me inteligência artificial de forma simples')">
 
-                        <span>
-                            🤖
-                        </span>
+                        🤖
 
                         <span>
 
@@ -277,12 +241,9 @@
 
 
                     <button
-                        type="button"
                         onclick="usarSugestao('Ajude-me a aprender programação')">
 
-                        <span>
-                            💻
-                        </span>
+                        💻
 
                         <span>
 
@@ -299,151 +260,3 @@
 
 
                     <button
-                        type="button"
-                        onclick="usarSugestao('Ajude-me com os meus estudos')">
-
-                        <span>
-                            📚
-                        </span>
-
-                        <span>
-
-                            <strong>
-                                Estudos
-                            </strong>
-
-                            Explicar matérias
-
-                        </span>
-
-                    </button>
-
-
-
-                    <button
-                        type="button"
-                        onclick="usarSugestao('Explique redes de computadores')">
-
-                        <span>
-                            🌐
-                        </span>
-
-                        <span>
-
-                            <strong>
-                                Tecnologia
-                            </strong>
-
-                            Redes e informática
-
-                        </span>
-
-                    </button>
-
-
-                </div>
-
-
-            </div>
-
-
-        </section>
-
-
-
-        <!-- =========================================
-             ÁREA DE INPUT
-             ========================================= -->
-
-        <div class="input-wrapper">
-
-
-            <!-- =====================================
-                 PREVIEW DA IMAGEM
-                 ===================================== -->
-
-            <div class="image-preview"
-                 id="image-preview">
-
-
-                <img id="image-preview-img"
-                     src=""
-                     alt="Pré-visualização da imagem">
-
-
-                <div class="image-preview-info">
-
-
-                    <div class="image-preview-name"
-                         id="image-preview-name">
-
-                        Imagem selecionada
-
-                    </div>
-
-
-                    <div class="image-preview-label">
-
-                        Preparada para análise pela Mello IA
-
-                    </div>
-
-
-                </div>
-
-
-                <button class="remove-image"
-                        id="remove-image"
-                        type="button"
-                        onclick="removerImagem()"
-                        aria-label="Remover imagem">
-
-                    ×
-
-                </button>
-
-
-            </div>
-
-
-
-            <!-- =====================================
-                 CAIXA DE MENSAGEM
-                 ===================================== -->
-
-            <div class="input-box">
-
-
-                <!-- INPUT DE FICHEIRO -->
-
-                <input
-                    type="file"
-                    id="image-input"
-                    class="file-input"
-                    accept="image/png,image/jpeg,image/webp,image/gif"
-                >
-
-
-                <!-- BOTÃO ANEXAR -->
-
-                <button
-                    class="attach-button"
-                    id="attach-button"
-                    type="button"
-                    title="Enviar imagem"
-                    aria-label="Enviar imagem"
-                    onclick="abrirSeletorImagem()">
-
-                    ＋
-
-                </button>
-
-
-
-                <!-- CAMPO DE TEXTO -->
-
-                <textarea
-                    id="user-input"
-                    rows="1"
-                    maxlength="10000"
-                    placeholder
