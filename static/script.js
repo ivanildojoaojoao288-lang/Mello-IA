@@ -5,161 +5,8 @@
 const input = document.getElementById("user-input");
 const chatBox = document.getElementById("chat-box");
 const sendButton = document.getElementById("send-button");
-let welcome = document.getElementById("welcome");
-
-// ===============================
-// IMAGEM
-// ===============================
-
-let imagemSelecionada = null;
-
+const welcome = document.getElementById("welcome");
 const imageInput = document.getElementById("image-input");
-const attachButton = document.getElementById("attach-button");
-
-// Abrir seletor de imagem
-if (attachButton && imageInput) {
-    attachButton.addEventListener("click", function () {
-        imageInput.click();
-    });
-}
-
-// Quando escolher uma imagem
-if (imageInput) {
-
-    imageInput.addEventListener("change", function () {
-
-        const arquivo = this.files[0];
-
-        if (!arquivo) return;
-
-        // Aceitar apenas imagens
-        if (!arquivo.type.startsWith("image/")) {
-
-            alert("Por favor selecione uma imagem válida.");
-
-            this.value = "";
-
-            return;
-        }
-
-        // Limitar tamanho para evitar problemas
-        if (arquivo.size > 10 * 1024 * 1024) {
-
-            alert("A imagem deve ter no máximo 10 MB.");
-
-            this.value = "";
-
-            return;
-        }
-
-        imagemSelecionada = arquivo;
-
-        mostrarPreviewImagem(arquivo);
-    });
-}
-
-
-// ===============================
-// PREVIEW DA IMAGEM
-// ===============================
-
-function mostrarPreviewImagem(arquivo) {
-
-    const reader = new FileReader();
-
-    reader.onload = function (event) {
-
-        // Remover preview anterior
-        const antigo =
-            document.getElementById("image-preview");
-
-        if (antigo) {
-            antigo.remove();
-        }
-
-        const preview =
-            document.createElement("div");
-
-        preview.id = "image-preview";
-
-        preview.style.cssText = `
-            max-width: 850px;
-            margin: 0 auto 10px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-        ;
-
-        const img =
-            document.createElement("img");
-
-        img.src = event.target.result;
-
-        img.style.cssText = `
-            width: 70px;
-            height: 70px;
-            object-fit: cover;
-            border-radius: 10px;
-        ;
-
-        const texto =
-            document.createElement("span");
-
-        texto.textContent =
-            "Imagem pronta para enviar";
-
-        texto.style.cssText = `
-            flex: 1;
-            font-size: 13px;
-            color: #475569;
-        ;
-
-        const remover =
-            document.createElement("button");
-
-        remover.textContent = "×";
-
-        remover.title = "Remover imagem";
-
-        remover.style.cssText = `
-            width: 32px;
-            height: 32px;
-            border: none;
-            border-radius: 50%;
-            background: #f1f5f9;
-            color: #475569;
-            font-size: 20px;
-            cursor: pointer;
-        ;
-
-        remover.onclick = function () {
-
-            imagemSelecionada = null;
-
-            if (imageInput) {
-                imageInput.value = "";
-            }
-
-            preview.remove();
-        };
-
-        preview.appendChild(img);
-        preview.appendChild(texto);
-        preview.appendChild(remover);
-
-        const wrapper =
-            document.querySelector(".input-wrapper");
-
-        wrapper.insertBefore(preview, wrapper.firstChild);
-    };
-
-    reader.readAsDataURL(arquivo);
-}
 
 
 // ===============================
@@ -170,143 +17,66 @@ async function enviarMensagem() {
 
     const mensagem = input.value.trim();
 
-    // Não permitir envio vazio
-    // se também não houver imagem
-    if (!mensagem && !imagemSelecionada) {
-        return;
-    }
+    if (!mensagem) return;
 
-    // Esconder tela inicial
     if (welcome) {
         welcome.style.display = "none";
     }
 
-    // Guardar imagem atual
-    const arquivoAtual = imagemSelecionada;
+    adicionarMensagem("user", mensagem);
 
-    // Converter imagem para Base64
-    let imagemBase64 = null;
-
-    if (arquivoAtual) {
-
-        try {
-
-            imagemBase64 =
-                await converterImagemParaBase64(arquivoAtual);
-
-        } catch (erro) {
-
-            console.error(
-                "Erro ao ler imagem:",
-                erro
-            );
-
-            adicionarMensagem(
-                "bot",
-                "Não consegui ler a imagem. Tenta novamente."
-            );
-
-            return;
-        }
-    }
-
-    // Mostrar mensagem do utilizador
-    adicionarMensagemUsuario(
-        mensagem,
-        imagemBase64
-    );
-
-    // Guardar texto antes de limpar
-    const mensagemHistorico =
-        mensagem || "Imagem enviada";
-
-    // Limpar campo
     input.value = "";
 
     ajustarTextarea();
 
-    // Remover preview
-    const preview =
-        document.getElementById("image-preview");
-
-    if (preview) {
-        preview.remove();
-    }
-
-    // Limpar seleção
-    imagemSelecionada = null;
-
-    if (imageInput) {
-        imageInput.value = "";
-    }
-
-    // Desativar botão
     sendButton.disabled = true;
 
-    // Mostrar indicador
-    const loading =
-        adicionarLoading();
+    const loading = adicionarLoading();
 
     try {
 
-        const resposta =
-            await fetch("/chat", {
+        const resposta = await fetch("/chat", {
+            method: "POST",
 
-                method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
 
-                headers: {
-                    "Content-Type": "application/json"
-                },
+            body: JSON.stringify({
+                message: mensagem
+            })
+        });
 
-                body: JSON.stringify({
+        const data = await resposta.json();
 
-                    message: mensagem,
-
-                    image: imagemBase64
-                })
-            });
-
-        const data =
-            await resposta.json();
-
-        // Remover loading
         loading.remove();
 
         if (!resposta.ok) {
 
             adicionarMensagem(
                 "bot",
-                data.reply ||
-                "Ocorreu um erro ao processar a mensagem."
+                data.reply || "Ocorreu um erro."
             );
 
             return;
         }
 
-        // Mostrar resposta
         adicionarMensagem(
             "bot",
-            data.reply ||
-            "Não consegui gerar uma resposta."
+            data.reply || "Não consegui gerar uma resposta."
         );
 
-        // Histórico
-        adicionarHistorico(
-            mensagemHistorico
-        );
+        adicionarHistorico(mensagem);
 
     } catch (erro) {
 
-        console.error(
-            "Erro:",
-            erro
-        );
+        console.error("Erro:", erro);
 
         loading.remove();
 
         adicionarMensagem(
             "bot",
-            "Não consegui conectar ao servidor da Mello IA. Verifique se o servidor está online."
+            "Não consegui conectar ao servidor da Mello IA."
         );
 
     } finally {
@@ -319,122 +89,186 @@ async function enviarMensagem() {
 
 
 // ===============================
-// CONVERTER IMAGEM
+// ENVIAR IMAGEM
 // ===============================
 
-function converterImagemParaBase64(arquivo) {
+if (imageInput) {
 
-    return new Promise(
-        function (resolve, reject) {
+    imageInput.addEventListener("change", async function () {
 
-            const reader =
-                new FileReader();
+        const ficheiro = this.files[0];
 
-            reader.onload =
-                function () {
-                    resolve(reader.result);
-                };
+        if (!ficheiro) return;
 
-            reader.onerror =
-                function () {
-                    reject(
-                        new Error(
-                            "Falha ao ler imagem."
-                        )
-                    );
-                };
+        if (!ficheiro.type.startsWith("image/")) {
 
-            reader.readAsDataURL(arquivo);
+            adicionarMensagem(
+                "bot",
+                "Por favor seleciona uma imagem válida."
+            );
+
+            return;
         }
-    );
+
+        if (ficheiro.size > 8 * 1024 * 1024) {
+
+            adicionarMensagem(
+                "bot",
+                "A imagem é muito grande. Escolhe uma imagem com menos de 8 MB."
+            );
+
+            return;
+        }
+
+        if (welcome) {
+            welcome.style.display = "none";
+        }
+
+        const leitor = new FileReader();
+
+        leitor.onload = async function () {
+
+            const imagemBase64 = leitor.result;
+
+            mostrarImagemUtilizador(imagemBase64);
+
+            const loading = adicionarLoading();
+
+            try {
+
+                const resposta = await fetch("/vision", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        image: imagemBase64,
+
+                        message:
+                            "Analisa esta imagem cuidadosamente. Se houver texto, lê-o. Se houver uma conta matemática, resolve-a passo a passo. Se houver código, explica-o. Se houver um exercício, resolve-o. Explica tudo de forma clara e organizada."
+                    })
+                });
+
+                const data = await resposta.json();
+
+                loading.remove();
+
+                if (!resposta.ok) {
+
+                    adicionarMensagem(
+                        "bot",
+                        data.reply || "Não consegui analisar a imagem."
+                    );
+
+                    return;
+                }
+
+                adicionarMensagem(
+                    "bot",
+                    data.reply || "Imagem analisada."
+                );
+
+            } catch (erro) {
+
+                console.error("Erro ao analisar imagem:", erro);
+
+                loading.remove();
+
+                adicionarMensagem(
+                    "bot",
+                    "Não consegui analisar esta imagem. Verifica a ligação ao servidor."
+                );
+
+            }
+
+        };
+
+        leitor.readAsDataURL(ficheiro);
+
+        this.value = "";
+    });
 }
 
 
 // ===============================
-// MENSAGEM DO UTILIZADOR
+// MOSTRAR IMAGEM DO UTILIZADOR
 // ===============================
 
-function adicionarMensagemUsuario(
-    texto,
-    imagem
-) {
+function mostrarImagemUtilizador(src) {
 
-    const message =
-        document.createElement("div");
+    const message = document.createElement("div");
 
-    message.className =
-        "message user";
+    message.className = "message user";
 
-    const avatar =
-        document.createElement("div");
+    const avatar = document.createElement("div");
 
-    avatar.className =
-        "message-avatar";
+    avatar.className = "message-avatar";
 
-    avatar.textContent =
-        "👤";
+    avatar.textContent = "👤";
 
-    const content =
-        document.createElement("div");
+    const content = document.createElement("div");
 
-    content.className =
-        "message-content";
+    content.className = "message-content image-message";
 
-    // Mostrar imagem
-    if (imagem) {
+    const imagem = document.createElement("img");
 
-        const img =
-            document.createElement("img");
+    imagem.src = src;
 
-        img.src = imagem;
+    imagem.alt = "Imagem enviada";
 
-        img.style.cssText = `
-            display: block;
-            max-width: 280px;
-            max-height: 300px;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            border-radius: 12px;
-            margin-bottom: ${texto ? "10px" : "0"};
-        ;
+    imagem.className = "uploaded-image";
 
-        content.appendChild(img);
-    }
+    content.appendChild(imagem);
 
-    // Mostrar texto
-    if (texto) {
+    message.appendChild(avatar);
 
-        const textoElement =
-            document.createElement("div");
+    message.appendChild(content);
 
-        textoElement.textContent =
-            texto;
-
-        content.appendChild(
-            textoElement
-        );
-    }
-
-    message.appendChild(
-        avatar
-    );
-
-    message.appendChild(
-        content
-    );
-
-    chatBox.appendChild(
-        message
-    );
+    chatBox.appendChild(message);
 
     chatBox.scrollTo({
+        top: chatBox.scrollHeight,
+        behavior: "smooth"
+    });
+}
 
-        top:
-            chatBox.scrollHeight,
 
-        behavior:
-            "smooth"
+// ===============================
+// ADICIONAR MENSAGEM
+// ===============================
+
+function adicionarMensagem(tipo, texto) {
+
+    const message = document.createElement("div");
+
+    message.className = `message ${tipo}`;
+
+    const avatar = document.createElement("div");
+
+    avatar.className = "message-avatar";
+
+    avatar.textContent =
+        tipo === "bot" ? "M" : "👤";
+
+    const content = document.createElement("div");
+
+    content.className = "message-content";
+
+    content.textContent = texto;
+
+    message.appendChild(avatar);
+
+    message.appendChild(content);
+
+    chatBox.appendChild(message);
+
+    chatBox.scrollTo({
+        top: chatBox.scrollHeight,
+        behavior: "smooth"
     });
 
     return message;
@@ -442,129 +276,46 @@ function adicionarMensagemUsuario(
 
 
 // ===============================
-// ADICIONAR MENSAGEM DA IA
-// ===============================
-
-function adicionarMensagem(
-    tipo,
-    texto
-) {
-
-    const message =
-        document.createElement("div");
-
-    message.className =
-        `message ${tipo}`;
-
-    const avatar =
-        document.createElement("div");
-
-    avatar.className =
-        "message-avatar";
-
-    avatar.textContent =
-        tipo === "bot"
-            ? "M"
-            : "👤";
-
-    const content =
-        document.createElement("div");
-
-    content.className =
-        "message-content";
-
-    // Por segurança, não inserir HTML
-    // vindo diretamente da API
-    content.textContent =
-        texto;
-
-    message.appendChild(
-        avatar
-    );
-
-    message.appendChild(
-        content
-    );
-
-    chatBox.appendChild(
-        message
-    );
-
-    chatBox.scrollTo({
-
-        top:
-            chatBox.scrollHeight,
-
-        behavior:
-            "smooth"
-    });
-
-    return message;
-}
-
-
-// ===============================
-// INDICADOR DE RESPOSTA
+// LOADING
 // ===============================
 
 function adicionarLoading() {
 
-    const message =
-        document.createElement("div");
+    const message = document.createElement("div");
 
-    message.className =
-        "message bot";
+    message.className = "message bot";
 
-    const avatar =
-        document.createElement("div");
+    const avatar = document.createElement("div");
 
-    avatar.className =
-        "message-avatar";
+    avatar.className = "message-avatar";
 
-    avatar.textContent =
-        "M";
+    avatar.textContent = "M";
 
-    const content =
-        document.createElement("div");
+    const content = document.createElement("div");
 
-    content.className =
-        "message-content";
+    content.className = "message-content";
 
-    const loading =
-        document.createElement("div");
+    const loading = document.createElement("div");
 
-    loading.className =
-        "typing";
+    loading.className = "typing";
 
     loading.innerHTML = `
         <span></span>
         <span></span>
         <span></span>
-    ;
+    `;
 
-    content.appendChild(
-        loading
-    );
+    content.appendChild(loading);
 
-    message.appendChild(
-        avatar
-    );
+    message.appendChild(avatar);
 
-    message.appendChild(
-        content
-    );
+    message.appendChild(content);
 
-    chatBox.appendChild(
-        message
-    );
+    chatBox.appendChild(message);
 
     chatBox.scrollTo({
-
-        top:
-            chatBox.scrollHeight,
-
-        behavior:
-            "smooth"
+        top: chatBox.scrollHeight,
+        behavior: "smooth"
     });
 
     return message;
@@ -572,15 +323,12 @@ function adicionarLoading() {
 
 
 // ===============================
-// ENTER PARA ENVIAR
+// ENTER
 // ===============================
 
 function handleKey(event) {
 
-    if (
-        event.key === "Enter" &&
-        !event.shiftKey
-    ) {
+    if (event.key === "Enter" && !event.shiftKey) {
 
         event.preventDefault();
 
@@ -590,7 +338,7 @@ function handleKey(event) {
 
 
 // ===============================
-// TEXTAREA AUTOMÁTICO
+// TEXTAREA
 // ===============================
 
 input.addEventListener(
@@ -600,8 +348,7 @@ input.addEventListener(
 
 function ajustarTextarea() {
 
-    input.style.height =
-        "auto";
+    input.style.height = "auto";
 
     input.style.height =
         Math.min(
@@ -617,8 +364,7 @@ function ajustarTextarea() {
 
 function usarSugestao(texto) {
 
-    input.value =
-        texto;
+    input.value = texto;
 
     ajustarTextarea();
 
@@ -634,19 +380,17 @@ function usarSugestao(texto) {
 
 function novaConversa() {
 
-    chatBox.innerHTML =
-        "";
+    chatBox.innerHTML = "";
 
     const novaTela =
         document.createElement("div");
 
-    novaTela.className =
-        "welcome";
+    novaTela.className = "welcome";
 
-    novaTela.id =
-        "welcome";
+    novaTela.id = "welcome";
 
     novaTela.innerHTML = `
+
         <div class="welcome-logo">
             M
         </div>
@@ -696,17 +440,11 @@ function novaConversa() {
             </button>
 
         </div>
-    ;
+    `;
 
-    chatBox.appendChild(
-        novaTela
-    );
+    chatBox.appendChild(novaTela);
 
-    welcome =
-        novaTela;
-
-    input.value =
-        "";
+    input.value = "";
 
     ajustarTextarea();
 
@@ -715,51 +453,37 @@ function novaConversa() {
 
 
 // ===============================
-// SIDEBAR MOBILE
+// SIDEBAR
 // ===============================
 
 function toggleSidebar() {
 
     const sidebar =
-        document.getElementById(
-            "sidebar"
-        );
+        document.getElementById("sidebar");
 
-    sidebar.classList.toggle(
-        "open"
-    );
+    sidebar.classList.toggle("open");
 }
 
 
 // ===============================
-// HISTÓRICO SIMPLES
+// HISTÓRICO
 // ===============================
 
-function adicionarHistorico(
-    mensagem
-) {
+function adicionarHistorico(mensagem) {
 
     const history =
-        document.getElementById(
-            "history"
-        );
+        document.getElementById("history");
 
-    let titulo =
-        mensagem;
+    let titulo = mensagem;
 
     if (titulo.length > 35) {
 
         titulo =
-            titulo.substring(
-                0,
-                35
-            ) + "...";
+            titulo.substring(0, 35) + "...";
     }
 
     const item =
-        document.createElement(
-            "button"
-        );
+        document.createElement("button");
 
     item.className =
         "history-item";
@@ -767,24 +491,18 @@ function adicionarHistorico(
     item.textContent =
         "💬 " + titulo;
 
-    item.onclick =
-        function () {
+    item.onclick = function () {
 
-            input.value =
-                mensagem;
+        input.value = mensagem;
 
-            ajustarTextarea();
+        ajustarTextarea();
 
-            input.focus();
-        };
+        input.focus();
+    };
 
-    history.prepend(
-        item
-    );
+    history.prepend(item);
 
-    while (
-        history.children.length > 10
-    ) {
+    while (history.children.length > 10) {
 
         history.removeChild(
             history.lastChild
@@ -794,7 +512,7 @@ function adicionarHistorico(
 
 
 // ===============================
-// FECHAR SIDEBAR AO CLICAR FORA
+// FECHAR SIDEBAR
 // ===============================
 
 document.addEventListener(
@@ -802,9 +520,7 @@ document.addEventListener(
     function (event) {
 
         const sidebar =
-            document.getElementById(
-                "sidebar"
-            );
+            document.getElementById("sidebar");
 
         const menu =
             document.querySelector(
@@ -813,22 +529,12 @@ document.addEventListener(
 
         if (
             window.innerWidth <= 800 &&
-            sidebar &&
-            sidebar.classList.contains(
-                "open"
-            ) &&
-            !sidebar.contains(
-                event.target
-            ) &&
-            menu &&
-            !menu.contains(
-                event.target
-            )
+            sidebar.classList.contains("open") &&
+            !sidebar.contains(event.target) &&
+            !menu.contains(event.target)
         ) {
 
-            sidebar.classList.remove(
-                "open"
-            );
+            sidebar.classList.remove("open");
         }
     }
 );
