@@ -1,17 +1,44 @@
 <!DOCTYPE html>
+
 <html lang="pt">
 
 <head>
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Mello IA</title>
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- CSS -->
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+
+    <!-- MARKDOWN -->
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+
+
+    <!-- KATEX -->
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+    >
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js">
+    </script>
 
 </head>
 
@@ -22,18 +49,23 @@
 <div class="app">
 
 
-    <!-- =====================================================
-         MENU LATERAL
-         ===================================================== -->
+    <!-- =================================================
+         SIDEBAR
+         ================================================= -->
 
-    <aside class="sidebar" id="sidebar">
+    <aside
+        class="sidebar"
+        id="sidebar"
+    >
 
 
         <div class="brand">
 
+
             <div class="brand-logo">
                 M
             </div>
+
 
             <div>
 
@@ -47,19 +79,20 @@
 
             </div>
 
+
         </div>
 
 
-
-        <button class="new-chat"
-                onclick="novaConversa()">
+        <button
+            class="new-chat"
+            onclick="novaConversa()"
+        >
 
             <span>＋</span>
 
             Nova conversa
 
         </button>
-
 
 
         <div class="sidebar-section">
@@ -69,12 +102,12 @@
         </div>
 
 
-
-        <div id="history"
-             class="history">
+        <div
+            id="history"
+            class="history"
+        >
 
         </div>
-
 
 
         <div class="sidebar-bottom">
@@ -91,7 +124,6 @@
             </button>
 
 
-
             <button class="sidebar-button">
 
                 ℹ️
@@ -101,7 +133,6 @@
                 </span>
 
             </button>
-
 
 
             <div class="creator-mini">
@@ -121,26 +152,26 @@
     </aside>
 
 
-
-    <!-- =====================================================
-         ÁREA PRINCIPAL
-         ===================================================== -->
+    <!-- =================================================
+         MAIN
+         ================================================= -->
 
     <main class="main">
 
 
-        <!-- CABEÇALHO -->
+        <!-- TOPBAR -->
 
         <header class="topbar">
 
 
-            <button class="menu-button"
-                    onclick="toggleSidebar()">
+            <button
+                class="menu-button"
+                onclick="toggleSidebar()"
+            >
 
                 ☰
 
             </button>
-
 
 
             <div class="topbar-title">
@@ -149,7 +180,6 @@
                 <div class="mini-logo">
                     M
                 </div>
-
 
 
                 <div>
@@ -168,9 +198,10 @@
             </div>
 
 
-
-            <button class="new-mobile"
-                    onclick="novaConversa()">
+            <button
+                class="new-mobile"
+                onclick="novaConversa()"
+            >
 
                 ＋
 
@@ -180,19 +211,20 @@
         </header>
 
 
+        <!-- =================================================
+             CHAT
+             ================================================= -->
 
-        <!-- =====================================================
-             ÁREA DO CHAT
-             ===================================================== -->
-
-        <section class="chat-area"
-                 id="chat-box">
+        <section
+            class="chat-area"
+            id="chat-box"
+        >
 
 
-            <!-- BOAS-VINDAS -->
-
-            <div class="welcome"
-                 id="welcome">
+            <div
+                class="welcome"
+                id="welcome"
+            >
 
 
                 <div class="welcome-logo">
@@ -200,16 +232,15 @@
                 </div>
 
 
-
                 <h1>
 
                     Olá! Eu sou a
+
                     <span>
                         Mello IA
                     </span>
 
                 </h1>
-
 
 
                 <p>
@@ -220,14 +251,12 @@
                 </p>
 
 
-
-                <!-- SUGESTÕES -->
-
                 <div class="suggestions">
 
 
                     <button
-                        onclick="usarSugestao('Explique-me inteligência artificial de forma simples')">
+                        onclick="usarSugestao('Explique-me inteligência artificial de forma simples')"
+                    >
 
                         🤖
 
@@ -244,9 +273,9 @@
                     </button>
 
 
-
                     <button
-                        onclick="usarSugestao('Ajude-me a aprender programação')">
+                        onclick="usarSugestao('Ajude-me a aprender programação')"
+                    >
 
                         💻
 
@@ -263,9 +292,9 @@
                     </button>
 
 
-
                     <button
-                        onclick="usarSugestao('Ajude-me com os meus estudos')">
+                        onclick="usarSugestao('Ajude-me com os meus estudos')"
+                    >
 
                         📚
 
@@ -282,9 +311,9 @@
                     </button>
 
 
-
                     <button
-                        onclick="usarSugestao('Explique redes de computadores')">
+                        onclick="usarSugestao('Explique redes de computadores')"
+                    >
 
                         🌐
 
@@ -310,38 +339,41 @@
         </section>
 
 
-
-        <!-- =====================================================
-             ÁREA DE INPUT
-             ===================================================== -->
+        <!-- =================================================
+             INPUT
+             ================================================= -->
 
         <div class="input-wrapper">
 
 
-            <!-- PREVIEW DA IMAGEM -->
+            <!-- PREVIEW -->
 
-            <div id="image-preview"
-                 class="image-preview"
-                 style="display: none;">
+            <div
+                class="image-preview"
+                id="image-preview"
+                style="display:none;"
+            >
 
 
-                <img id="preview-image"
-                     src=""
-                     alt="Imagem selecionada">
+                <img
+                    id="preview-image"
+                    src=""
+                    alt="Pré-visualização"
+                >
 
 
                 <div class="image-preview-info">
 
 
                     <span id="image-name">
-                        Imagem selecionada
                     </span>
 
 
-
-                    <button type="button"
-                            onclick="removerImagem()"
-                            title="Remover imagem">
+                    <button
+                        type="button"
+                        onclick="removerImagem()"
+                        title="Remover imagem"
+                    >
 
                         ×
 
@@ -354,39 +386,33 @@
             </div>
 
 
-
-            <!-- CAIXA ORIGINAL -->
-
             <div class="input-box">
 
 
-                <!-- INPUT INVISÍVEL PARA FOTO -->
+                <!-- INPUT DE IMAGEM -->
 
                 <input
                     type="file"
                     id="image-input"
                     accept="image/*"
-                    style="display: none;"
+                    hidden
                 >
 
-
-
-                <!-- BOTÃO ANEXAR ORIGINAL -->
 
                 <button
                     type="button"
                     class="attach-button"
                     id="attach-button"
-                    title="Anexar imagem"
-                    onclick="document.getElementById('image-input').click()">
+                    title="Enviar foto"
+                    onclick="document.getElementById('image-input').click()"
+                >
 
                     ＋
 
                 </button>
 
 
-
-                <!-- CAMPO DE TEXTO -->
+                <!-- TEXTO -->
 
                 <textarea
                     id="user-input"
@@ -396,15 +422,15 @@
                 ></textarea>
 
 
-
-                <!-- BOTÃO ENVIAR ORIGINAL -->
+                <!-- ENVIAR -->
 
                 <button
                     type="button"
                     class="send-button"
                     id="send-button"
                     onclick="enviarMensagem()"
-                    title="Enviar mensagem">
+                    title="Enviar"
+                >
 
                     ➤
 
@@ -412,7 +438,6 @@
 
 
             </div>
-
 
 
             <div class="input-info">
@@ -432,10 +457,11 @@
 </div>
 
 
-
 <!-- JAVASCRIPT -->
 
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+<script
+    src="{{ url_for('static', filename='script.js') }}">
+</script>
 
 
 </body>
