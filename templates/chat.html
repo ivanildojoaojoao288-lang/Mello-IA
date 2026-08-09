@@ -1,330 +1,348 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
+
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>Mello IA</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
+
 </head>
 
 <body>
 
-    <!-- MENU LATERAL -->
-    <aside class="sidebar" id="sidebar">
+    <div class="app">
 
-        <div class="brand">
+        <!-- =========================
+             MENU LATERAL
+        ========================== -->
 
-            <div class="brand-logo">
-                M
-            </div>
+        <aside class="sidebar" id="sidebar">
 
-            <div>
-                <div class="brand-name">
-                    Mello IA
-                </div>
+            <div class="brand">
 
-                <div class="brand-version">
-                    AI Assistant
-                </div>
-            </div>
-
-        </div>
-
-
-        <button class="new-chat"
-                onclick="novaConversa()">
-
-            <span>＋</span>
-
-            Nova conversa
-
-        </button>
-
-
-        <div class="sidebar-section">
-
-            <span>
-                CONVERSAS
-            </span>
-
-        </div>
-
-
-        <div id="history"
-             class="history">
-
-            <!-- As conversas aparecerão aqui -->
-
-        </div>
-
-
-        <div class="sidebar-bottom">
-
-            <button class="sidebar-button">
-
-                ⚙️
-
-                <span>
-                    Definições
-                </span>
-
-            </button>
-
-
-            <button class="sidebar-button">
-
-                ℹ️
-
-                <span>
-                    Sobre a Mello IA
-                </span>
-
-            </button>
-
-
-            <div class="creator-mini">
-
-                Desenvolvida por<br>
-
-                <strong>
-                    Eng. Ivanildo João Paulo Augusto
-                </strong>
-
-            </div>
-
-        </div>
-
-    </aside>
-
-
-    <!-- ÁREA PRINCIPAL -->
-    <main class="main">
-
-
-        <!-- CABEÇALHO -->
-        <header class="topbar">
-
-            <button class="menu-button"
-                    onclick="toggleSidebar()">
-
-                ☰
-
-            </button>
-
-
-            <div class="topbar-title">
-
-                <div class="mini-logo">
+                <div class="brand-logo">
                     M
                 </div>
-
 
                 <div>
 
-                    <strong>
+                    <div class="brand-name">
                         Mello IA
-                    </strong>
+                    </div>
 
-                    <span>
-                        Assistente inteligente
-                    </span>
+                    <div class="brand-version">
+                        AI Assistant
+                    </div>
 
                 </div>
 
             </div>
 
 
-            <button class="new-mobile"
+            <button class="new-chat"
                     onclick="novaConversa()">
 
-                ＋
+                <span>＋</span>
+
+                Nova conversa
 
             </button>
 
-        </header>
+
+            <div class="sidebar-section">
+
+                <span>
+                    CONVERSAS
+                </span>
+
+            </div>
 
 
+            <div id="history"
+                 class="history">
 
-        <!-- ÁREA DO CHAT -->
-        <section class="chat-area"
-                 id="chat-box">
+                <!-- Histórico das conversas -->
 
-
-            <!-- MENSAGEM DE BOAS-VINDAS -->
-            <div class="welcome"
-                 id="welcome">
+            </div>
 
 
-                <div class="welcome-logo">
-                    M
-                </div>
+            <div class="sidebar-bottom">
 
+                <button class="sidebar-button">
 
-                <h1>
+                    ⚙️
 
-                    Olá! Eu sou a
                     <span>
-                        Mello IA
+                        Definições
                     </span>
 
-                </h1>
+                </button>
 
 
-                <p>
+                <button class="sidebar-button">
 
-                    Assistente inteligente de tecnologia,
-                    programação, estudos e inovação.
+                    ℹ️
 
-                </p>
+                    <span>
+                        Sobre a Mello IA
+                    </span>
 
-
-
-                <!-- SUGESTÕES -->
-                <div class="suggestions">
+                </button>
 
 
-                    <button
-                        onclick="usarSugestao('Explique-me inteligência artificial de forma simples')">
+                <div class="creator-mini">
 
-                        🤖
+                    Desenvolvida por<br>
 
-                        <span>
-
-                            <strong>
-                                Inteligência Artificial
-                            </strong>
-
-                            Aprender conceitos de IA
-
-                        </span>
-
-                    </button>
-
-
-
-                    <button
-                        onclick="usarSugestao('Ajude-me a aprender programação')">
-
-                        💻
-
-                        <span>
-
-                            <strong>
-                                Programação
-                            </strong>
-
-                            Aprender a programar
-
-                        </span>
-
-                    </button>
-
-
-
-                    <button
-                        onclick="usarSugestao('Ajude-me com os meus estudos')">
-
-                        📚
-
-                        <span>
-
-                            <strong>
-                                Estudos
-                            </strong>
-
-                            Explicar matérias
-
-                        </span>
-
-                    </button>
-
-
-
-                    <button
-                        onclick="usarSugestao('Explique redes de computadores')">
-
-                        🌐
-
-                        <span>
-
-                            <strong>
-                                Tecnologia
-                            </strong>
-
-                            Redes e informática
-
-                        </span>
-
-                    </button>
-
+                    <strong>
+                        Eng. Ivanildo João Paulo Augusto
+                    </strong>
 
                 </div>
 
             </div>
 
-        </section>
+        </aside>
 
 
+        <!-- =========================
+             ÁREA PRINCIPAL
+        ========================== -->
 
-        <!-- ÁREA DE INPUT -->
-        <div class="input-wrapper">
+        <main class="main">
 
 
-            <div class="input-box">
+            <!-- CABEÇALHO -->
+
+            <header class="topbar">
+
+                <button class="menu-button"
+                        onclick="toggleSidebar()">
+
+                    ☰
+
+                </button>
 
 
-                <button class="attach-button"
-                        title="Anexar ficheiro">
+                <div class="topbar-title">
+
+                    <div class="mini-logo">
+                        M
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            Mello IA
+                        </strong>
+
+                        <span>
+                            Assistente inteligente
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <button class="new-mobile"
+                        onclick="novaConversa()">
 
                     ＋
 
                 </button>
 
+            </header>
 
 
-                <textarea
-                    id="user-input"
-                    rows="1"
-                    placeholder="Comande a Mello IA..."
-                    onkeydown="handleKey(event)"
-                ></textarea>
+            <!-- =========================
+                 ÁREA DO CHAT
+            ========================== -->
+
+            <section class="chat-area"
+                     id="chat-box">
 
 
+                <!-- TELA INICIAL -->
 
-                <button
-                    class="send-button"
-                    id="send-button"
-                    onclick="enviarMensagem()"
-                    title="Enviar mensagem">
+                <div class="welcome"
+                     id="welcome">
 
-                    ➤
 
-                </button>
+                    <div class="welcome-logo">
+                        M
+                    </div>
+
+
+                    <h1>
+
+                        Olá! Eu sou a
+
+                        <span>
+                            Mello IA
+                        </span>
+
+                    </h1>
+
+
+                    <p>
+
+                        Assistente inteligente de tecnologia,
+                        programação, estudos e inovação.
+
+                    </p>
+
+
+                    <!-- SUGESTÕES -->
+
+                    <div class="suggestions">
+
+
+                        <button
+                            onclick="usarSugestao('Explique-me inteligência artificial de forma simples')">
+
+                            🤖
+
+                            <span>
+
+                                <strong>
+                                    Inteligência Artificial
+                                </strong>
+
+                                Aprender conceitos de IA
+
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            onclick="usarSugestao('Ajude-me a aprender programação')">
+
+                            💻
+
+                            <span>
+
+                                <strong>
+                                    Programação
+                                </strong>
+
+                                Aprender a programar
+
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            onclick="usarSugestao('Ajude-me com os meus estudos')">
+
+                            📚
+
+                            <span>
+
+                                <strong>
+                                    Estudos
+                                </strong>
+
+                                Explicar matérias
+
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            onclick="usarSugestao('Explique redes de computadores')">
+
+                            🌐
+
+                            <span>
+
+                                <strong>
+                                    Tecnologia
+                                </strong>
+
+                                Redes e informática
+
+                            </span>
+
+                        </button>
+
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 ÁREA DE INPUT
+            ========================== -->
+
+            <div class="input-wrapper">
+
+
+                <div class="input-box">
+
+
+                    <button class="attach-button"
+                            title="Anexar ficheiro">
+
+                        ＋
+
+                    </button>
+
+
+                    <textarea
+                        id="user-input"
+                        rows="1"
+                        placeholder="Comande a Mello IA..."
+                        onkeydown="handleKey(event)"
+                    ></textarea>
+
+
+                    <button
+                        class="send-button"
+                        id="send-button"
+                        onclick="enviarMensagem()"
+                        title="Enviar mensagem">
+
+                        ➤
+
+                    </button>
+
+
+                </div>
+
+
+                <div class="input-info">
+
+                    A Mello IA pode cometer erros.
+                    Verifique informações importantes.
+
+                </div>
 
 
             </div>
 
+        </main>
 
-            <div class="input-info">
-
-                A Mello IA pode cometer erros.
-                Verifique informações importantes.
-
-            </div>
-
-
-        </div>
-
-    </main>
-
+    </div>
 
 
     <!-- JAVASCRIPT -->
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 
 </body>
 </html>
+
