@@ -1,333 +1,320 @@
 /* =====================================================
-   MELLO IA — SISTEMA DE IMAGENS
+   MELLO IA — TEMA ORIGINAL AZUL + BRANCO
    ===================================================== */
 
-/* PREVIEW DA IMAGEM ANTES DE ENVIAR */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-.image-preview {
-    max-width: 850px;
-    margin: 0 auto 10px;
+:root {
+    --blue: #0ea5e9;
+    --blue-dark: #0369a1;
+    --blue-light: #38bdf8;
+
+    --bg: #f8fafc;
+    --sidebar: #ffffff;
+    --border: #e2e8f0;
+
+    --text: #0f172a;
+    --muted: #64748b;
+
+    --user: #e0f2fe;
+    --bot: #ffffff;
+}
+
+body {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+
+    font-family: "Segoe UI", Arial, sans-serif;
+
+    background: var(--bg);
+    color: var(--text);
+}
+
+
+/* =====================================================
+   SIDEBAR
+   ===================================================== */
+
+.sidebar {
+    width: 270px;
+    height: 100vh;
+
+    background: #ffffff;
+
+    border-right: 1px solid var(--border);
 
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
 
-    padding: 10px;
+    padding: 20px 15px;
 
-    background: rgba(255, 255, 255, 0.96);
+    transition: transform 0.3s ease;
+}
+
+
+/* LOGO */
+
+.brand-logo,
+.mini-logo,
+.welcome-logo {
+
+    background: linear-gradient(
+        135deg,
+        #0284c7,
+        #38bdf8
+    );
+
+    color: white;
+}
+
+
+/* =====================================================
+   MAIN
+   ===================================================== */
+
+.main {
+
+    background:
+        radial-gradient(
+            circle at 50% 0%,
+            rgba(14, 165, 233, 0.08),
+            transparent 40%
+        ),
+        #f8fafc;
+}
+
+
+/* =====================================================
+   TOPBAR
+   ===================================================== */
+
+.topbar {
+
+    background: rgba(255, 255, 255, 0.9);
+
+    border-bottom: 1px solid var(--border);
+
+    backdrop-filter: blur(12px);
+}
+
+
+/* =====================================================
+   BOTÃO NOVA CONVERSA
+   ===================================================== */
+
+.new-chat {
+
+    background: #f0f9ff;
 
     border: 1px solid #bae6fd;
 
-    border-radius: 14px;
-
-    box-shadow:
-        0 6px 20px rgba(15, 23, 42, 0.08);
-
-    animation: imagePreviewIn 0.2s ease;
+    color: #0369a1;
 }
 
-@keyframes imagePreviewIn {
+.new-chat:hover {
 
-    from {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-}
-
-
-/* MINIATURA */
-
-.image-preview img {
-
-    width: 64px;
-    height: 64px;
-
-    object-fit: cover;
-
-    border-radius: 10px;
-
-    border: 1px solid #e2e8f0;
-
-}
-
-
-/* NOME DA IMAGEM */
-
-.image-preview-info {
-
-    flex: 1;
-
-    min-width: 0;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 10px;
-
-}
-
-
-.image-preview-info span {
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
-    white-space: nowrap;
-
-    font-size: 13px;
-
-    color: #475569;
-
-}
-
-
-/* BOTÃO REMOVER */
-
-.image-preview-info button {
-
-    width: 30px;
-
-    height: 30px;
-
-    border: none;
-
-    border-radius: 50%;
-
-    background: #f1f5f9;
-
-    color: #64748b;
-
-    font-size: 20px;
-
-    line-height: 1;
-
-    cursor: pointer;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    transition: 0.2s;
-
-}
-
-
-.image-preview-info button:hover {
-
-    background: #fee2e2;
-
-    color: #dc2626;
-
-    transform: scale(1.05);
-
+    background: #e0f2fe;
 }
 
 
 /* =====================================================
-   IMAGEM ENVIADA NO CHAT
+   SUGESTÕES
    ===================================================== */
 
-.message-image {
+.suggestions button {
 
-    display: block;
+    background: #ffffff;
 
-    width: auto;
+    border: 1px solid var(--border);
 
-    max-width: 100%;
+    color: var(--text);
+}
 
-    max-height: 420px;
+.suggestions button:hover {
 
-    object-fit: contain;
-
-    border-radius: 12px;
-
-    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-color: #7dd3fc;
 
     box-shadow:
-        0 5px 18px rgba(15, 23, 42, 0.08);
-
-    margin-bottom: 3px;
-
+        0 8px 25px rgba(
+            14,
+            165,
+            233,
+            0.12
+        );
 }
 
 
-/* Ajuste da mensagem do utilizador com imagem */
+/* =====================================================
+   MENSAGEM DA IA
+   ===================================================== */
+
+.message.bot .message-avatar {
+
+    background: linear-gradient(
+        135deg,
+        #0284c7,
+        #38bdf8
+    );
+
+    color: white;
+}
+
+.message.bot .message-content {
+
+    background: #ffffff;
+
+    border: 1px solid var(--border);
+}
+
+
+/* =====================================================
+   MENSAGEM DO UTILIZADOR
+   ===================================================== */
 
 .message.user .message-content {
 
-    overflow: hidden;
+    background: #0284c7;
 
+    color: #ffffff;
 }
 
 
 /* =====================================================
-   LOADING / IA A ANALISAR
-   ===================================================== */
-
-.typing {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 5px;
-
-    min-height: 20px;
-
-}
-
-
-.typing span {
-
-    width: 7px;
-
-    height: 7px;
-
-    background: #0ea5e9;
-
-    border-radius: 50%;
-
-    animation: typingAnimation 1.2s infinite ease-in-out;
-
-}
-
-
-.typing span:nth-child(2) {
-
-    animation-delay: 0.15s;
-
-}
-
-
-.typing span:nth-child(3) {
-
-    animation-delay: 0.30s;
-
-}
-
-
-@keyframes typingAnimation {
-
-    0%,
-    60%,
-    100% {
-
-        opacity: 0.35;
-
-        transform: translateY(0);
-
-    }
-
-    30% {
-
-        opacity: 1;
-
-        transform: translateY(-4px);
-
-    }
-
-}
-
-
-/* =====================================================
-   BOTÃO DE ANEXAR
-   ===================================================== */
-
-.attach-button {
-
-    transition:
-        background 0.2s ease,
-        color 0.2s ease,
-        transform 0.2s ease;
-
-}
-
-
-.attach-button:hover {
-
-    transform: rotate(5deg);
-
-}
-
-
-/* =====================================================
-   INPUT QUANDO TEM IMAGEM
+   INPUT
    ===================================================== */
 
 .input-wrapper {
 
-    z-index: 20;
+    background:
+        linear-gradient(
+            to top,
+            #f8fafc 75%,
+            transparent
+        );
+}
 
+.input-box {
+
+    background: #ffffff;
+
+    border: 1px solid #cbd5e1;
+
+    box-shadow:
+        0 8px 30px rgba(
+            15,
+            23,
+            42,
+            0.08
+        );
+}
+
+.input-box:focus-within {
+
+    border-color: #38bdf8;
+
+    box-shadow:
+        0 0 0 3px rgba(
+            56,
+            189,
+            248,
+            0.12
+        ),
+        0 8px 30px rgba(
+            15,
+            23,
+            42,
+            0.08
+        );
 }
 
 
 /* =====================================================
-   RESPONSIVIDADE
+   BOTÃO ENVIAR
    ===================================================== */
 
-@media (max-width: 800px) {
+.send-button {
 
-    .image-preview {
+    background: linear-gradient(
+        135deg,
+        #0284c7,
+        #0ea5e9
+    );
 
-        margin-left: 12px;
-        margin-right: 12px;
+    color: white;
+}
 
-    }
+.send-button:hover {
 
-    .message-image {
-
-        max-height: 320px;
-
-    }
-
+    box-shadow:
+        0 5px 15px rgba(
+            14,
+            165,
+            233,
+            0.3
+        );
 }
 
 
-@media (max-width: 480px) {
+/* =====================================================
+   BOTÃO ANEXAR
+   ===================================================== */
 
-    .image-preview {
+.attach-button {
 
-        padding: 8px;
+    background: transparent;
 
-        border-radius: 12px;
+    color: #64748b;
+}
 
-    }
+.attach-button:hover {
 
+    background: #f1f5f9;
 
-    .image-preview img {
-
-        width: 55px;
-
-        height: 55px;
-
-    }
-
-
-    .image-preview-info span {
-
-        font-size: 12px;
-
-    }
+    color: #0284c7;
+}
 
 
-    .message-image {
+/* =====================================================
+   CRIADOR
+   ===================================================== */
 
-        max-height: 260px;
+.creator-mini strong {
 
-        border-radius: 10px;
+    color: #0284c7;
+}
 
-    }
 
+/* =====================================================
+   PREVIEW DA IMAGEM
+   ===================================================== */
+
+.image-preview {
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 14px;
+}
+
+.image-preview-info button:hover {
+
+    background: #e0f2fe;
+
+    color: #0284c7;
+}
+
+
+/* =====================================================
+   LOADING
+   ===================================================== */
+
+.typing span {
+
+    background: #0284c7;
 }
