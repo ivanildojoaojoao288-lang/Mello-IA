@@ -1,3 +1,4 @@
+
 // ===============================
 // MELLO IA - SCRIPT PRINCIPAL
 // ===============================
@@ -6,7 +7,6 @@ const input = document.getElementById("user-input");
 const chatBox = document.getElementById("chat-box");
 const sendButton = document.getElementById("send-button");
 const welcome = document.getElementById("welcome");
-
 
 // ===============================
 // ENVIAR MENSAGEM
@@ -52,12 +52,10 @@ async function enviarMensagem() {
             })
         });
 
-
         const data = await resposta.json();
 
         // Remover indicador
         loading.remove();
-
 
         if (!resposta.ok) {
 
@@ -69,17 +67,14 @@ async function enviarMensagem() {
             return;
         }
 
-
         // Mostrar resposta da IA
         adicionarMensagem(
             "bot",
             data.reply || "Não consegui gerar uma resposta."
         );
 
-
         // Guardar conversa no histórico
         adicionarHistorico(mensagem);
-
 
     } catch (erro) {
 
@@ -111,7 +106,6 @@ function adicionarMensagem(tipo, texto) {
 
     message.className = `message ${tipo}`;
 
-
     const avatar = document.createElement("div");
 
     avatar.className = "message-avatar";
@@ -119,28 +113,24 @@ function adicionarMensagem(tipo, texto) {
     avatar.textContent =
         tipo === "bot" ? "M" : "👤";
 
-
     const content = document.createElement("div");
 
     content.className = "message-content";
 
-    // Usamos textContent para evitar inserir
-    // HTML diretamente vindo da resposta da API.
+    // Evita inserir HTML diretamente vindo da API
     content.textContent = texto;
 
-
     message.appendChild(avatar);
+
     message.appendChild(content);
 
     chatBox.appendChild(message);
-
 
     // Scroll automático
     chatBox.scrollTo({
         top: chatBox.scrollHeight,
         behavior: "smooth"
     });
-
 
     return message;
 }
@@ -156,30 +146,25 @@ function adicionarLoading() {
 
     message.className = "message bot";
 
-
     const avatar = document.createElement("div");
 
     avatar.className = "message-avatar";
 
     avatar.textContent = "M";
 
-
     const content = document.createElement("div");
 
     content.className = "message-content";
 
-
     const loading = document.createElement("div");
 
     loading.className = "typing";
-
 
     loading.innerHTML = `
         <span></span>
         <span></span>
         <span></span>
     `;
-
 
     content.appendChild(loading);
 
@@ -189,12 +174,10 @@ function adicionarLoading() {
 
     chatBox.appendChild(message);
 
-
     chatBox.scrollTo({
         top: chatBox.scrollHeight,
         behavior: "smooth"
     });
-
 
     return message;
 }
@@ -220,7 +203,6 @@ function handleKey(event) {
 // ===============================
 
 input.addEventListener("input", ajustarTextarea);
-
 
 function ajustarTextarea() {
 
@@ -352,14 +334,12 @@ function adicionarHistorico(mensagem) {
         titulo = titulo.substring(0, 35) + "...";
     }
 
-
     const item =
         document.createElement("button");
 
     item.className = "history-item";
 
     item.textContent = "💬 " + titulo;
-
 
     item.onclick = function () {
 
@@ -370,10 +350,8 @@ function adicionarHistorico(mensagem) {
         input.focus();
     };
 
-
     // Colocar no início
     history.prepend(item);
-
 
     // Limitar histórico visual
     while (history.children.length > 10) {
@@ -397,7 +375,6 @@ document.addEventListener("click", function(event) {
     const menu =
         document.querySelector(".menu-button");
 
-
     if (
         window.innerWidth <= 800 &&
         sidebar.classList.contains("open") &&
@@ -407,7 +384,6 @@ document.addEventListener("click", function(event) {
 
         sidebar.classList.remove("open");
     }
-
 });
 
 
@@ -416,3 +392,4 @@ document.addEventListener("click", function(event) {
 // ===============================
 
 input.focus();
+
