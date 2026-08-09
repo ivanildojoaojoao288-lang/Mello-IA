@@ -1,57 +1,100 @@
+```html
 <!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Mello IA</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
-
-<div class="app">
 
     <!-- MENU LATERAL -->
     <aside class="sidebar" id="sidebar">
 
         <div class="brand">
-            <div class="brand-logo">M</div>
+
+            <div class="brand-logo">
+                M
+            </div>
 
             <div>
-                <div class="brand-name">Mello IA</div>
-                <div class="brand-version">AI Assistant</div>
+                <div class="brand-name">
+                    Mello IA
+                </div>
+
+                <div class="brand-version">
+                    AI Assistant
+                </div>
             </div>
+
         </div>
 
-        <button class="new-chat" onclick="novaConversa()">
+
+        <button class="new-chat"
+                onclick="novaConversa()">
+
             <span>＋</span>
+
             Nova conversa
+
         </button>
 
+
         <div class="sidebar-section">
-            <span>CONVERSAS</span>
+
+            <span>
+                CONVERSAS
+            </span>
+
         </div>
 
-        <div id="history" class="history">
-            <!-- Conversas futuras aparecerão aqui -->
+
+        <div id="history"
+             class="history">
+
+            <!-- As conversas aparecerão aqui -->
+
         </div>
+
 
         <div class="sidebar-bottom">
 
             <button class="sidebar-button">
+
                 ⚙️
-                <span>Definições</span>
+
+                <span>
+                    Definições
+                </span>
+
             </button>
+
 
             <button class="sidebar-button">
+
                 ℹ️
-                <span>Sobre a Mello IA</span>
+
+                <span>
+                    Sobre a Mello IA
+                </span>
+
             </button>
 
+
             <div class="creator-mini">
+
                 Desenvolvida por<br>
-                <strong>Eng. Ivanildo João Paulo Augusto</strong>
+
+                <strong>
+                    Eng. Ivanildo João Paulo Augusto
+                </strong>
+
             </div>
 
         </div>
@@ -62,83 +105,163 @@
     <!-- ÁREA PRINCIPAL -->
     <main class="main">
 
+
         <!-- CABEÇALHO -->
         <header class="topbar">
 
-            <button class="menu-button" onclick="toggleSidebar()">
+            <button class="menu-button"
+                    onclick="toggleSidebar()">
+
                 ☰
+
             </button>
 
+
             <div class="topbar-title">
-                <div class="mini-logo">M</div>
+
+                <div class="mini-logo">
+                    M
+                </div>
+
 
                 <div>
-                    <strong>Mello IA</strong>
-                    <span>Assistente inteligente</span>
+
+                    <strong>
+                        Mello IA
+                    </strong>
+
+                    <span>
+                        Assistente inteligente
+                    </span>
+
                 </div>
+
             </div>
 
-            <button class="new-mobile" onclick="novaConversa()">
+
+            <button class="new-mobile"
+                    onclick="novaConversa()">
+
                 ＋
+
             </button>
 
         </header>
 
 
-        <!-- CHAT -->
-        <section class="chat-area" id="chat-box">
 
-            <!-- MENSAGEM INICIAL -->
+        <!-- ÁREA DO CHAT -->
+        <section class="chat-area"
+                 id="chat-box">
 
-            <div class="welcome" id="welcome">
+
+            <!-- MENSAGEM DE BOAS-VINDAS -->
+            <div class="welcome"
+                 id="welcome">
+
 
                 <div class="welcome-logo">
                     M
                 </div>
 
+
                 <h1>
-                    Olá! Eu sou a <span>Mello IA</span>
+
+                    Olá! Eu sou a
+                    <span>
+                        Mello IA
+                    </span>
+
                 </h1>
 
+
                 <p>
+
                     Assistente inteligente de tecnologia,
                     programação, estudos e inovação.
+
                 </p>
 
 
+
+                <!-- SUGESTÕES -->
                 <div class="suggestions">
 
-                    <button onclick="usarSugestao('Explique-me inteligência artificial de forma simples')">
+
+                    <button
+                        onclick="usarSugestao('Explique-me inteligência artificial de forma simples')">
+
                         🤖
+
                         <span>
-                            <strong>Inteligência Artificial</strong>
+
+                            <strong>
+                                Inteligência Artificial
+                            </strong>
+
                             Aprender conceitos de IA
+
                         </span>
+
                     </button>
 
-                    <button onclick="usarSugestao('Ajude-me a aprender programação')">
+
+
+                    <button
+                        onclick="usarSugestao('Ajude-me a aprender programação')">
+
                         💻
+
                         <span>
-                            <strong>Programação</strong>
+
+                            <strong>
+                                Programação
+                            </strong>
+
                             Aprender a programar
+
                         </span>
+
                     </button>
 
-                    <button onclick="usarSugestao('Ajude-me com os meus estudos')">
+
+
+                    <button
+                        onclick="usarSugestao('Ajude-me com os meus estudos')">
+
                         📚
+
                         <span>
-                            <strong>Estudos</strong>
+
+                            <strong>
+                                Estudos
+                            </strong>
+
                             Explicar matérias
+
                         </span>
+
                     </button>
 
-                    <button onclick="usarSugestao('Explique redes de computadores')">
+
+
+                    <button
+                        onclick="usarSugestao('Explique redes de computadores')">
+
                         🌐
+
                         <span>
-                            <strong>Tecnologia</strong>
+
+                            <strong>
+                                Tecnologia
+                            </strong>
+
                             Redes e informática
+
                         </span>
+
                     </button>
+
 
                 </div>
 
@@ -147,14 +270,22 @@
         </section>
 
 
+
         <!-- ÁREA DE INPUT -->
         <div class="input-wrapper">
 
+
             <div class="input-box">
 
-                <button class="attach-button" title="Anexar ficheiro">
+
+                <button class="attach-button"
+                        title="Anexar ficheiro">
+
                     ＋
+
                 </button>
+
+
 
                 <textarea
                     id="user-input"
@@ -163,30 +294,39 @@
                     onkeydown="handleKey(event)"
                 ></textarea>
 
+
+
                 <button
                     class="send-button"
                     id="send-button"
                     onclick="enviarMensagem()"
-                    title="Enviar mensagem"
-                >
+                    title="Enviar mensagem">
+
                     ➤
+
                 </button>
 
+
             </div>
 
+
             <div class="input-info">
-                A Mello IA pode cometer erros. Verifique informações importantes.
+
+                A Mello IA pode cometer erros.
+                Verifique informações importantes.
+
             </div>
+
 
         </div>
 
-
     </main>
 
-</div>
 
 
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+    <!-- JAVASCRIPT -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 
 </body>
 </html>
+```
