@@ -23,13 +23,11 @@
 
 
     <!-- =====================================================
-         SIDEBAR
+         MENU LATERAL
          ===================================================== -->
 
     <aside class="sidebar" id="sidebar">
 
-
-        <!-- LOGO -->
 
         <div class="brand">
 
@@ -52,7 +50,6 @@
         </div>
 
 
-        <!-- NOVA CONVERSA -->
 
         <button class="new-chat"
                 onclick="novaConversa()">
@@ -64,7 +61,6 @@
         </button>
 
 
-        <!-- CONVERSAS -->
 
         <div class="sidebar-section">
 
@@ -73,13 +69,13 @@
         </div>
 
 
+
         <div id="history"
              class="history">
 
         </div>
 
 
-        <!-- PARTE INFERIOR -->
 
         <div class="sidebar-bottom">
 
@@ -95,6 +91,7 @@
             </button>
 
 
+
             <button class="sidebar-button">
 
                 ℹ️
@@ -104,6 +101,7 @@
                 </span>
 
             </button>
+
 
 
             <div class="creator-mini">
@@ -131,7 +129,7 @@
     <main class="main">
 
 
-        <!-- TOPBAR -->
+        <!-- CABEÇALHO -->
 
         <header class="topbar">
 
@@ -144,12 +142,14 @@
             </button>
 
 
+
             <div class="topbar-title">
 
 
                 <div class="mini-logo">
                     M
                 </div>
+
 
 
                 <div>
@@ -168,6 +168,7 @@
             </div>
 
 
+
             <button class="new-mobile"
                     onclick="novaConversa()">
 
@@ -181,14 +182,14 @@
 
 
         <!-- =====================================================
-             CHAT
+             ÁREA DO CHAT
              ===================================================== -->
 
         <section class="chat-area"
                  id="chat-box">
 
 
-            <!-- TELA INICIAL -->
+            <!-- BOAS-VINDAS -->
 
             <div class="welcome"
                  id="welcome">
@@ -199,12 +200,16 @@
                 </div>
 
 
+
                 <h1>
 
                     Olá! Eu sou a
-                    <span>Mello IA</span>
+                    <span>
+                        Mello IA
+                    </span>
 
                 </h1>
+
 
 
                 <p>
@@ -260,5 +265,179 @@
 
 
                     <button
+                        onclick="usarSugestao('Ajude-me com os meus estudos')">
 
-                        
+                        📚
+
+                        <span>
+
+                            <strong>
+                                Estudos
+                            </strong>
+
+                            Explicar matérias
+
+                        </span>
+
+                    </button>
+
+
+
+                    <button
+                        onclick="usarSugestao('Explique redes de computadores')">
+
+                        🌐
+
+                        <span>
+
+                            <strong>
+                                Tecnologia
+                            </strong>
+
+                            Redes e informática
+
+                        </span>
+
+                    </button>
+
+
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =====================================================
+             ÁREA DE INPUT
+             ===================================================== -->
+
+        <div class="input-wrapper">
+
+
+            <!-- PREVIEW DA IMAGEM -->
+
+            <div id="image-preview"
+                 class="image-preview"
+                 style="display: none;">
+
+
+                <img id="preview-image"
+                     src=""
+                     alt="Imagem selecionada">
+
+
+                <div class="image-preview-info">
+
+
+                    <span id="image-name">
+                        Imagem selecionada
+                    </span>
+
+
+
+                    <button type="button"
+                            onclick="removerImagem()"
+                            title="Remover imagem">
+
+                        ×
+
+                    </button>
+
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- CAIXA ORIGINAL -->
+
+            <div class="input-box">
+
+
+                <!-- INPUT INVISÍVEL PARA FOTO -->
+
+                <input
+                    type="file"
+                    id="image-input"
+                    accept="image/*"
+                    style="display: none;"
+                >
+
+
+
+                <!-- BOTÃO ANEXAR ORIGINAL -->
+
+                <button
+                    type="button"
+                    class="attach-button"
+                    id="attach-button"
+                    title="Anexar imagem"
+                    onclick="document.getElementById('image-input').click()">
+
+                    ＋
+
+                </button>
+
+
+
+                <!-- CAMPO DE TEXTO -->
+
+                <textarea
+                    id="user-input"
+                    rows="1"
+                    placeholder="Comande a Mello IA..."
+                    onkeydown="handleKey(event)"
+                ></textarea>
+
+
+
+                <!-- BOTÃO ENVIAR ORIGINAL -->
+
+                <button
+                    type="button"
+                    class="send-button"
+                    id="send-button"
+                    onclick="enviarMensagem()"
+                    title="Enviar mensagem">
+
+                    ➤
+
+                </button>
+
+
+            </div>
+
+
+
+            <div class="input-info">
+
+                A Mello IA pode cometer erros.
+                Verifique informações importantes.
+
+            </div>
+
+
+        </div>
+
+
+    </main>
+
+
+</div>
+
+
+
+<!-- JAVASCRIPT -->
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+
+</body>
+
+</html>
