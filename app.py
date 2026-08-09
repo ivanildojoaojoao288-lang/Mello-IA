@@ -1,60 +1,31 @@
-```python
 import os
 import requests
+from flask import Flask, request, jsonify, render\_template
+from flask\_cors import CORS
+from dotenv import load\_dotenv
 
-from flask import Flask, request, jsonify, render_template
-from flask_cors import CORS
-from dotenv import load_dotenv
+load\_dotenv()
 
-
-# ========================================
-# CARREGAR VARIÁVEIS DE AMBIENTE
-# ========================================
-
-load_dotenv()
-
-
-# ========================================
-# INICIALIZAR FLASK
-# ========================================
-
-app = Flask(__name__)
-
+app = Flask(**name**)
 CORS(app)
 
+API\_KEY = os.getenv("OPENROUTER\_API\_KEY")
+MODEL = os.getenv("OPENROUTER\_MODEL")
 
-# ========================================
-# CONFIGURAÇÃO DA IA
-# ========================================
-
-API_KEY = os.getenv("OPENROUTER_API_KEY")
-
-MODEL = os.getenv("OPENROUTER_MODEL")
-
-
-print("CHAVE CARREGADA:", bool(API_KEY))
+print("CHAVE CARREGADA:", bool(API\_KEY))
 print("MODELO:", MODEL)
 
-
-# ========================================
-# PERSONALIDADE DA MELLO IA
-# ========================================
-
-SYSTEM_PROMPT = """
+SYSTEM\_PROMPT = """
 Tu és a Mello IA, uma assistente inteligente moderna.
 
 Características:
 
 - Respostas claras e profissionais.
-- Linguagem simples e fácil de entender.
+- Linguagem simples.
 - Ajuda em programação, tecnologia, estudos e informação geral.
-- Explica conceitos passo a passo quando necessário.
-- Não inventa informações.
-- Quando não souber alguma coisa, informa claramente.
-- Nunca reveles chaves, tokens ou configurações internas.
+- Nunca reveles chaves ou configurações internas.
 
 Quando perguntarem:
-
 "Quem criou a Mello IA?"
 
 Responde:
@@ -63,212 +34,105 @@ Responde:
 com foco em inteligência artificial, programação e inovação tecnológica."
 """
 
-
-# ========================================
-# PÁGINA PRINCIPAL
-# ========================================
-
 @app.route("/")
 def inicio():
-
-    return render_template("chat.html")
-
-
-# ========================================
-# CHAT COM A MELLO IA
-# ========================================
+return render\_template("chat.html")
 
 @app.route("/chat", methods=["POST"])
 def chat():
 
-    dados = request.get_json(silent=True) or {}
+```
+dados = request.get_json(silent=True) or {}
 
-    mensagem = dados.get("message", "").strip()
+mensagem = dados.get("message", "").strip()
 
 
-    # ------------------------------------
-    # VERIFICAR MENSAGEM
-    # ------------------------------------
+if not mensagem:
+    return jsonify({
+        "reply": "Por favor escreva uma mensagem."
+    }), 400
 
-    if not mensagem:
 
-        return jsonify({
-            "reply": "Por favor, escreva uma mensagem."
-        }), 400
+try:
 
+    resposta = requests.post(
 
-    # ------------------------------------
-    # VERIFICAR CONFIGURAÇÃO
-    # ------------------------------------
+        "https://openrouter.ai/api/v1/chat/completions",
 
-    if not API_KEY:
+        headers={
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json"
+        },
 
-        return jsonify({
-            "reply": "A chave da API da Mello IA não está configurada."
-        }), 500
+        json={
 
+            "model": MODEL,
 
-    if not MODEL:
+            "messages": [
+                {
+                    "role": "system",
+                    "content": SYSTEM_PROMPT
+                },
+                {
+                    "role": "user",
+                    "content": mensagem
+                }
+            ],
 
-        return jsonify({
-            "reply": "O modelo da Mello IA não está configurado."
-        }), 500
+            "temperature": 0.7
+        },
 
-
-    try:
-
-        # --------------------------------
-        # ENVIAR PEDIDO PARA OPENROUTER
-        # --------------------------------
-
-        resposta = requests.post(
-
-            "https://openrouter.ai/api/v1/chat/completions",
-
-            headers={
-                "Authorization": f"Bearer {API_KEY}",
-                "Content-Type": "application/json"
-            },
-
-            json={
-
-                "model": MODEL,
-
-                "messages": [
-
-                    {
-                        "role": "system",
-                        "content": SYSTEM_PROMPT
-                    },
-
-                    {
-                        "role": "user",
-                        "content": mensagem
-                    }
-
-                ],
-
-                "temperature": 0.7
-
-            },
-
-            timeout=60
-
-        )
-
-
-        # --------------------------------
-        # TRANSFORMAR RESPOSTA EM JSON
-        # --------------------------------
-
-        resultado = resposta.json()
-
-
-        print("STATUS OPENROUTER:", resposta.status_code)
-
-        print("RESPOSTA OPENROUTER:")
-
-        print(resultado)
-
-
-        # --------------------------------
-        # VERIFICAR ERRO DA API
-        # --------------------------------
-
-        if resposta.status_code != 200:
-
-            return jsonify({
-
-                "reply": "A Mello IA encontrou um problema ao comunicar com o serviço de inteligência artificial.",
-
-                "detalhes": resultado
-
-            }), 500
-
-
-        # --------------------------------
-        # VERIFICAR CHOICES
-        # --------------------------------
-
-        if "choices" not in resultado:
-
-            return jsonify({
-
-                "reply": "A IA não retornou uma resposta válida.",
-
-                "detalhes": resultado
-
-            }), 500
-
-
-        # --------------------------------
-        # OBTER RESPOSTA
-        # --------------------------------
-
-        texto = resultado["choices"][0]["message"]["content"]
-
-
-        # --------------------------------
-        # DEVOLVER PARA O FRONTEND
-        # --------------------------------
-
-        return jsonify({
-
-            "reply": texto
-
-        })
-
-
-    except requests.exceptions.Timeout:
-
-        return jsonify({
-
-            "reply": "A comunicação com a IA demorou demasiado. Tenta novamente."
-
-        }), 504
-
-
-    except requests.exceptions.RequestException as erro:
-
-        print("ERRO DE REQUEST:", erro)
-
-        return jsonify({
-
-            "reply": "Não foi possível comunicar com o serviço de IA.",
-
-            "detalhes": str(erro)
-
-        }), 500
-
-
-    except Exception as erro:
-
-        print("ERRO INTERNO:", erro)
-
-        return jsonify({
-
-            "reply": "Ocorreu um erro interno na Mello IA.",
-
-            "detalhes": str(erro)
-
-        }), 500
-
-
-# ========================================
-# INICIAR SERVIDOR
-# ========================================
-
-if __name__ == "__main__":
-
-    print("🚀 Mello IA online")
-
-    app.run(
-
-        host="0.0.0.0",
-
-        port=5000,
-
-        debug=False
-
+        timeout=60
     )
+
+
+    resultado = resposta.json()
+
+    print("RESPOSTA OPENROUTER:")
+    print(resultado)
+
+
+    if "choices" not in resultado:
+
+        return jsonify({
+
+            "reply": "Erro na comunicação com a IA.",
+
+            "detalhes": resultado
+
+        }), 500
+
+
+    texto = resultado["choices"][0]["message"]["content"]
+
+
+    return jsonify({
+
+        "reply": texto
+
+    })
+
+
+except Exception as erro:
+
+    return jsonify({
+
+        "reply": "Erro interno da Mello IA.",
+
+        "detalhes": str(erro)
+
+    }), 500
+```
+
+
+
+if **name** == "**main**":
+
+```
+print("🚀 Mello IA online")
+
+app.run(
+    host="0.0.0.0",
+    port=5000
+)
 ```
