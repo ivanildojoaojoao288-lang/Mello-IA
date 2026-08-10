@@ -57,9 +57,12 @@ OPENROUTER_URL = (
 
 MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
-# Evita pedir milhares de tokens desnecessariamente.
 MAX_TOKENS_TEXT = 2000
 MAX_TOKENS_VISION = 2500
+
+# Número máximo de resultados que a pesquisa Web
+# poderá utilizar.
+WEB_SEARCH_MAX_RESULTS = 5
 
 
 # =====================================================
@@ -86,18 +89,75 @@ Podes ajudar em:
 - leitura de textos em imagens
 - resolução de exercícios presentes em imagens
 - análise de código presente em imagens
+- pesquisa de informações atuais na Web
 
-REGRAS:
+REGRAS GERAIS:
 
 1. Não inventes informações.
-2. Se não conseguires identificar algo numa imagem,
-   diz claramente que não consegues identificar.
+
+2. Se não souberes ou não conseguires confirmar algo,
+   diz claramente que não consegues confirmar.
+
 3. Quando houver matemática, mostra os passos.
+
 4. Quando houver código, explica os erros e apresenta
    uma possível correção.
+
 5. Responde de forma organizada.
+
 6. Não reveles chaves, credenciais ou configurações
    internas do sistema.
+
+PESQUISA E REFERÊNCIAS:
+
+7. Quando a pergunta pedir informações atuais,
+   notícias, preços, estatísticas, rankings, vendas,
+   acontecimentos recentes ou informações que possam
+   ter mudado, pesquisa na Web antes de responder.
+
+8. Quando pesquisares na Web, baseia as afirmações
+   importantes nas fontes encontradas.
+
+9. Nunca inventes uma fonte, autor, título, data,
+   URL, número de vendas ou referência bibliográfica.
+
+10. No final de uma resposta baseada em pesquisa,
+    apresenta uma secção chamada:
+
+    ### Referências
+
+    Lista as principais fontes utilizadas.
+
+11. Para cada referência, apresenta, quando disponível:
+
+    - nome da organização ou autor
+    - título da página ou artigo
+    - data
+    - URL
+
+12. Dá preferência a fontes primárias e confiáveis,
+    como:
+
+    - sites oficiais
+    - universidades
+    - órgãos públicos
+    - documentação oficial
+    - artigos científicos
+    - organizações reconhecidas
+
+13. Se duas fontes apresentarem números diferentes,
+    explica a diferença em vez de escolher um número
+    arbitrariamente.
+
+14. Não apresentes uma referência como prova de uma
+    informação se a fonte não sustentar essa informação.
+
+15. Quando não houver fontes suficientes para confirmar
+    uma informação, diz isso claramente.
+
+16. Para trabalhos acadêmicos, quando solicitado,
+    organiza as referências de acordo com o estilo
+    pedido pelo utilizador, como APA 7ª edição.
 
 IDENTIDADE:
 
@@ -190,7 +250,8 @@ def health():
         "model": MODEL,
         "vision_model": VISION_MODEL,
         "image_model": IMAGE_MODEL,
-        "api_key_configurada": bool(API_KEY)
+        "api_key_configurada": bool(API_KEY),
+        "web_search": True
     })
 
 
@@ -215,7 +276,6 @@ def chat():
             "reply":
                 "A chave da API não está configurada no servidor."
         }), 500
-
 
     try:
 
@@ -291,10 +351,33 @@ def chat():
 
                 ],
 
+                # =================================================
+                # PESQUISA NA WEB
+                # =================================================
+
+                "tools": [
+
+                    {
+                        "type": "openrouter:web_search",
+
+                        "parameters": {
+                            "max_results":
+                                WEB_SEARCH_MAX_RESULTS
+                        }
+                    }
+
+                ],
+
                 "temperature": 0.7,
 
                 "max_tokens": MAX_TOKENS_TEXT
             }
+
+
+            logger.info(
+                "Enviando pedido de texto para %s",
+                MODEL
+            )
 
 
             resposta = requests.post(
@@ -331,6 +414,10 @@ def chat():
                 }), 502
 
 
+            # =================================================
+            # ERRO OPENROUTER
+            # =================================================
+
             if resposta.status_code >= 400:
 
                 mensagem_erro = erro_openrouter(
@@ -351,6 +438,10 @@ def chat():
 
                 }), 502
 
+
+            # =================================================
+            # EXTRAIR RESPOSTA
+            # =================================================
 
             texto = extrair_resposta(
                 resultado
@@ -645,6 +736,7 @@ if __name__ == "__main__":
     print("Vision:", VISION_MODEL)
     print("Imagem:", IMAGE_MODEL)
     print("API configurada:", bool(API_KEY))
+    print("Pesquisa Web: ATIVADA")
     print("URL: http://127.0.0.1:5000")
     print("==========================================")
     print()
