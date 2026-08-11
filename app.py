@@ -1,21 +1,11 @@
 import os
+import asyncio
 import logging
 
-from flask import (
-    Flask,
-    render_template,
-    request,
-    jsonify,
-    redirect,
-    url_for,
-    session
-)
+import edge_tts
+import pygame
 
 from dotenv import load_dotenv
-
-import firebase_admin
-from firebase_admin import credentials, auth
-
 from openai import OpenAI
 
 
@@ -32,219 +22,264 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
-
-app.secret_key = os.getenv(
-    "FLASK_SECRET_KEY",
-    "mello-ia-chave-local-temporaria"
-)
-
 
 # ============================================================
-# FIREBASE
+# MELLO IA
 # ============================================================
 
-BASE_DIR = os.path.dirname(
-    os.path.abspath(__file__)
-)
+class MelloAssistant:
 
-FIREBASE_KEY = os.path.join(
-    BASE_DIR,
-    "firebase-service-account.json"
-)
+    def __init__(self):
 
-if not os.path.exists(FIREBASE_KEY):
-    raise FileNotFoundError(
-        "firebase-service-account.json não foi encontrado."
-    )
+        self.voice = "pt-PT-DuarteNeural"
 
-if not firebase_admin._apps:
-
-    cred = credentials.Certificate(
-        FIREBASE_KEY
-    )
-
-    firebase_admin.initialize_app(
-        cred
-    )
-
-    logger.info(
-        "Firebase inicializado."
-    )
-
-
-# ============================================================
-# OPENROUTER
-# ============================================================
-
-OPENROUTER_API_KEY = os.getenv(
-    "OPENROUTER_API_KEY"
-)
-
-client = None
-
-if OPENROUTER_API_KEY:
-
-    client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=OPENROUTER_API_KEY
-    )
-
-    logger.info(
-        "OpenRouter configurado."
-    )
-
-else:
-
-    logger.warning(
-        "OPENROUTER_API_KEY não encontrada."
-    )
-
-
-# ============================================================
-# UTILIZADOR ATUAL
-# ============================================================
-
-def usuario_atual():
-
-    uid = session.get(
-        "firebase_uid"
-    )
-
-    if not uid:
-        return None
-
-    try:
-
-        return auth.get_user(
-            uid
+        api_key = os.getenv(
+            "OPENROUTER_API_KEY"
         )
 
-    except Exception as erro:
+        if not api_key:
 
-        logger.error(
-            "Erro Firebase: %s",
-            erro
+            raise RuntimeError(
+                "OPENROUTER_API_KEY não encontrada no arquivo .env"
+            )
+
+        self.client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key
         )
 
-        session.clear()
+        pygame.mixer.init()
 
-        return None
+    # ========================================================
+    # IDENTIDADE
+    # ========================================================
 
+    def get_identity(self):
 
-def exigir_login():
+        return (
+            "Eu sou a Mello IA, desenvolvida "
+            "pelo Eng. Ivanildo João Paulo Augusto."
+        )
 
-    return usuario_atual() is not None
+    # ========================================================
+    # VOZ
+    # ========================================================
+
+    async def speak(self, text):
+
+        try:
+
+            logger.info(
+                "Gerando áudio..."
+            )
+
+            communicate = edge_tts.Communicate(
+                text,
+                self.voice
+            )
+
+            await communicate.save(
+                "output.mp3"
+            )
+
+            pygame.mixer.music.load(
+                "output.mp3"
+            )
+
+            pygame.mixer.music.play()
+
+            while pygame.mixer.music.get_busy():
+
+                await asyncio.sleep(
+                    0.1
+                )
+
+        except Exception as erro:
+
+            logger.error(
+                "Erro na síntese de voz: %s",
+                erro
+            )
+
+    # ========================================================
+    # IA
+    # ========================================================
+
+    def get_ai_response(self, prompt):
+
+        texto = prompt.lower()
+
+        if (
+            "ivanildo" in texto
+            or "quem és" in texto
+            or "quem é você" in texto
+        ):
+
+            return self.get_identity()
+
+        try:
+
+            completion = (
+                self.client
+                .chat
+                .completions
+                .create(
+
+                    model=os.getenv(
+                        "OPENROUTER_MODEL",
+                        "meta-llama/llama-3.1-8b-instruct"
+                    ),
+
+                    messages=[
+
+                        {
+                            "role": "system",
+
+                            "content": """
+Tu és a Mello IA.
+
+Foste desenvolvida pelo
+Eng. Ivanildo João Paulo Augusto.
+
+Responde em português.
+
+Sê clara, natural,
+profissional e útil.
+
+Não inventes informações.
+
+Quando explicares uma matéria,
+explica passo a passo.
+
+Quando for programação,
+fornece código correto e explica
+como executar.
+                        },
+
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+
+                    ],
+
+                    max_tokens=500,
+
+                    temperature=0.7
+                )
+            )
+
+            if not completion.choices:
+
+                return (
+                    "Não consegui gerar uma resposta."
+                )
+
+            return (
+                completion
+                .choices[0]
+                .message
+                .content
+            )
+
+        except Exception as erro:
+
+            logger.error(
+                "Erro OpenRouter: %s",
+                erro
+            )
+
+            return (
+                "Não consegui comunicar com "
+                "o servidor da Mello IA."
+            )
+
+    # ========================================================
+    # EXECUTAR
+    # ========================================================
+
+    async def run(self):
+
+        logger.info(
+            "Mello IA iniciada."
+        )
+
+        print(
+            "\n===================================="
+        )
+
+        print(
+            "       MELLO IA"
+        )
+
+        print(
+            "===================================="
+        )
+
+        print(
+            "Digite 'sair' para terminar.\n"
+        )
+
+        while True:
+
+            try:
+
+                user_input = input(
+                    "👤 Tu: "
+                ).strip()
+
+                if not user_input:
+
+                    continue
+
+                if user_input.lower() in [
+                    "sair",
+                    "exit",
+                    "quit"
+                ]:
+
+                    await self.speak(
+                        "Desligando a Mello IA. Até logo."
+                    )
+
+                    break
+
+                response = self.get_ai_response(
+                    user_input
+                )
+
+                print(
+                    f"\n🤖 Mello IA: {response}\n"
+                )
+
+                await self.speak(
+                    response
+                )
+
+            except KeyboardInterrupt:
+
+                print(
+                    "\nSistema encerrado."
+                )
+
+                break
+
+            except Exception as erro:
+
+                logger.error(
+                    "Erro: %s",
+                    erro
+                )
 
 
 # ============================================================
-# PÁGINA PRINCIPAL
+# INICIAR
 # ============================================================
 
-@app.route("/")
-def index():
+if __name__ == "__main__":
 
-    if not exigir_login():
+    assistant = MelloAssistant()
 
-        return redirect(
-            url_for("login")
-        )
-
-    return render_template(
-        "chat.html"
+    asyncio.run(
+        assistant.run()
     )
-
-
-# ============================================================
-# LOGIN
-# ============================================================
-
-@app.route("/login")
-def login():
-
-    if usuario_atual():
-
-        return redirect(
-            url_for("index")
-        )
-
-    return render_template(
-        "login.html"
-    )
-
-
-# ============================================================
-# REGISTO
-# ============================================================
-
-@app.route("/register")
-def register():
-
-    if usuario_atual():
-
-        return redirect(
-            url_for("index")
-        )
-
-    return render_template(
-        "register.html"
-    )
-
-
-# ============================================================
-# LOGIN FIREBASE
-# ============================================================
-
-@app.route(
-    "/auth/firebase",
-    methods=["POST"]
-)
-def firebase_login():
-
-    try:
-
-        dados = request.get_json(
-            silent=True
-        )
-
-        if not dados:
-
-            return jsonify({
-                "success": False,
-                "error": "Dados de autenticação ausentes."
-            }), 400
-
-        id_token = dados.get(
-            "idToken"
-        )
-
-        if not id_token:
-
-            return jsonify({
-                "success": False,
-                "error": "Token Firebase ausente."
-            }), 400
-
-        decoded_token = auth.verify_id_token(
-            id_token
-        )
-
-        uid = decoded_token.get(
-            "uid"
-        )
-
-        email = decoded_token.get(
-            "email",
-            ""
-        )
-
-        name = decoded_token.get(
-            "name",
-            ""
-        )
-
-        if not uid:
-
-            return jsonify({
-                "success": False,
-                "
