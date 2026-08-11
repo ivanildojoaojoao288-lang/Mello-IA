@@ -41,7 +41,7 @@ app.secret_key = os.getenv(
 
 
 # ============================================================
-# FIREBASE ADMIN
+# FIREBASE
 # ============================================================
 
 BASE_DIR = os.path.dirname(
@@ -54,24 +54,19 @@ FIREBASE_KEY = os.path.join(
 )
 
 if not os.path.exists(FIREBASE_KEY):
-
     raise FileNotFoundError(
-        "A chave firebase-service-account.json não foi encontrada."
+        "firebase-service-account.json não foi encontrado."
     )
-
 
 if not firebase_admin._apps:
-
-    cred = credentials.Certificate(
-        FIREBASE_KEY
-    )
+    cred = credentials.Certificate(FIREBASE_KEY)
 
     firebase_admin.initialize_app(
         cred
     )
 
     logger.info(
-        "Firebase Admin inicializado."
+        "Firebase inicializado."
     )
 
 
@@ -84,7 +79,6 @@ OPENROUTER_API_KEY = os.getenv(
 )
 
 client = None
-
 
 if OPENROUTER_API_KEY:
 
@@ -105,7 +99,7 @@ else:
 
 
 # ============================================================
-# UTILIZADOR ATUAL
+# UTILIZADOR
 # ============================================================
 
 def usuario_atual():
@@ -119,14 +113,12 @@ def usuario_atual():
 
     try:
 
-        return auth.get_user(
-            uid
-        )
+        return auth.get_user(uid)
 
     except Exception as erro:
 
         logger.error(
-            "Erro ao obter utilizador: %s",
+            "Erro Firebase: %s",
             erro
         )
 
@@ -135,21 +127,14 @@ def usuario_atual():
         return None
 
 
-# ============================================================
-# PROTEÇÃO
-# ============================================================
-
-def pagina_protegida():
+def exigir_login():
 
     usuario = usuario_atual()
 
     if not usuario:
+        return False
 
-        return redirect(
-            url_for("login")
-        )
-
-    return None
+    return True
 
 
 # ============================================================
@@ -159,10 +144,11 @@ def pagina_protegida():
 @app.route("/")
 def index():
 
-    protecao = pagina_protegida()
+    if not exigir_login():
 
-    if protecao:
-        return protecao
+        return redirect(
+            url_for("login")
+        )
 
     return render_template(
         "chat.html"
@@ -188,7 +174,7 @@ def login():
 
 
 # ============================================================
-# REGISTRO
+# REGISTO
 # ============================================================
 
 @app.route("/register")
@@ -206,7 +192,7 @@ def register():
 
 
 # ============================================================
-# LOGIN FIREBASE
+# FIREBASE LOGIN
 # ============================================================
 
 @app.route(
@@ -225,94 +211,72 @@ def firebase_login():
 
             return jsonify({
                 "success": False,
-                "error": "Dados de autenticação ausentes."
+                "error": "Dados ausentes."
             }), 400
 
-
-        id_token = dados.get(
+        token = dados.get(
             "idToken"
         )
 
-        if not id_token:
+        if not token:
 
             return jsonify({
                 "success": False,
-                "error": "ID token ausente."
+                "error": "Token Firebase ausente."
             }), 400
 
-
-        decoded_token = auth.verify_id_token(
-            id_token
+        decoded = auth.verify_id_token(
+            token
         )
 
-
-        uid = decoded_token.get(
+        uid = decoded.get(
             "uid"
         )
 
-        email = decoded_token.get(
+        email = decoded.get(
             "email",
             ""
         )
 
-        name = decoded_token.get(
+        name = decoded.get(
             "name",
             ""
         )
-
 
         if not uid:
 
             return jsonify({
                 "success": False,
-                "error": "Token inválido."
+                "error": "UID inválido."
             }), 401
-
 
         session["firebase_uid"] = uid
         session["email"] = email
         session["name"] = name
-
 
         logger.info(
             "Login efetuado: %s",
             email
         )
 
-
         return jsonify({
-
             "success": True,
-
-            "message":
-                "Autenticação efetuada com sucesso.",
-
             "user": {
-
                 "uid": uid,
-
                 "email": email,
-
                 "name": name
-
             }
-
         })
-
 
     except Exception as erro:
 
         logger.exception(
-            "Erro na autenticação Firebase."
+            "Erro no login Firebase."
         )
 
         return jsonify({
-
             "success": False,
-
-            "error":
-                "Não foi possível validar a autenticação."
-
+            "error": "Falha na autenticação."
         }), 401
 
 
@@ -340,118 +304,207 @@ def logout():
 )
 def chat():
 
-    # Verificar login
-    if not usuario_atual():
+    if not exigir_login():
 
         return jsonify({
-
             "success": False,
-
             "error": "Não autenticado."
-
         }), 401
 
-
-    # Ler JSON
     dados = request.get_json(
         silent=True
     )
 
-
     if not dados:
 
         return jsonify({
-
             "success": False,
-
             "error": "Dados inválidos."
-
         }), 400
 
-
-    mensagem = dados.get(
-        "message",
-        ""
-    )
-
-
-    if not isinstance(
-        mensagem,
-        str
-    ):
-
-        return jsonify({
-
-            "success": False,
-
-            "error": "Mensagem inválida."
-
-        }), 400
-
-
-    mensagem = mensagem.strip()
-
+    mensagem = str(
+        dados.get(
+            "message",
+            ""
+        )
+    ).strip()
 
     if not mensagem:
 
         return jsonify({
-
             "success": False,
-
             "error": "Mensagem vazia."
-
         }), 400
 
-
-    # Verificar OpenRouter
     if not client:
 
         return jsonify({
-
             "success": False,
-
-            "error":
-                "OPENROUTER_API_KEY não está configurada."
-
+            "error": "OPENROUTER_API_KEY não configurada no servidor."
         }), 500
-
 
     try:
 
         resposta = client.chat.completions.create(
 
-            model=os.getenv(
-                "OPENROUTER_MODEL",
-                "meta-llama/llama-3.1-8b-instruct"
-            ),
+            model="meta-llama/llama-3.1-8b-instruct",
 
             messages=[
 
                 {
                     "role": "system",
-
                     "content": """
-Tu és a Mello IA, uma assistente inteligente
-desenvolvida pelo Eng. Ivanildo João Paulo Augusto.
+Tu és a Mello IA.
 
-Responde em português de forma natural,
-clara, profissional e útil.
+Foste desenvolvida pelo
+Eng. Ivanildo João Paulo Augusto.
+
+Responde em português.
+
+Sê clara, natural e útil.
 
 Não inventes informações.
 
-Se não souberes alguma coisa,
-diz claramente que não tens informação suficiente.
+Quando explicares uma matéria,
+faz isso passo a passo.
 
-Quando o utilizador estiver a estudar,
-explica passo a passo.
+Quando ajudares com programação,
+fornece código correto e explica
+como executar.
 
-Quando for programação,
-fornece código correto e explica como utilizar.
+Não digas que tens acesso à
+Internet ou informações em tempo
+real se não tiveres.
+"""
+                },
 
-Quando houver cálculos,
-mostra o raciocínio de forma clara.
+                {
+                    "role": "user",
+                    "content": mensagem
+                }
 
-Não afirmes que tens acesso a informações
-em tempo real se não tiveres.
+            ],
 
-Não dig
+            max_tokens=1000,
+
+            temperature=0.7
+        )
+
+        texto = (
+            resposta
+            .choices[0]
+            .message
+            .content
+        )
+
+        return jsonify({
+            "success": True,
+            "response": texto,
+            "reply": texto
+        })
+
+    except Exception as erro:
+
+        logger.exception(
+            "Erro OpenRouter."
+        )
+
+        mensagem_erro = str(
+            erro
+        )
+
+        if (
+            "credits" in mensagem_erro.lower()
+            or "credit" in mensagem_erro.lower()
+        ):
+
+            return jsonify({
+                "success": False,
+                "error": (
+                    "A chave do OpenRouter "
+                    "não possui créditos suficientes "
+                    "para gerar esta resposta."
+                )
+            }), 402
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Erro ao comunicar com a IA."
+            )
+        }), 500
+
+
+# ============================================================
+# UTILIZADOR ATUAL
+# ============================================================
+
+@app.route("/api/me")
+def api_me():
+
+    usuario = usuario_atual()
+
+    if not usuario:
+
+        return jsonify({
+            "authenticated": False
+        }), 401
+
+    return jsonify({
+
+        "authenticated": True,
+
+        "user": {
+
+            "uid": usuario.uid,
+
+            "email": usuario.email or "",
+
+            "name": (
+                usuario.display_name
+                or session.get("name", "")
+            )
+
+        }
+
+    })
+
+
+# ============================================================
+# TESTE
+# ============================================================
+
+@app.route("/health")
+def health():
+
+    return jsonify({
+        "status": "online",
+        "firebase": bool(
+            firebase_admin._apps
+        ),
+        "openrouter": bool(
+            OPENROUTER_API_KEY
+        )
+    })
+
+
+# ============================================================
+# EXECUÇÃO
+# ============================================================
+
+if __name__ == "__main__":
+
+    logger.info(
+        "Mello IA iniciando..."
+    )
+
+    app.run(
+        host="0.0.0.0",
+        port=int(
+            os.getenv(
+                "PORT",
+                5000
+            )
+        ),
+        debug=True
+    )
