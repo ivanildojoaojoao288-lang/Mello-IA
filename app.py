@@ -59,7 +59,10 @@ if not os.path.exists(FIREBASE_KEY):
     )
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate(FIREBASE_KEY)
+
+    cred = credentials.Certificate(
+        FIREBASE_KEY
+    )
 
     firebase_admin.initialize_app(
         cred
@@ -99,7 +102,7 @@ else:
 
 
 # ============================================================
-# UTILIZADOR
+# UTILIZADOR ATUAL
 # ============================================================
 
 def usuario_atual():
@@ -113,7 +116,9 @@ def usuario_atual():
 
     try:
 
-        return auth.get_user(uid)
+        return auth.get_user(
+            uid
+        )
 
     except Exception as erro:
 
@@ -129,12 +134,7 @@ def usuario_atual():
 
 def exigir_login():
 
-    usuario = usuario_atual()
-
-    if not usuario:
-        return False
-
-    return True
+    return usuario_atual() is not None
 
 
 # ============================================================
@@ -192,7 +192,7 @@ def register():
 
 
 # ============================================================
-# FIREBASE LOGIN
+# LOGIN FIREBASE
 # ============================================================
 
 @app.route(
@@ -261,6 +261,7 @@ def firebase_login():
 
         return jsonify({
             "success": True,
+            "message": "Login efetuado com sucesso.",
             "user": {
                 "uid": uid,
                 "email": email,
@@ -271,12 +272,13 @@ def firebase_login():
     except Exception as erro:
 
         logger.exception(
-            "Erro no login Firebase."
+            "Erro no login Firebase: %s",
+            erro
         )
 
         return jsonify({
             "success": False,
-            "error": "Falha na autenticação."
+            "error": "Falha na autenticação Firebase."
         }), 401
 
 
@@ -340,19 +342,23 @@ def chat():
 
         return jsonify({
             "success": False,
-            "error": "OPENROUTER_API_KEY não configurada no servidor."
+            "error": "OPENROUTER_API_KEY não configurada."
         }), 500
 
     try:
 
         resposta = client.chat.completions.create(
 
-            model="meta-llama/llama-3.1-8b-instruct",
+            model=os.getenv(
+                "OPENROUTER_MODEL",
+                "meta-llama/llama-3.1-8b-instruct"
+            ),
 
             messages=[
 
                 {
                     "role": "system",
+
                     "content": """
 Tu és a Mello IA.
 
@@ -361,7 +367,7 @@ Eng. Ivanildo João Paulo Augusto.
 
 Responde em português.
 
-Sê clara, natural e útil.
+Sê clara, natural, profissional e útil.
 
 Não inventes informações.
 
@@ -375,6 +381,11 @@ como executar.
 Não digas que tens acesso à
 Internet ou informações em tempo
 real se não tiveres.
+
+Se não souberes alguma informação,
+diz claramente que não tens dados
+suficientes para confirmar.
+"""
                 },
 
                 {
@@ -389,6 +400,13 @@ real se não tiveres.
             temperature=0.7
         )
 
+        if not resposta.choices:
+
+            return jsonify({
+                "success": False,
+                "error": "A IA não devolveu uma resposta."
+            }), 500
+
         texto = (
             resposta
             .choices[0]
@@ -396,10 +414,20 @@ real se não tiveres.
             .content
         )
 
+        if not texto:
+
+            texto = (
+                "Não consegui gerar uma resposta."
+            )
+
         return jsonify({
+
             "success": True,
+
             "response": texto,
+
             "reply": texto
+
         })
 
     except Exception as erro:
@@ -413,29 +441,35 @@ real se não tiveres.
         )
 
         if (
-            "credits" in mensagem_erro.lower()
-            or "credit" in mensagem_erro.lower()
+            "credit" in mensagem_erro.lower()
+            or "credits" in mensagem_erro.lower()
         ):
 
             return jsonify({
+
                 "success": False,
+
                 "error": (
-                    "A chave do OpenRouter "
-                    "não possui créditos suficientes "
-                    "para gerar esta resposta."
+                    "A OpenRouter recusou a resposta "
+                    "porque a chave não possui créditos "
+                    "suficientes para 2000 tokens."
                 )
+
             }), 402
 
         return jsonify({
+
             "success": False,
+
             "error": (
-                "Erro ao comunicar com a IA."
+                "Erro ao comunicar com a OpenRouter."
             )
+
         }), 500
 
 
 # ============================================================
-# UTILIZADOR ATUAL
+# UTILIZADOR
 # ============================================================
 
 @app.route("/api/me")
@@ -470,20 +504,24 @@ def api_me():
 
 
 # ============================================================
-# TESTE
+# HEALTH CHECK
 # ============================================================
 
 @app.route("/health")
 def health():
 
     return jsonify({
+
         "status": "online",
+
         "firebase": bool(
             firebase_admin._apps
         ),
+
         "openrouter": bool(
             OPENROUTER_API_KEY
         )
+
     })
 
 
@@ -494,16 +532,37 @@ def health():
 if __name__ == "__main__":
 
     logger.info(
-        "Mello IA iniciando..."
+        "===================================="
+    )
+
+    logger.info(
+        "MELLO IA INICIANDO..."
+    )
+
+    logger.info(
+        "Firebase: OK"
+    )
+
+    logger.info(
+        "OpenRouter: %s",
+        "OK" if client else "NÃO CONFIGURADO"
+    )
+
+    logger.info(
+        "===================================="
     )
 
     app.run(
+
         host="0.0.0.0",
+
         port=int(
             os.getenv(
                 "PORT",
                 5000
             )
         ),
+
         debug=True
+
     )
