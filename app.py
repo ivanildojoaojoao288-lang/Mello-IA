@@ -9,380 +9,357 @@ from firebase_admin import credentials, auth
 
 from openai import OpenAI
 
+
 # ============================================================
-
 # CONFIGURAÇÃO
-
 # ============================================================
 
 load_dotenv()
 
 logging.basicConfig(
-level=logging.INFO,
-format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-logger = logging.getLogger(**name**)
+logger = logging.getLogger(__name__)
 
-app = Flask(**name**)
+app = Flask(__name__)
 
 app.secret_key = os.getenv(
-"FLASK_SECRET_KEY",
-"mello-ia-chave-local-temporaria"
+    "FLASK_SECRET_KEY",
+    "mello-ia-chave-local-temporaria"
 )
 
-# ============================================================
 
+# ============================================================
 # FIREBASE ADMIN
-
 # ============================================================
 
-BASE_DIR = os.path.dirname(os.path.abspath(**file**))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 FIREBASE_KEY = os.path.join(
-BASE_DIR,
-"firebase-service-account.json"
+    BASE_DIR,
+    "firebase-service-account.json"
 )
 
 if not os.path.exists(FIREBASE_KEY):
-
-```
-raise FileNotFoundError(
-    "A chave firebase-service-account.json não foi encontrada."
-)
-```
+    raise FileNotFoundError(
+        "A chave firebase-service-account.json não foi encontrada."
+    )
 
 if not firebase_admin._apps:
 
-```
-cred = credentials.Certificate(
-    FIREBASE_KEY
-)
+    cred = credentials.Certificate(
+        FIREBASE_KEY
+    )
 
-firebase_admin.initialize_app(
-    cred
-)
+    firebase_admin.initialize_app(
+        cred
+    )
 
-logger.info(
-    "Firebase Admin inicializado."
-)
-```
+    logger.info(
+        "Firebase Admin inicializado."
+    )
+
 
 # ============================================================
-
 # OPENROUTER / MELLO IA
-
 # ============================================================
 
 OPENROUTER_API_KEY = os.getenv(
-"OPENROUTER_API_KEY"
+    "OPENROUTER_API_KEY"
 )
 
 client = None
 
 if OPENROUTER_API_KEY:
 
-```
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=OPENROUTER_API_KEY
-)
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=OPENROUTER_API_KEY
+    )
 
-logger.info(
-    "OpenRouter configurado."
-)
-```
+    logger.info(
+        "OpenRouter configurado."
+    )
 
 else:
 
-```
-logger.warning(
-    "OPENROUTER_API_KEY não encontrada."
-)
-```
+    logger.warning(
+        "OPENROUTER_API_KEY não encontrada."
+    )
+
 
 # ============================================================
-
 # AUTENTICAÇÃO
-
 # ============================================================
 
 def usuario_atual():
 
-```
-uid = session.get("firebase_uid")
+    uid = session.get("firebase_uid")
 
-if not uid:
-    return None
+    if not uid:
+        return None
 
-try:
+    try:
 
-    usuario = auth.get_user(uid)
+        usuario = auth.get_user(uid)
 
-    return usuario
+        return usuario
 
-except Exception as erro:
+    except Exception as erro:
 
-    logger.error(
-        "Erro ao obter utilizador: %s",
-        erro
-    )
+        logger.error(
+            "Erro ao obter utilizador: %s",
+            erro
+        )
 
-    session.clear()
+        session.clear()
 
-    return None
-```
+        return None
+
 
 def pagina_protegida():
 
-```
-usuario = usuario_atual()
+    usuario = usuario_atual()
 
-if not usuario:
+    if not usuario:
 
-    return redirect(
-        url_for("login")
-    )
+        return redirect(
+            url_for("login")
+        )
 
-return None
-```
+    return None
+
 
 # ============================================================
-
 # PÁGINAS
-
 # ============================================================
 
 @app.route("/")
 def index():
 
-```
-protecao = pagina_protegida()
+    protecao = pagina_protegida()
 
-if protecao:
-    return protecao
+    if protecao:
+        return protecao
 
-return render_template(
-    "chat.html"
-)
-```
+    return render_template(
+        "chat.html"
+    )
+
 
 @app.route("/login")
 def login():
 
-```
-if usuario_atual():
+    if usuario_atual():
 
-    return redirect(
-        url_for("index")
+        return redirect(
+            url_for("index")
+        )
+
+    return render_template(
+        "login.html"
     )
 
-return render_template(
-    "login.html"
-)
-```
 
 @app.route("/register")
 def register():
 
-```
-if usuario_atual():
+    if usuario_atual():
 
-    return redirect(
-        url_for("index")
+        return redirect(
+            url_for("index")
+        )
+
+    return render_template(
+        "register.html"
     )
 
-return render_template(
-    "register.html"
-)
-```
 
 # ============================================================
-
 # FIREBASE TOKEN
-
 # ============================================================
 
 @app.route(
-"/auth/firebase",
-methods=["POST"]
+    "/auth/firebase",
+    methods=["POST"]
 )
 def firebase_login():
 
-```
-try:
+    try:
 
-    dados = request.get_json(
-        silent=True
-    )
+        dados = request.get_json(
+            silent=True
+        )
 
-    if not dados:
+        if not dados:
+
+            return jsonify({
+                "error": "Dados de autenticação ausentes."
+            }), 400
+
+        id_token = dados.get(
+            "idToken"
+        )
+
+        if not id_token:
+
+            return jsonify({
+                "error": "ID token ausente."
+            }), 400
+
+        decoded_token = auth.verify_id_token(
+            id_token
+        )
+
+        uid = decoded_token.get(
+            "uid"
+        )
+
+        email = decoded_token.get(
+            "email",
+            ""
+        )
+
+        name = decoded_token.get(
+            "name",
+            ""
+        )
+
+        if not uid:
+
+            return jsonify({
+                "error": "Token inválido."
+            }), 401
+
+        session["firebase_uid"] = uid
+        session["email"] = email
+        session["name"] = name
+
+        logger.info(
+            "Login efetuado: %s",
+            email
+        )
 
         return jsonify({
-            "error": "Dados de autenticação ausentes."
-        }), 400
+            "success": True,
+            "message": "Autenticação efetuada com sucesso.",
+            "user": {
+                "uid": uid,
+                "email": email,
+                "name": name
+            }
+        })
 
+    except Exception:
 
-    id_token = dados.get(
-        "idToken"
-    )
-
-
-    if not id_token:
-
-        return jsonify({
-            "error": "ID token ausente."
-        }), 400
-
-
-    # Verificação oficial do token
-    decoded_token = auth.verify_id_token(
-        id_token
-    )
-
-
-    uid = decoded_token.get(
-        "uid"
-    )
-
-
-    email = decoded_token.get(
-        "email",
-        ""
-    )
-
-
-    name = decoded_token.get(
-        "name",
-        ""
-    )
-
-
-    if not uid:
+        logger.exception(
+            "Erro na autenticação Firebase."
+        )
 
         return jsonify({
-            "error": "Token inválido."
+            "error": "Não foi possível validar a autenticação."
         }), 401
 
 
-    # Criamos a sessão Flask
-    session["firebase_uid"] = uid
-    session["email"] = email
-    session["name"] = name
-
-
-    logger.info(
-        "Login efetuado: %s",
-        email
-    )
-
-
-    return jsonify({
-        "success": True,
-        "message": "Autenticação efetuada com sucesso.",
-        "user": {
-            "uid": uid,
-            "email": email,
-            "name": name
-        }
-    })
-
-
-except Exception as erro:
-
-    logger.exception(
-        "Erro na autenticação Firebase."
-    )
-
-    return jsonify({
-        "error": "Não foi possível validar a autenticação."
-    }), 401
-```
-
 # ============================================================
-
 # LOGOUT
-
 # ============================================================
 
 @app.route("/logout")
 def logout():
 
-```
-session.clear()
+    session.clear()
 
-return redirect(
-    url_for("login")
-)
-```
+    return redirect(
+        url_for("login")
+    )
+
 
 # ============================================================
-
 # CHAT
-
 # ============================================================
 
 @app.route(
-"/chat",
-methods=["POST"]
+    "/chat",
+    methods=["POST"]
 )
 def chat():
 
-```
-protecao = pagina_protegida()
+    protecao = pagina_protegida()
 
-if protecao:
+    if protecao:
 
-    return jsonify({
-        "error": "Não autenticado."
-    }), 401
-
-
-dados = request.get_json(
-    silent=True
-)
+        return jsonify({
+            "error": "Não autenticado."
+        }), 401
 
 
-if not dados:
+    # ========================================================
+    # ACEITAR JSON OU FORMDATA
+    # ========================================================
 
-    return jsonify({
-        "error": "Dados inválidos."
-    }), 400
+    if request.is_json:
 
+        dados = request.get_json(
+            silent=True
+        ) or {}
 
-mensagem = dados.get(
-    "message",
-    ""
-).strip()
+        mensagem = dados.get(
+            "message",
+            ""
+        ).strip()
 
+    else:
 
-if not mensagem:
-
-    return jsonify({
-        "error": "Mensagem vazia."
-    }), 400
-
-
-if not client:
-
-    return jsonify({
-        "error": "A API da Mello IA ainda não está configurada no servidor."
-    }), 500
+        mensagem = request.form.get(
+            "message",
+            ""
+        ).strip()
 
 
-try:
+    # ========================================================
+    # VALIDAR MENSAGEM
+    # ========================================================
 
-    resposta = client.chat.completions.create(
+    if not mensagem:
 
-        model="meta-llama/llama-3.1-8b-instruct",
+        return jsonify({
+            "error": "Mensagem vazia."
+        }), 400
 
-        messages=[
 
-            {
-                "role": "system",
-                "content": """
-```
+    # ========================================================
+    # VERIFICAR OPENROUTER
+    # ========================================================
 
+    if not client:
+
+        return jsonify({
+            "error": "A API da Mello IA ainda não está configurada no servidor."
+        }), 500
+
+
+    # ========================================================
+    # PROCESSAR IA
+    # ========================================================
+
+    try:
+
+        resposta = client.chat.completions.create(
+
+            model="meta-llama/llama-3.1-8b-instruct",
+
+            # Limite reduzido para funcionar
+            # com o crédito disponível.
+            max_tokens=500,
+
+            messages=[
+
+                {
+                    "role": "system",
+                    "content": """
 Tu és a Mello IA, uma assistente inteligente desenvolvida por
 Eng. Ivanildo João Paulo Augusto.
 
@@ -401,102 +378,139 @@ Quando o utilizador estiver a estudar, ensina passo a passo.
 Quando for programação, fornece código correto e explica como utilizar.
 
 Sê profissional, mas conversa de forma natural.
+
+Mantém as respostas objetivas para evitar consumo desnecessário de tokens.
 """
-},
+                },
 
-```
-            {
-                "role": "user",
-                "content": mensagem
-            }
+                {
+                    "role": "user",
+                    "content": mensagem
+                }
 
-        ]
+            ]
 
-    )
-
-
-    texto = (
-        resposta
-        .choices[0]
-        .message
-        .content
-    )
+        )
 
 
-    return jsonify({
-        "success": True,
-        "response": texto
-    })
+        # ====================================================
+        # OBTER RESPOSTA
+        # ====================================================
+
+        texto = (
+            resposta
+            .choices[0]
+            .message
+            .content
+        )
 
 
-except Exception as erro:
+        if not texto:
 
-    logger.exception(
-        "Erro no processamento da Mello IA."
-    )
+            texto = (
+                "Não consegui gerar uma resposta."
+            )
 
 
-    return jsonify({
-        "error": "Ocorreu um erro ao processar a mensagem."
-    }), 500
-```
+        logger.info(
+            "Resposta da Mello IA gerada com sucesso."
+        )
+
+
+        # ====================================================
+        # RETORNO
+        # ====================================================
+
+        return jsonify({
+
+            "success": True,
+
+            # Campo usado pelo frontend
+            "reply": texto,
+
+            # Mantemos também response
+            # para compatibilidade.
+            "response": texto
+
+        })
+
+
+    except Exception as erro:
+
+        logger.exception(
+            "Erro no processamento da Mello IA."
+        )
+
+
+        return jsonify({
+
+            "success": False,
+
+            "error": (
+                "Ocorreu um erro ao processar a mensagem."
+            ),
+
+            "reply": (
+                "Não consegui processar a tua mensagem neste momento."
+            )
+
+        }), 500
+
 
 # ============================================================
-
 # INFORMAÇÕES DO UTILIZADOR
-
 # ============================================================
 
 @app.route("/api/me")
 def api_me():
 
-```
-usuario = usuario_atual()
+    usuario = usuario_atual()
 
-if not usuario:
+    if not usuario:
+
+        return jsonify({
+            "authenticated": False
+        }), 401
+
 
     return jsonify({
-        "authenticated": False
-    }), 401
 
+        "authenticated": True,
 
-return jsonify({
+        "user": {
 
-    "authenticated": True,
+            "uid": usuario.uid,
 
-    "user": {
+            "email": usuario.email,
 
-        "uid": usuario.uid,
+            "name": usuario.display_name or ""
 
-        "email": usuario.email,
+        }
 
-        "name": usuario.display_name or ""
+    })
 
-    }
-
-})
-```
 
 # ============================================================
-
 # EXECUÇÃO
-
 # ============================================================
 
-if **name** == "**main**":
+if __name__ == "__main__":
 
-```
-logger.info(
-    "Mello IA iniciando..."
-)
+    logger.info(
+        "Mello IA iniciando..."
+    )
 
-app.run(
-    host="0.0.0.0",
-    port=int(
-        os.getenv(
-            "PORT",
-            5000
-        )
-    ),
-    debug=True
-)
+    app.run(
+
+        host="0.0.0.0",
+
+        port=int(
+            os.getenv(
+                "PORT",
+                5000
+            )
+        ),
+
+        debug=True
+
+    )
