@@ -56,8 +56,7 @@ FIREBASE_KEY = os.path.join(
 if not os.path.exists(FIREBASE_KEY):
 
     raise FileNotFoundError(
-        "A chave firebase-service-account.json "
-        "não foi encontrada na pasta do projeto."
+        "A chave firebase-service-account.json não foi encontrada."
     )
 
 
@@ -77,7 +76,7 @@ if not firebase_admin._apps:
 
 
 # ============================================================
-# OPENROUTER / MELLO IA
+# OPENROUTER
 # ============================================================
 
 OPENROUTER_API_KEY = os.getenv(
@@ -139,7 +138,7 @@ def usuario_atual():
 
 
 # ============================================================
-# PROTEGER PÁGINA
+# PROTEGER PÁGINAS
 # ============================================================
 
 def pagina_protegida():
@@ -165,7 +164,6 @@ def index():
     protecao = pagina_protegida()
 
     if protecao:
-
         return protecao
 
     return render_template(
@@ -210,7 +208,7 @@ def register():
 
 
 # ============================================================
-# FIREBASE LOGIN
+# AUTENTICAÇÃO FIREBASE
 # ============================================================
 
 @app.route(
@@ -225,4 +223,217 @@ def firebase_login():
             silent=True
         )
 
-        if not dados
+        if not dados:
+
+            return jsonify({
+                "success": False,
+                "error": "Dados de autenticação ausentes."
+            }), 400
+
+
+        id_token = dados.get(
+            "idToken"
+        )
+
+        if not id_token:
+
+            return jsonify({
+                "success": False,
+                "error": "ID token ausente."
+            }), 400
+
+
+        # Verificar token Firebase
+        decoded_token = auth.verify_id_token(
+            id_token
+        )
+
+
+        uid = decoded_token.get(
+            "uid"
+        )
+
+        email = decoded_token.get(
+            "email",
+            ""
+        )
+
+        name = decoded_token.get(
+            "name",
+            ""
+        )
+
+
+        if not uid:
+
+            return jsonify({
+                "success": False,
+                "error": "Token inválido."
+            }), 401
+
+
+        # Criar sessão Flask
+        session["firebase_uid"] = uid
+        session["email"] = email
+        session["name"] = name
+
+
+        logger.info(
+            "Login efetuado: %s",
+            email
+        )
+
+
+        return jsonify({
+
+            "success": True,
+
+            "message":
+                "Autenticação efetuada com sucesso.",
+
+            "user": {
+
+                "uid": uid,
+
+                "email": email,
+
+                "name": name
+
+            }
+
+        })
+
+
+    except Exception as erro:
+
+        logger.exception(
+            "Erro na autenticação Firebase."
+        )
+
+        return jsonify({
+
+            "success": False,
+
+            "error":
+                "Não foi possível validar a autenticação."
+
+        }), 401
+
+
+# ============================================================
+# LOGOUT
+# ============================================================
+
+@app.route("/logout")
+def logout():
+
+    session.clear()
+
+    return redirect(
+        url_for("login")
+    )
+
+
+# ============================================================
+# CHAT
+# ============================================================
+
+@app.route(
+    "/chat",
+    methods=["POST"]
+)
+def chat():
+
+    # Verificar autenticação
+    if not usuario_atual():
+
+        return jsonify({
+            "success": False,
+            "error": "Não autenticado."
+        }), 401
+
+
+    # Ler JSON
+    dados = request.get_json(
+        silent=True
+    )
+
+
+    if not dados:
+
+        return jsonify({
+            "success": False,
+            "error": "Dados inválidos."
+        }), 400
+
+
+    mensagem = dados.get(
+        "message",
+        ""
+    )
+
+
+    if not isinstance(
+        mensagem,
+        str
+    ):
+
+        return jsonify({
+            "success": False,
+            "error": "Mensagem inválida."
+        }), 400
+
+
+    mensagem = mensagem.strip()
+
+
+    if not mensagem:
+
+        return jsonify({
+            "success": False,
+            "error": "Mensagem vazia."
+        }), 400
+
+
+    # Verificar OpenRouter
+    if not client:
+
+        return jsonify({
+
+            "success": False,
+
+            "error":
+                "OPENROUTER_API_KEY não está configurada no servidor."
+
+        }), 500
+
+
+    try:
+
+        resposta = client.chat.completions.create(
+
+            model=os.getenv(
+                "OPENROUTER_MODEL",
+                "meta-llama/llama-3.1-8b-instruct"
+            ),
+
+            messages=[
+
+                {
+                    "role": "system",
+
+                    "content": """
+Tu és a Mello IA, uma assistente inteligente
+desenvolvida pelo Eng. Ivanildo João Paulo Augusto.
+
+Responde em português de forma natural,
+clara, profissional e útil.
+
+Não inventes informações.
+
+Se não souberes algo, diz claramente
+que não tens informação suficiente.
+
+Quando o utilizador estiver a estudar,
+explica passo a passo.
+
