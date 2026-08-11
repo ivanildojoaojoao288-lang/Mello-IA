@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="pt">
 
 <head>
@@ -58,14 +57,11 @@
         id="sidebar"
     >
 
-
         <div class="brand">
-
 
             <div class="brand-logo">
                 M
             </div>
-
 
             <div>
 
@@ -78,7 +74,6 @@
                 </div>
 
             </div>
-
 
         </div>
 
@@ -96,9 +91,7 @@
 
 
         <div class="sidebar-section">
-
             CONVERSAS
-
         </div>
 
 
@@ -106,14 +99,16 @@
             id="history"
             class="history"
         >
-
         </div>
 
 
         <div class="sidebar-bottom">
 
 
-            <button class="sidebar-button">
+            <button
+                class="sidebar-button"
+                type="button"
+            >
 
                 ⚙️
 
@@ -124,7 +119,10 @@
             </button>
 
 
-            <button class="sidebar-button">
+            <button
+                class="sidebar-button"
+                type="button"
+            >
 
                 ℹ️
 
@@ -167,6 +165,7 @@
             <button
                 class="menu-button"
                 onclick="toggleSidebar()"
+                type="button"
             >
 
                 ☰
@@ -201,6 +200,7 @@
             <button
                 class="new-mobile"
                 onclick="novaConversa()"
+                type="button"
             >
 
                 ＋
@@ -255,6 +255,7 @@
 
 
                     <button
+                        type="button"
                         onclick="usarSugestao('Explique-me inteligência artificial de forma simples')"
                     >
 
@@ -274,6 +275,7 @@
 
 
                     <button
+                        type="button"
                         onclick="usarSugestao('Ajude-me a aprender programação')"
                     >
 
@@ -293,6 +295,7 @@
 
 
                     <button
+                        type="button"
                         onclick="usarSugestao('Ajude-me com os meus estudos')"
                     >
 
@@ -312,6 +315,7 @@
 
 
                     <button
+                        type="button"
                         onclick="usarSugestao('Explique redes de computadores')"
                     >
 
@@ -346,14 +350,13 @@
         <div class="input-wrapper">
 
 
-            <!-- PREVIEW -->
+            <!-- PREVIEW DA IMAGEM -->
 
             <div
                 class="image-preview"
                 id="image-preview"
                 style="display:none;"
             >
-
 
                 <img
                     id="preview-image"
@@ -363,7 +366,6 @@
 
 
                 <div class="image-preview-info">
-
 
                     <span id="image-name">
                     </span>
@@ -378,7 +380,6 @@
                         ×
 
                     </button>
-
 
                 </div>
 
@@ -398,6 +399,8 @@
                     hidden
                 >
 
+
+                <!-- ANEXAR -->
 
                 <button
                     type="button"
@@ -422,6 +425,21 @@
                 ></textarea>
 
 
+                <!-- MICROFONE -->
+
+                <button
+                    type="button"
+                    class="voice-button"
+                    id="voice-button"
+                    title="Falar com a Mello IA"
+                    onclick="alternarMicrofone()"
+                >
+
+                    🎙️
+
+                </button>
+
+
                 <!-- ENVIAR -->
 
                 <button
@@ -437,6 +455,10 @@
                 </button>
 
 
+            </div>
+
+
+            <div class="voice-status" id="voice-status">
             </div>
 
 
