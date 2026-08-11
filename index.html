@@ -1,541 +1,109 @@
-<!DOCTYPE html>
-<html lang="pt">
+<div class="input-box">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0284c7">
-    <meta name="description" content="Mello IA — Inteligência Artificial de Nova Geração">
-    <title>Mello IA</title>
+    <!-- ANEXAR IMAGEM -->
+    <input
+        type="file"
+        id="image-input"
+        accept="image/*"
+        hidden
+    >
 
-    <!-- =====================================================
-         CSS
-         ===================================================== -->
-    <link rel="stylesheet" href="/static/style.css">
-</head>
+    <button
+        type="button"
+        class="attach-button"
+        id="attach-button"
+        title="Enviar imagem"
+        onclick="document.getElementById('image-input').click()"
+    >
+        <span>＋</span>
+    </button>
 
-<body>
 
-<!-- =========================================================
-     APP
-     ========================================================= -->
-<div class="app">
+    <!-- CAMPO DE TEXTO -->
+    <textarea
+        id="user-input"
+        rows="1"
+        placeholder="Comande a Mello IA..."
+        onkeydown="handleKey(event)"
+    ></textarea>
 
-    <!-- =====================================================
-         SIDEBAR
-         ===================================================== -->
-    <aside class="sidebar" id="sidebar">
 
-        <!-- BRAND -->
-        <div class="brand">
-            <div class="brand-logo">
-                M
-            </div>
-            <div>
-                <div class="brand-name">
-                    Mello IA
-                </div>
-                <div class="brand-version">
-                    Inteligência Artificial
-                </div>
-            </div>
-        </div>
+    <!-- MICROFONE ULTRA -->
+    <button
+        type="button"
+        class="voice-button"
+        id="voice-button"
+        onclick="alternarMicrofone()"
+        title="Falar com a Mello IA"
+        aria-label="Falar com a Mello IA"
+    >
 
-        <!-- NOVA CONVERSA -->
-        <button class="new-chat" onclick="newConversation()">
-            <span>＋</span>
-            Nova conversa
-        </button>
+        <span class="voice-ring ring-1"></span>
+        <span class="voice-ring ring-2"></span>
 
-        <!-- HISTÓRICO -->
-        <div class="sidebar-section">
-            Conversas
-        </div>
+        <svg
+            class="mic-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <rect
+                x="9"
+                y="3"
+                width="6"
+                height="11"
+                rx="3"
+                stroke="currentColor"
+                stroke-width="1.8"
+            />
 
-        <div class="history" id="historyList">
-            <button class="history-item" onclick="newConversation()">
-                ✨ Nova conversa
-            </button>
-        </div>
+            <path
+                d="M5.5 11.5C5.5 15.09 8.41 18 12 18C15.59 18 18.5 15.09 18.5 11.5"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+            />
 
-        <!-- PARTE INFERIOR -->
-        <div class="sidebar-bottom">
-            <button class="sidebar-button" onclick="clearConversation()">
-                🗑️
-                <span>
-                    Limpar conversa
-                </span>
-            </button>
+            <path
+                d="M12 18V21"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+            />
 
-            <button class="sidebar-button" onclick="showAbout()">
-                ℹ️
-                <span>
-                    Sobre a Mello IA
-                </span>
-            </button>
+            <path
+                d="M9 21H15"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+            />
+        </svg>
 
-            <div class="creator-mini">
-                Desenvolvida por<br>
-                <strong>
-                    Eng. Ivanildo João Paulo Augusto
-                </strong>
-            </div>
-        </div>
+    </button>
 
-    </aside>
 
-    <!-- OVERLAY MOBILE -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-    <!-- =====================================================
-         MAIN
-         ===================================================== -->
-    <main class="main">
-
-        <!-- =================================================
-             TOPBAR
-             ================================================= -->
-        <header class="topbar">
-            <button class="menu-button" onclick="toggleSidebar()" aria-label="Abrir menu">
-                ☰
-            </button>
-
-            <div class="topbar-title">
-                <div class="mini-logo">
-                    M
-                </div>
-                <div>
-                    <strong>
-                        Mello IA
-                    </strong>
-                    <span>
-                        Online • Pronta para ajudar
-                    </span>
-                </div>
-            </div>
-
-            <button class="new-mobile" onclick="newConversation()" aria-label="Nova conversa">
-                ＋
-            </button>
-        </header>
-
-        <!-- =================================================
-             CHAT
-             ================================================= -->
-        <section class="chat-area" id="chat">
-
-            <!-- =================================================
-                 WELCOME
-                 ================================================= -->
-            <div class="welcome" id="welcome">
-                <div class="welcome-logo">
-                    M
-                </div>
-
-                <h1>
-                    Olá, eu sou a
-                    <span>
-                        Mello IA
-                    </span>
-                    🤖
-                </h1>
-
-                <p>
-                    Uma inteligência artificial criada para
-                    responder perguntas, explicar assuntos,
-                    ajudar nos estudos, programação e muito mais.
-                </p>
-
-                <!-- =================================================
-                     SUGESTÕES
-                     ================================================= -->
-                <div class="suggestions">
-                    <button onclick="useSuggestion('Explique-me o que é inteligência artificial de forma simples.')">
-                        <span>🧠</span>
-                        <span>
-                            <strong>Aprender algo</strong>
-                            Explique um assunto para mim
-                        </span>
-                    </button>
-
-                    <button onclick="useSuggestion('Ajude-me a criar um programa em Python.')">
-                        <span>💻</span>
-                        <span>
-                            <strong>Programação</strong>
-                            Ajude-me com código
-                        </span>
-                    </button>
-
-                    <button onclick="useSuggestion('Ajude-me a estudar para uma prova.')">
-                        <span>📚</span>
-                        <span>
-                            <strong>Estudos</strong>
-                            Prepare um plano de estudos
-                        </span>
-                    </button>
-
-                    <button onclick="useSuggestion('Dê-me uma ideia inovadora para um projeto tecnológico.')">
-                        <span>🚀</span>
-                        <span>
-                            <strong>Criatividade</strong>
-                            Crie uma ideia inovadora
-                        </span>
-                    </button>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- =================================================
-             INPUT AREA
-             ================================================= -->
-        <div class="input-wrapper">
-
-            <!-- PREVIEW -->
-            <div class="image-preview" id="imagePreview" style="display:none;">
-                <img id="previewImage" src="" alt="Pré-visualização">
-                <div class="image-preview-info">
-                    <span id="imageName">
-                        Imagem selecionada
-                    </span>
-                    <button onclick="removeImage()" aria-label="Remover imagem">
-                        ×
-                    </button>
-                </div>
-            </div>
-
-            <!-- INPUT -->
-            <div class="input-box">
-                <!-- INPUT FILE -->
-                <input type="file" id="imageInput" accept="image/*" hidden onchange="handleImage(event)">
-
-                <!-- ANEXAR -->
-                <button class="attach-button" onclick="document.getElementById('imageInput').click()" aria-label="Anexar imagem" title="Anexar imagem">
-                    📎
-                </button>
-
-                <!-- TEXTAREA -->
-                <textarea id="message" rows="1" placeholder="Pergunte qualquer coisa à Mello IA..." autocomplete="off"></textarea>
-
-                <!-- ENVIAR -->
-                <button class="send-button" id="sendButton" onclick="sendMessage()" aria-label="Enviar mensagem" title="Enviar">
-                    ➤
-                </button>
-            </div>
-
-            <div class="input-info">
-                A Mello IA pode cometer erros. Verifique informações importantes.
-            </div>
-
-        </div>
-
-    </main>
+    <!-- ENVIAR -->
+    <button
+        type="button"
+        class="send-button"
+        id="send-button"
+        onclick="enviarMensagem()"
+        title="Enviar"
+    >
+        ➤
+    </button>
 
 </div>
 
-<!-- =========================================================
-     JAVASCRIPT
-     ========================================================= -->
-<script>
 
-/* =========================================================
-   ESTADO DA APLICAÇÃO
-   ========================================================= */
-let conversationHistory = [];
-let selectedImage = null;
-let isLoading = false;
-
-/* =========================================================
-   ELEMENTOS
-   ========================================================= */
-const messageInput = document.getElementById("message");
-const chat = document.getElementById("chat");
-const sendButton = document.getElementById("sendButton");
-const welcome = document.getElementById("welcome");
-
-/* =========================================================
-   ENTER PARA ENVIAR
-   ========================================================= */
-messageInput.addEventListener("keydown", function(event) {
-    if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        sendMessage();
-    }
-});
-
-/* =========================================================
-   AUTO RESIZE
-   ========================================================= */
-messageInput.addEventListener("input", function() {
-    this.style.height = "auto";
-    this.style.height = Math.min(this.scrollHeight, 140) + "px";
-});
-
-/* =========================================================
-   SUGESTÃO
-   ========================================================= */
-function useSuggestion(text) {
-    messageInput.value = text;
-    messageInput.focus();
-    messageInput.dispatchEvent(new Event("input"));
-}
-
-/* =========================================================
-   NOVA CONVERSA
-   ========================================================= */
-function newConversation() {
-    conversationHistory = [];
-    selectedImage = null;
-    removeImage();
-    chat.innerHTML = "";
-
-    const welcomeHTML = `
-        <div class="welcome" id="welcome">
-            <div class="welcome-logo">M</div>
-            <h1>Olá, eu sou a <span>Mello IA</span> 🤖</h1>
-            <p>Uma inteligência artificial criada para responder perguntas, explicar assuntos, ajudar nos estudos, programação e muito mais.</p>
-            <div class="suggestions">
-                <button onclick="useSuggestion('Explique-me o que é inteligência artificial de forma simples.')">
-                    <span>🧠</span>
-                    <span><strong>Aprender algo</strong>Explique um assunto para mim</span>
-                </button>
-                <button onclick="useSuggestion('Ajude-me a criar um programa em Python.')">
-                    <span>💻</span>
-                    <span><strong>Programação</strong>Ajude-me com código</span>
-                </button>
-                <button onclick="useSuggestion('Ajude-me a estudar para uma prova.')">
-                    <span>📚</span>
-                    <span><strong>Estudos</strong>Prepare um plano de estudos</span>
-                </button>
-                <button onclick="useSuggestion('Dê-me uma ideia inovadora para um projeto tecnológico.')">
-                    <span>🚀</span>
-                    <span><strong>Criatividade</strong>Crie uma ideia inovadora</span>
-                </button>
-            </div>
-        </div>
-    `;
-
-    chat.innerHTML = welcomeHTML;
-    closeMobileSidebar();
-}
-
-/* =========================================================
-   ADICIONAR MENSAGEM
-   ========================================================= */
-function addMessage(text, type) {
-    const message = document.createElement("div");
-    message.className = `message ${type}`;
-
-    const avatar = document.createElement("div");
-    avatar.className = "message-avatar";
-
-    const content = document.createElement("div");
-    content.className = "message-content";
-
-    if (type === "bot") {
-        avatar.textContent = "M";
-    } else {
-        avatar.textContent = "👤";
-    }
-
-    content.textContent = text;
-
-    message.appendChild(avatar);
-    message.appendChild(content);
-    chat.appendChild(message);
-
-    scrollChat();
-    return message;
-}
-
-/* =========================================================
-   LOADING
-   ========================================================= */
-function addTyping() {
-    const message = document.createElement("div");
-    message.className = "message bot";
-
-    const avatar = document.createElement("div");
-    avatar.className = "message-avatar";
-    avatar.textContent = "M";
-
-    const content = document.createElement("div");
-    content.className = "message-content";
-    content.innerHTML = `
-        <div class="typing">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-    `;
-
-    message.appendChild(avatar);
-    message.appendChild(content);
-    chat.appendChild(message);
-
-    scrollChat();
-    return message;
-}
-
-/* =========================================================
-   ENVIAR MENSAGEM
-   ========================================================= */
-async function sendMessage() {
-    if (isLoading) return;
-
-    const text = messageInput.value.trim();
-    if (!text && !selectedImage) return;
-
-    isLoading = true;
-    sendButton.disabled = true;
-
-    /* remover welcome */
-    const currentWelcome = document.getElementById("welcome");
-    if (currentWelcome) {
-        currentWelcome.remove();
-    }
-
-    /* mostrar mensagem */
-    if (text) {
-        addMessage(text, "user");
-    }
-
-    /* adicionar ao histórico */
-    conversationHistory.push({
-        role: "user",
-        content: text
-    });
-
-    /* limpar input */
-    messageInput.value = "";
-    messageInput.style.height = "auto";
-
-    /* loading */
-    const typing = addTyping();
-
-    try {
-        const response = await fetch("/chat", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                message: text,
-                history: conversationHistory
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error("Erro no servidor");
-        }
-
-        const data = await response.json();
-
-        /* remover loading */
-        typing.remove();
-
-        const reply = data.reply || "Desculpa, não consegui gerar uma resposta.";
-
-        /* mostrar resposta */
-        addMessage(reply, "bot");
-
-        /* atualizar histórico */
-        conversationHistory.push({
-            role: "assistant",
-            content: reply
-        });
-
-    } catch (error) {
-        console.error(error);
-        typing.remove();
-        addMessage("⚠️ Não foi possível contactar a Mello IA. Verifica a ligação ou o servidor.", "bot");
-    } finally {
-        isLoading = false;
-        sendButton.disabled = false;
-        messageInput.focus();
-    }
-}
-
-/* =========================================================
-   SCROLL
-   ========================================================= */
-function scrollChat() {
-    requestAnimationFrame(() => {
-        chat.scrollTo({
-            top: chat.scrollHeight,
-            behavior: "smooth"
-        });
-    });
-}
-
-/* =========================================================
-   IMAGEM
-   ========================================================= */
-function handleImage(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-        alert("Por favor, seleciona uma imagem válida.");
-        return;
-    }
-
-    selectedImage = file;
-    const reader = new FileReader();
-
-    reader.onload = function(e) {
-        document.getElementById("previewImage").src = e.target.result;
-        document.getElementById("imageName").textContent = file.name;
-        document.getElementById("imagePreview").style.display = "flex";
-    };
-
-    reader.readAsDataURL(file);
-}
-
-/* =========================================================
-   REMOVER IMAGEM
-   ========================================================= */
-function removeImage() {
-    selectedImage = null;
-    const input = document.getElementById("imageInput");
-    if (input) input.value = "";
-    
-    const preview = document.getElementById("imagePreview");
-    if (preview) preview.style.display = "none";
-}
-
-/* =========================================================
-   CONTROLE DO MENU MOBILE (SIDEBAR)
-   ========================================================= */
-function toggleSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("sidebarOverlay");
-    
-    if (sidebar && overlay) {
-        sidebar.classList.toggle("open");
-        overlay.classList.toggle("active");
-    }
-}
-
-function closeMobileSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("sidebarOverlay");
-    
-    if (sidebar && overlay) {
-        sidebar.classList.remove("open");
-        overlay.classList.remove("active");
-    }
-}
-
-function clearConversation() {
-    newConversation();
-}
-
-function showAbout() {
-    alert("Mello IA — Inteligência Artificial\nDesenvolvida por Eng. Ivanildo João Paulo Augusto");
-}
-
-</script>
-</body>
-    </html>
-    
+<!-- STATUS DA VOZ -->
+<div
+    class="voice-status"
+    id="voice-status"
+    aria-live="polite"
+>
+    <span class="voice-status-dot"></span>
+    <span id="voice-status-text">
+        Pronto para ouvir
+    </span>
+</div>
