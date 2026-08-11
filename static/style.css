@@ -1,6 +1,7 @@
 /* =====================================================
    MELLO IA — ULTRA PRO MAX
-   Design: Branco + Azul + Dourado + Vermelho
+   BRANCO + AZUL + DOURADO + VERMELHO
+   ANIMAÇÕES PROFISSIONAIS
    ===================================================== */
 
 * {
@@ -20,9 +21,6 @@
 
     --border: #e7eaf0;
     --white: #ffffff;
-    --background: #ffffff;
-
-    --shadow: 0 8px 30px rgba(20, 35, 70, 0.08);
 }
 
 html,
@@ -41,24 +39,16 @@ body {
         Arial,
         sans-serif;
 
-    background: #ffffff;
+    background: #fff;
     color: var(--text);
-
     overflow: hidden;
 }
-
-
-/* =====================================================
-   APP
-   ===================================================== */
 
 .app {
     width: 100%;
     height: 100vh;
-
     display: flex;
-
-    background: #ffffff;
+    background: #fff;
 }
 
 
@@ -70,7 +60,7 @@ body {
     width: 280px;
     height: 100vh;
 
-    background: #ffffff;
+    background: #fff;
 
     border-right: 1px solid var(--border);
 
@@ -83,8 +73,8 @@ body {
     z-index: 50;
 
     transition:
-        transform 0.35s ease,
-        box-shadow 0.35s ease;
+        transform .35s ease,
+        box-shadow .35s ease;
 }
 
 
@@ -95,7 +85,6 @@ body {
 .brand {
     display: flex;
     align-items: center;
-
     gap: 12px;
 
     padding: 4px 8px 24px;
@@ -111,7 +100,7 @@ body {
     align-items: center;
     justify-content: center;
 
-    color: white;
+    color: #fff;
 
     font-size: 22px;
     font-weight: 800;
@@ -120,29 +109,84 @@ body {
         linear-gradient(
             135deg,
             var(--blue),
-            #397cff
+            #397cff,
+            var(--gold)
         );
 
-    box-shadow:
-        0 6px 18px rgba(18, 97, 255, 0.25);
+    background-size: 250% 250%;
 
-    animation: logoFloat 4s ease-in-out infinite;
+    animation:
+        logoColors 5s ease infinite,
+        logoFloat 4s ease-in-out infinite;
+
+    box-shadow:
+        0 7px 22px rgba(18,97,255,.20);
+}
+
+@keyframes logoColors {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    33% {
+        background-position: 100% 30%;
+    }
+
+    66% {
+        background-position: 70% 100%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 @keyframes logoFloat {
+
     0%,
     100% {
         transform: translateY(0);
     }
 
     50% {
-        transform: translateY(-3px);
+        transform: translateY(-4px);
     }
 }
 
 .brand-name {
     font-size: 17px;
-    font-weight: 800;
+    font-weight: 850;
+
+    background:
+        linear-gradient(
+            90deg,
+            #1261ff,
+            #d9a400,
+            #e53935,
+            #1261ff
+        );
+
+    background-size: 300% auto;
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    color: transparent;
+
+    animation:
+        textColors 6s linear infinite;
+}
+
+@keyframes textColors {
+
+    0% {
+        background-position: 0% center;
+    }
+
+    100% {
+        background-position: 300% center;
+    }
 }
 
 .brand-version {
@@ -158,14 +202,13 @@ body {
 
 .new-chat {
     width: 100%;
-
     height: 48px;
 
     border: 1px solid #dfe5f0;
 
     border-radius: 13px;
 
-    background: #ffffff;
+    background: #fff;
 
     color: var(--text);
 
@@ -182,10 +225,10 @@ body {
     cursor: pointer;
 
     transition:
-        transform 0.2s ease,
-        background 0.2s ease,
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
+        transform .2s ease,
+        background .2s ease,
+        border-color .2s ease,
+        box-shadow .2s ease;
 }
 
 .new-chat span {
@@ -195,18 +238,17 @@ body {
 
 .new-chat:hover {
     background: var(--blue-light);
-
     border-color: #cbd9ff;
 
     transform: translateY(-2px);
 
     box-shadow:
-        0 7px 20px rgba(18, 97, 255, 0.10);
+        0 7px 20px rgba(18,97,255,.10);
 }
 
 
 /* =====================================================
-   SEÇÃO
+   SIDEBAR SECTION
    ===================================================== */
 
 .sidebar-section {
@@ -223,16 +265,9 @@ body {
     letter-spacing: 1.2px;
 }
 
-
-/* =====================================================
-   HISTÓRICO
-   ===================================================== */
-
 .history {
     flex: 1;
-
     overflow-y: auto;
-
     padding-right: 3px;
 }
 
@@ -269,9 +304,9 @@ body {
     text-overflow: ellipsis;
 
     transition:
-        background 0.2s ease,
-        color 0.2s ease,
-        transform 0.2s ease;
+        background .2s ease,
+        color .2s ease,
+        transform .2s ease;
 }
 
 .history-item:hover {
@@ -280,14 +315,8 @@ body {
     transform: translateX(2px);
 }
 
-
-/* =====================================================
-   PARTE INFERIOR SIDEBAR
-   ===================================================== */
-
 .sidebar-bottom {
     border-top: 1px solid var(--border);
-
     padding-top: 14px;
 }
 
@@ -316,8 +345,8 @@ body {
     text-align: left;
 
     transition:
-        background 0.2s ease,
-        color 0.2s ease;
+        background .2s ease,
+        color .2s ease;
 }
 
 .sidebar-button:hover {
@@ -327,13 +356,11 @@ body {
 
 .creator-mini {
     margin-top: 16px;
-
     padding: 12px 10px;
 
     color: #98a2b3;
 
     font-size: 10px;
-
     line-height: 1.5;
 }
 
@@ -356,7 +383,7 @@ body {
     display: flex;
     flex-direction: column;
 
-    background: #ffffff;
+    background: #fff;
 
     position: relative;
 }
@@ -376,7 +403,7 @@ body {
 
     padding: 0 25px;
 
-    background: rgba(255,255,255,0.96);
+    background: rgba(255,255,255,.96);
 
     backdrop-filter: blur(14px);
 
@@ -387,7 +414,6 @@ body {
 .topbar-title {
     display: flex;
     align-items: center;
-
     gap: 10px;
 }
 
@@ -398,6 +424,25 @@ body {
 
 .topbar-title strong {
     font-size: 14px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #1261ff,
+            #d9a400,
+            #e53935,
+            #1261ff
+        );
+
+    background-size: 300% auto;
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    color: transparent;
+
+    animation:
+        textColors 6s linear infinite;
 }
 
 .topbar-title span {
@@ -414,22 +459,24 @@ body {
     background:
         linear-gradient(
             135deg,
-            var(--blue),
-            #5c8fff
+            #1261ff,
+            #397cff,
+            #d9a400,
+            #e53935
         );
 
-    color: #ffffff;
+    background-size: 300% 300%;
+
+    color: #fff;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
     font-weight: 800;
-}
 
-.menu-button,
-.new-mobile {
-    display: none;
+    animation:
+        logoColors 5s ease infinite;
 }
 
 
@@ -449,10 +496,10 @@ body {
     background:
         radial-gradient(
             circle at 50% 15%,
-            rgba(18, 97, 255, 0.035),
+            rgba(18,97,255,.035),
             transparent 35%
         ),
-        #ffffff;
+        #fff;
 }
 
 .chat-area::-webkit-scrollbar {
@@ -470,17 +517,18 @@ body {
    ===================================================== */
 
 .welcome {
-    width: min(850px, 100%);
+    width: min(850px,100%);
 
     margin: 7vh auto 0;
 
     text-align: center;
 
     animation:
-        welcomeAppear 0.8s ease forwards;
+        welcomeAppear .8s ease forwards;
 }
 
 @keyframes welcomeAppear {
+
     from {
         opacity: 0;
         transform: translateY(25px);
@@ -504,7 +552,7 @@ body {
     align-items: center;
     justify-content: center;
 
-    color: white;
+    color: #fff;
 
     font-size: 38px;
     font-weight: 900;
@@ -512,31 +560,60 @@ body {
     background:
         linear-gradient(
             135deg,
-            var(--blue) 0%,
-            #477fff 55%,
-            var(--gold) 100%
+            #1261ff,
+            #397cff,
+            #d9a400,
+            #e53935,
+            #1261ff
         );
 
+    background-size: 350% 350%;
+
     box-shadow:
-        0 15px 35px rgba(18, 97, 255, 0.20);
+        0 15px 35px rgba(18,97,255,.20);
 
     animation:
-        welcomeLogo 4s ease-in-out infinite;
+        welcomeColors 7s ease infinite,
+        welcomeLogoFloat 4s ease-in-out infinite;
 }
 
-@keyframes welcomeLogo {
-    0%,
-    100% {
-        transform: translateY(0) rotate(0);
+@keyframes welcomeColors {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    25% {
+        background-position: 100% 0%;
     }
 
     50% {
-        transform: translateY(-7px) rotate(1deg);
+        background-position: 100% 100%;
+    }
+
+    75% {
+        background-position: 0% 100%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes welcomeLogoFloat {
+
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(-7px) scale(1.025);
     }
 }
 
 .welcome h1 {
-    font-size: clamp(30px, 4vw, 46px);
+    font-size: clamp(30px,4vw,46px);
 
     line-height: 1.15;
 
@@ -548,9 +625,24 @@ body {
 }
 
 .welcome h1 span {
-    color: var(--blue);
+    background:
+        linear-gradient(
+            90deg,
+            #1261ff,
+            #d9a400,
+            #e53935,
+            #1261ff
+        );
 
-    position: relative;
+    background-size: 300% auto;
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    color: transparent;
+
+    animation:
+        textColors 6s linear infinite;
 }
 
 .welcome p {
@@ -573,12 +665,12 @@ body {
 .suggestions {
     margin: 35px auto 0;
 
-    width: min(760px, 100%);
+    width: min(760px,100%);
 
     display: grid;
 
     grid-template-columns:
-        repeat(2, 1fr);
+        repeat(2,1fr);
 
     gap: 14px;
 }
@@ -596,7 +688,7 @@ body {
 
     border: 1px solid #e5e9f0;
 
-    background: #ffffff;
+    background: #fff;
 
     display: flex;
     align-items: center;
@@ -608,47 +700,28 @@ body {
     cursor: pointer;
 
     box-shadow:
-        0 5px 18px rgba(20, 35, 70, 0.045);
+        0 5px 18px rgba(20,35,70,.045);
 
     transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease,
-        border-color 0.25s ease;
+        transform .25s ease,
+        box-shadow .25s ease,
+        border-color .25s ease;
 }
 
 .suggestions button:nth-child(1) {
-    border-top: 2px solid var(--blue);
+    border-top: 2px solid #1261ff;
 }
 
 .suggestions button:nth-child(2) {
-    border-top: 2px solid var(--gold);
+    border-top: 2px solid #d9a400;
 }
 
 .suggestions button:nth-child(3) {
-    border-top: 2px solid var(--red);
+    border-top: 2px solid #e53935;
 }
 
 .suggestions button:nth-child(4) {
     border-top: 2px solid #397cff;
-}
-
-.suggestions button::before {
-    content: "";
-
-    position: absolute;
-
-    width: 100px;
-    height: 100px;
-
-    border-radius: 50%;
-
-    background: rgba(18, 97, 255, 0.05);
-
-    top: -55px;
-    right: -35px;
-
-    transition:
-        transform 0.4s ease;
 }
 
 .suggestions button:hover {
@@ -657,11 +730,7 @@ body {
     border-color: #d6ddea;
 
     box-shadow:
-        0 14px 30px rgba(20, 35, 70, 0.10);
-}
-
-.suggestions button:hover::before {
-    transform: scale(2);
+        0 14px 30px rgba(20,35,70,.10);
 }
 
 .suggestions button > span:first-child {
@@ -692,7 +761,7 @@ body {
    ===================================================== */
 
 .message {
-    width: min(850px, 100%);
+    width: min(850px,100%);
 
     margin: 0 auto 24px;
 
@@ -701,10 +770,11 @@ body {
     gap: 12px;
 
     animation:
-        messageAppear 0.35s ease;
+        messageAppear .35s ease;
 }
 
 @keyframes messageAppear {
+
     from {
         opacity: 0;
         transform: translateY(10px);
@@ -735,14 +805,21 @@ body {
 }
 
 .message.bot .message-avatar {
-    color: white;
+    color: #fff;
 
     background:
         linear-gradient(
             135deg,
-            var(--blue),
-            #5589ff
+            #1261ff,
+            #397cff,
+            #d9a400,
+            #e53935
         );
+
+    background-size: 300% 300%;
+
+    animation:
+        logoColors 5s ease infinite;
 }
 
 .message.user .message-avatar {
@@ -774,32 +851,6 @@ body {
 
 
 /* =====================================================
-   IMAGENS
-   ===================================================== */
-
-.message-image {
-    display: block;
-
-    max-width: min(420px, 100%);
-
-    max-height: 420px;
-
-    border-radius: 14px;
-
-    object-fit: contain;
-
-    border: 1px solid #e5e7eb;
-
-    box-shadow:
-        0 8px 25px rgba(0,0,0,0.07);
-}
-
-.image-message-text {
-    margin-top: 8px;
-}
-
-
-/* =====================================================
    INPUT
    ===================================================== */
 
@@ -807,12 +858,11 @@ body {
     position: absolute;
 
     left: 50%;
-
     bottom: 18px;
 
     transform: translateX(-50%);
 
-    width: min(850px, calc(100% - 40px));
+    width: min(850px,calc(100% - 40px));
 
     z-index: 30;
 }
@@ -831,21 +881,21 @@ body {
 
     border-radius: 19px;
 
-    background: #ffffff;
+    background: #fff;
 
     box-shadow:
-        0 10px 35px rgba(20, 35, 70, 0.12);
+        0 10px 35px rgba(20,35,70,.12);
 
     transition:
-        border-color 0.25s ease,
-        box-shadow 0.25s ease;
+        border-color .25s ease,
+        box-shadow .25s ease;
 }
 
 .input-box:focus-within {
     border-color: #b9cbff;
 
     box-shadow:
-        0 10px 35px rgba(18, 97, 255, 0.12);
+        0 10px 35px rgba(18,97,255,.12);
 }
 
 textarea {
@@ -880,11 +930,12 @@ textarea::placeholder {
 
 
 /* =====================================================
-   BOTÕES INPUT
+   BOTÕES
    ===================================================== */
 
 .attach-button,
-.send-button {
+.send-button,
+.mic-button {
     width: 42px;
     height: 42px;
 
@@ -900,12 +951,10 @@ textarea::placeholder {
     align-items: center;
     justify-content: center;
 
-    font-size: 21px;
-
     transition:
-        transform 0.2s ease,
-        background 0.2s ease,
-        box-shadow 0.2s ease;
+        transform .2s ease,
+        background .2s ease,
+        box-shadow .2s ease;
 }
 
 .attach-button {
@@ -915,34 +964,179 @@ textarea::placeholder {
 
 .attach-button:hover {
     background: #e9eef6;
-
     transform: rotate(8deg);
 }
+
+
+/* =====================================================
+   MICROFONE PRO
+   ===================================================== */
+
+.mic-button {
+    position: relative;
+
+    background: #f2f5f9;
+
+    color: #1261ff;
+
+    overflow: visible;
+}
+
+.mic-button svg {
+    width: 21px;
+    height: 21px;
+
+    position: relative;
+    z-index: 5;
+
+    transition:
+        transform .25s ease,
+        color .25s ease;
+}
+
+.mic-button:hover {
+    transform: translateY(-2px);
+
+    background: #eaf1ff;
+
+    box-shadow:
+        0 6px 18px rgba(18,97,255,.18);
+}
+
+.mic-button.listening {
+    color: #fff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #e53935,
+            #ff5a55
+        );
+
+    box-shadow:
+        0 0 0 0 rgba(229,57,53,.45);
+
+    animation:
+        micPulse 1.5s infinite;
+}
+
+.mic-button.listening::before,
+.mic-button.listening::after {
+    content: "";
+
+    position: absolute;
+
+    inset: -5px;
+
+    border-radius: 15px;
+
+    border: 2px solid rgba(229,57,53,.35);
+
+    animation:
+        micWave 1.7s infinite;
+}
+
+.mic-button.listening::after {
+    animation-delay: .55s;
+}
+
+@keyframes micPulse {
+
+    0% {
+        box-shadow:
+            0 0 0 0 rgba(229,57,53,.35);
+    }
+
+    70% {
+        box-shadow:
+            0 0 0 12px rgba(229,57,53,0);
+    }
+
+    100% {
+        box-shadow:
+            0 0 0 0 rgba(229,57,53,0);
+    }
+}
+
+@keyframes micWave {
+
+    0% {
+        opacity: .8;
+        transform: scale(.9);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(1.7);
+    }
+}
+
+
+/* =====================================================
+   MICROFONE PROCESSANDO
+   ===================================================== */
+
+.mic-button.processing {
+    color: #fff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #1261ff,
+            #d9a400,
+            #e53935
+        );
+
+    background-size: 250% 250%;
+
+    animation:
+        logoColors 2s ease infinite,
+        processingPulse 1s infinite;
+}
+
+@keyframes processingPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.06);
+    }
+}
+
+
+/* =====================================================
+   SEND
+   ===================================================== */
 
 .send-button {
     background:
         linear-gradient(
             135deg,
-            var(--blue),
+            #1261ff,
             #4d82ff
         );
 
-    color: white;
+    color: #fff;
 
     box-shadow:
-        0 5px 15px rgba(18, 97, 255, 0.25);
+        0 5px 15px rgba(18,97,255,.25);
 }
 
 .send-button:hover {
     transform: translateY(-2px) scale(1.03);
 
     box-shadow:
-        0 8px 20px rgba(18, 97, 255, 0.32);
+        0 8px 20px rgba(18,97,255,.32);
 }
 
 .send-button:disabled {
-    opacity: 0.5;
+    opacity: .5;
+
     cursor: not-allowed;
+
     transform: none;
 }
 
@@ -966,16 +1160,17 @@ textarea::placeholder {
 
     border-radius: 13px;
 
-    background: white;
+    background: #fff;
 
     box-shadow:
-        0 6px 20px rgba(20, 35, 70, 0.08);
+        0 6px 20px rgba(20,35,70,.08);
 
     animation:
-        previewAppear 0.25s ease;
+        previewAppear .25s ease;
 }
 
 @keyframes previewAppear {
+
     from {
         opacity: 0;
         transform: translateY(8px);
@@ -1028,7 +1223,7 @@ textarea::placeholder {
 
     background: #fff1f1;
 
-    color: var(--red);
+    color: #e53935;
 
     font-size: 20px;
 
@@ -1037,7 +1232,53 @@ textarea::placeholder {
 
 
 /* =====================================================
-   INFO INPUT
+   LOADING
+   ===================================================== */
+
+.typing {
+    display: flex;
+    gap: 5px;
+    padding-top: 10px;
+}
+
+.typing span {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #1261ff;
+
+    animation:
+        typing 1.2s infinite ease-in-out;
+}
+
+.typing span:nth-child(2) {
+    animation-delay: .15s;
+}
+
+.typing span:nth-child(3) {
+    animation-delay: .30s;
+}
+
+@keyframes typing {
+
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+        opacity: .35;
+    }
+
+    30% {
+        transform: translateY(-5px);
+        opacity: 1;
+    }
+}
+
+
+/* =====================================================
+   INPUT INFO
    ===================================================== */
 
 .input-info {
@@ -1048,53 +1289,6 @@ textarea::placeholder {
     font-size: 10px;
 
     margin-top: 7px;
-}
-
-
-/* =====================================================
-   LOADING
-   ===================================================== */
-
-.typing {
-    display: flex;
-
-    gap: 5px;
-
-    padding-top: 10px;
-}
-
-.typing span {
-    width: 7px;
-    height: 7px;
-
-    border-radius: 50%;
-
-    background: var(--blue);
-
-    animation:
-        typing 1.2s infinite ease-in-out;
-}
-
-.typing span:nth-child(2) {
-    animation-delay: 0.15s;
-}
-
-.typing span:nth-child(3) {
-    animation-delay: 0.30s;
-}
-
-@keyframes typing {
-    0%,
-    60%,
-    100% {
-        transform: translateY(0);
-        opacity: 0.35;
-    }
-
-    30% {
-        transform: translateY(-5px);
-        opacity: 1;
-    }
 }
 
 
@@ -1126,7 +1320,7 @@ textarea::placeholder {
 
     padding: 2px 5px;
 
-    font-size: 0.9em;
+    font-size: .9em;
 }
 
 .message-content pre {
@@ -1134,7 +1328,7 @@ textarea::placeholder {
 
     background: #111827;
 
-    color: white;
+    color: #fff;
 
     padding: 15px;
 
@@ -1156,10 +1350,6 @@ textarea::placeholder {
 
 @media (max-width: 800px) {
 
-    body {
-        overflow: hidden;
-    }
-
     .sidebar {
         position: fixed;
 
@@ -1171,7 +1361,7 @@ textarea::placeholder {
         transform: translateX(-105%);
 
         box-shadow:
-            15px 0 40px rgba(0,0,0,0.12);
+            15px 0 40px rgba(0,0,0,.12);
     }
 
     .sidebar.open {
@@ -1184,9 +1374,7 @@ textarea::placeholder {
 
     .topbar {
         height: 60px;
-
-        padding:
-            0 13px;
+        padding: 0 13px;
 
         justify-content: space-between;
     }
@@ -1216,25 +1404,22 @@ textarea::placeholder {
 
     .menu-button:active,
     .new-mobile:active {
-        transform: scale(0.92);
+        transform: scale(.92);
     }
 
     .topbar-title {
         flex: 1;
-
         justify-content: center;
     }
 
     .mini-logo {
         width: 31px;
         height: 31px;
-
         border-radius: 9px;
     }
 
     .chat-area {
-        padding:
-            24px 13px 150px;
+        padding: 24px 13px 150px;
     }
 
     .welcome {
@@ -1252,13 +1437,11 @@ textarea::placeholder {
 
     .welcome h1 {
         font-size: 30px;
-
-        letter-spacing: -0.8px;
+        letter-spacing: -.8px;
     }
 
     .welcome p {
         font-size: 14px;
-
         padding: 0 8px;
     }
 
@@ -1280,14 +1463,12 @@ textarea::placeholder {
 
     .message {
         gap: 9px;
-
         margin-bottom: 18px;
     }
 
     .message-avatar {
         width: 31px;
         height: 31px;
-
         border-radius: 10px;
     }
 
@@ -1301,7 +1482,6 @@ textarea::placeholder {
 
     .input-wrapper {
         width: calc(100% - 18px);
-
         bottom: 9px;
     }
 
@@ -1315,12 +1495,12 @@ textarea::placeholder {
 
     textarea {
         font-size: 14px;
-
         padding: 9px 4px;
     }
 
     .attach-button,
-    .send-button {
+    .send-button,
+    .mic-button {
         width: 40px;
         height: 40px;
 
@@ -1329,13 +1509,7 @@ textarea::placeholder {
 
     .input-info {
         font-size: 9px;
-
         margin-top: 5px;
-    }
-
-    .message-image {
-        max-width: 100%;
-        max-height: 300px;
     }
 }
 
@@ -1366,13 +1540,8 @@ textarea::placeholder {
         min-height: 70px;
     }
 
-    .suggestions button > span:first-child {
-        font-size: 24px;
-    }
-
     .input-wrapper {
         width: calc(100% - 12px);
-
         bottom: 6px;
     }
 
@@ -1388,24 +1557,17 @@ textarea::placeholder {
 
 button:focus-visible,
 textarea:focus-visible {
-    outline: 3px solid rgba(18, 97, 255, 0.20);
-
+    outline: 3px solid rgba(18,97,255,.20);
     outline-offset: 2px;
 }
-
-
-/* =====================================================
-   REDUÇÃO DE MOVIMENTO
-   ===================================================== */
 
 @media (prefers-reduced-motion: reduce) {
 
     *,
     *::before,
     *::after {
-        animation-duration: 0.01ms !important;
+        animation-duration: .01ms !important;
         animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+        transition-duration: .01ms !important;
     }
-
 }
