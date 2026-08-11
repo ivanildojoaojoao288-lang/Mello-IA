@@ -1,245 +1,211 @@
 // =====================================================
-// MELLO IA — SCRIPT PRINCIPAL
-// CHAT + IMAGEM + VOZ
+// MELLO IA — SCRIPT ULTRA PRO
+// Chat + Imagem + Microfone + Voz + Histórico
 // =====================================================
-
 
 // =====================================================
 // ELEMENTOS
 // =====================================================
 
-const input =
-    document.getElementById("user-input");
-
-const chatBox =
-    document.getElementById("chat-box");
-
-const sendButton =
-    document.getElementById("send-button");
-
-const imageInput =
-    document.getElementById("image-input");
-
-const imagePreview =
-    document.getElementById("image-preview");
-
-const previewImage =
-    document.getElementById("preview-image");
-
-const imageName =
-    document.getElementById("image-name");
-
-const voiceButton =
-    document.getElementById("voice-button");
-
-const voiceStatus =
-    document.getElementById("voice-status");
-
+const input = document.getElementById("user-input");
+const chatBox = document.getElementById("chat-box");
+const sendButton = document.getElementById("send-button");
+const imageInput = document.getElementById("image-input");
+const imagePreview = document.getElementById("image-preview");
+const previewImage = document.getElementById("preview-image");
+const imageName = document.getElementById("image-name");
 
 // =====================================================
 // ESTADO
 // =====================================================
 
 let imagemSelecionada = null;
-
-let reconhecimento = null;
-
-let ouvindo = false;
-
-let falando = false;
+let gravando = false;
+let recognition = null;
+let textoAntesDaGravacao = "";
 
 
 // =====================================================
-// RECONHECIMENTO DE VOZ
+// CRIAR MICROFONE
 // =====================================================
 
-const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
+function criarMicrofone() {
 
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
 
-if (SpeechRecognition) {
+    if (!SpeechRecognition) {
+        return null;
+    }
 
-    reconhecimento =
-        new SpeechRecognition();
+    const rec = new SpeechRecognition();
 
+    rec.lang = "pt-MZ";
+    rec.continuous = true;
+    rec.interimResults = true;
 
-    reconhecimento.lang =
-        "pt-MZ";
+    rec.onstart = function () {
 
+        gravando = true;
 
-    reconhecimento.continuous =
-        false;
+        atualizarMicrofone(true);
 
+    };
 
-    reconhecimento.interimResults =
-        true;
+    rec.onresult = function (event) {
 
+        let textoFinal = "";
+        let textoIntermedio = "";
 
-    reconhecimento.maxAlternatives =
-        1;
+        for (
+            let i = event.resultIndex;
+            i < event.results.length;
+            i++
+        ) {
 
+            const resultado =
+                event.results[i];
 
-    reconhecimento.onstart =
-        function () {
+            if (resultado.isFinal) {
 
-            ouvindo =
-                true;
-
-
-            if (voiceButton) {
-
-                voiceButton.classList.add(
-                    "recording"
-                );
-
-                voiceButton.textContent =
-                    "🔴";
-
-            }
-
-
-            mostrarStatusVoz(
-                "A ouvir... fala com a Mello IA 🎙️"
-            );
-
-        };
-
-
-    reconhecimento.onresult =
-        function (event) {
-
-            let textoFinal =
-                "";
-
-            let textoParcial =
-                "";
-
-
-            for (
-                let i = event.resultIndex;
-                i < event.results.length;
-                i++
-            ) {
-
-                const resultado =
-                    event.results[i];
-
-
-                const texto =
+                textoFinal +=
                     resultado[0].transcript;
-
-
-                if (
-                    resultado.isFinal
-                ) {
-
-                    textoFinal +=
-                        texto;
-
-                } else {
-
-                    textoParcial +=
-                        texto;
-
-                }
-
-            }
-
-
-            if (textoFinal) {
-
-                input.value =
-                    textoFinal.trim();
-
-            } else if (textoParcial) {
-
-                input.value =
-                    textoParcial.trim();
-
-            }
-
-
-            ajustarTextarea();
-
-        };
-
-
-    reconhecimento.onerror =
-        function (event) {
-
-            console.error(
-                "Erro de reconhecimento:",
-                event.error
-            );
-
-
-            if (
-                event.error ===
-                "not-allowed"
-            ) {
-
-                mostrarStatusVoz(
-                    "Permissão do microfone foi recusada."
-                );
-
-            } else if (
-                event.error ===
-                "no-speech"
-            ) {
-
-                mostrarStatusVoz(
-                    "Não ouvi nenhuma fala."
-                );
 
             } else {
 
-                mostrarStatusVoz(
-                    "Não foi possível usar o microfone."
-                );
+                textoIntermedio +=
+                    resultado[0].transcript;
 
             }
 
-        };
+        }
 
+        input.value =
+            textoAntesDaGravacao +
+            textoFinal +
+            textoIntermedio;
 
-    reconhecimento.onend =
-        function () {
+        ajustarTextarea();
 
-            ouvindo =
-                false;
+    };
 
+    rec.onerror = function (event) {
 
-            if (voiceButton) {
+        console.error(
+            "Erro no microfone:",
+            event.error
+        );
 
-                voiceButton.classList.remove(
-                    "recording"
-                );
+        if (
+            event.error === "not-allowed"
+        ) {
 
-                voiceButton.textContent =
-                    "🎙️";
-
-            }
-
-
-            setTimeout(
-                function () {
-
-                    limparStatusVoz();
-
-                },
-                2000
+            alert(
+                "Permite o acesso ao microfone para falar com a Mello IA."
             );
 
-        };
+        }
 
-} else {
+        pararMicrofone();
 
-    console.warn(
-        "Reconhecimento de voz não suportado."
+    };
+
+    rec.onend = function () {
+
+        if (gravando) {
+
+            try {
+
+                rec.start();
+
+            } catch (erro) {
+
+                pararMicrofone();
+
+            }
+
+        }
+
+    };
+
+    return rec;
+}
+
+
+recognition =
+    criarMicrofone();
+
+
+// =====================================================
+// CRIAR BOTÃO DE MICROFONE
+// =====================================================
+
+function criarBotaoMicrofone() {
+
+    if (!input) {
+        return;
+    }
+
+    const inputBox =
+        input.closest(".input-box");
+
+    if (!inputBox) {
+        return;
+    }
+
+    let botao =
+        document.getElementById(
+            "microphone-button"
+        );
+
+    if (botao) {
+        return;
+    }
+
+    botao =
+        document.createElement("button");
+
+    botao.type = "button";
+
+    botao.id =
+        "microphone-button";
+
+    botao.className =
+        "microphone-button";
+
+    botao.title =
+        "Falar com a Mello IA";
+
+    botao.setAttribute(
+        "aria-label",
+        "Falar com a Mello IA"
     );
 
+    botao.innerHTML = `
+        <span class="mic-icon">🎙️</span>
+
+        <span class="mic-waves">
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+        </span>
+    `;
+
+    inputBox.insertBefore(
+        botao,
+        sendButton
+    );
+
+    botao.addEventListener(
+        "click",
+        alternarMicrofone
+    );
 }
+
+criarBotaoMicrofone();
 
 
 // =====================================================
@@ -248,335 +214,139 @@ if (SpeechRecognition) {
 
 function alternarMicrofone() {
 
-    if (!reconhecimento) {
+    if (!recognition) {
 
         alert(
-            "O teu navegador não suporta reconhecimento de voz. Tenta usar Google Chrome."
+            "O teu navegador não suporta reconhecimento de voz. Usa Google Chrome ou Microsoft Edge."
         );
 
         return;
-
     }
 
+    if (gravando) {
 
-    if (ouvindo) {
+        pararMicrofone();
 
-        reconhecimento.stop();
+    } else {
 
+        iniciarMicrofone();
+
+    }
+}
+
+
+// =====================================================
+// INICIAR MICROFONE
+// =====================================================
+
+function iniciarMicrofone() {
+
+    if (!recognition) {
         return;
+    }
+
+    textoAntesDaGravacao =
+        input.value.trim();
+
+    if (
+        textoAntesDaGravacao
+    ) {
+
+        textoAntesDaGravacao +=
+            " ";
 
     }
 
+    gravando = true;
+
+    atualizarMicrofone(true);
 
     try {
 
-        reconhecimento.start();
+        recognition.start();
 
     } catch (erro) {
 
-        console.error(
-            erro
+        console.log(
+            "Microfone já iniciado."
         );
 
     }
-
 }
 
 
 // =====================================================
-// STATUS DA VOZ
+// PARAR MICROFONE
 // =====================================================
 
-function mostrarStatusVoz(
-    mensagem
-) {
+function pararMicrofone() {
 
-    if (!voiceStatus) {
+    gravando = false;
+
+    atualizarMicrofone(false);
+
+    if (!recognition) {
         return;
     }
 
+    try {
 
-    voiceStatus.textContent =
-        mensagem;
+        recognition.stop();
 
+    } catch (erro) {
 
-    voiceStatus.classList.add(
-        "active"
-    );
+        console.log(
+            "Microfone já parado."
+        );
 
-}
-
-
-function limparStatusVoz() {
-
-    if (!voiceStatus) {
-        return;
     }
-
-
-    voiceStatus.textContent =
-        "";
-
-
-    voiceStatus.classList.remove(
-        "active"
-    );
-
 }
 
 
 // =====================================================
-// FALAR RESPOSTA DA MELLO
+// ATUALIZAR INTERFACE DO MICROFONE
 // =====================================================
 
-function falarTexto(
-    texto,
-    botao
-) {
+function atualizarMicrofone(ativo) {
 
-    if (
-        !("speechSynthesis" in window)
-    ) {
-
-        alert(
-            "O teu navegador não suporta leitura de voz."
+    const botao =
+        document.getElementById(
+            "microphone-button"
         );
 
-        return;
-
-    }
-
-
-    if (falando) {
-
-        speechSynthesis.cancel();
-
-        falando =
-            false;
-
-
-        if (botao) {
-
-            botao.textContent =
-                "🔊 Ouvir";
-
-        }
-
-        return;
-
-    }
-
-
-    const textoLimpo =
-        limparTextoParaVoz(
-            texto
-        );
-
-
-    if (!textoLimpo) {
+    if (!botao) {
         return;
     }
 
+    if (ativo) {
 
-    speechSynthesis.cancel();
-
-
-    const utterance =
-        new SpeechSynthesisUtterance(
-            textoLimpo
+        botao.classList.add(
+            "recording"
         );
 
+        botao.title =
+            "Parar gravação";
 
-    utterance.lang =
-        "pt-MZ";
-
-
-    utterance.rate =
-        0.95;
-
-
-    utterance.pitch =
-        1;
-
-
-    utterance.volume =
-        1;
-
-
-    const vozes =
-        speechSynthesis.getVoices();
-
-
-    const vozPortugues =
-        vozes.find(
-            function (voz) {
-
-                return (
-                    voz.lang &&
-                    voz.lang
-                        .toLowerCase()
-                        .startsWith("pt")
-                );
-
-            }
+        botao.setAttribute(
+            "aria-label",
+            "Parar gravação"
         );
 
+    } else {
 
-    if (vozPortugues) {
+        botao.classList.remove(
+            "recording"
+        );
 
-        utterance.voice =
-            vozPortugues;
+        botao.title =
+            "Falar com a Mello IA";
+
+        botao.setAttribute(
+            "aria-label",
+            "Falar com a Mello IA"
+        );
 
     }
-
-
-    utterance.onstart =
-        function () {
-
-            falando =
-                true;
-
-
-            if (botao) {
-
-                botao.textContent =
-                    "⏹️ Parar";
-
-            }
-
-        };
-
-
-    utterance.onend =
-        function () {
-
-            falando =
-                false;
-
-
-            if (botao) {
-
-                botao.textContent =
-                    "🔊 Ouvir";
-
-            }
-
-        };
-
-
-    utterance.onerror =
-        function () {
-
-            falando =
-                false;
-
-
-            if (botao) {
-
-                botao.textContent =
-                    "🔊 Ouvir";
-
-            }
-
-        };
-
-
-    speechSynthesis.speak(
-        utterance
-    );
-
-}
-
-
-// =====================================================
-// LIMPAR MARKDOWN PARA VOZ
-// =====================================================
-
-function limparTextoParaVoz(
-    texto
-) {
-
-    if (!texto) {
-        return "";
-    }
-
-
-    let resultado =
-        texto;
-
-
-    resultado =
-        resultado.replace(
-            /https?:\/\/\S+/gi,
-            ""
-        );
-
-
-    resultado =
-        resultado.replace(
-            /\[([^\]]+)\]\([^)]+\)/g,
-            "$1"
-        );
-
-
-    resultado =
-        resultado.replace(
-            /^#{1,6}\s*/gm,
-            ""
-        );
-
-
-    resultado =
-        resultado.replace(
-            /\*\*(.*?)\*\*/g,
-            "$1"
-        );
-
-
-    resultado =
-        resultado.replace(
-            /\*(.*?)\*/g,
-            "$1"
-        );
-
-
-    resultado =
-        resultado.replace(
-            /```[\s\S]*?```/g,
-            " bloco de código "
-        );
-
-
-    resultado =
-        resultado.replace(
-            /`([^`]+)`/g,
-            "$1"
-        );
-
-
-    resultado =
-        resultado.replace(
-            /[\u{1F300}-\u{1FAFF}]/gu,
-            ""
-        );
-
-
-    resultado =
-        resultado.replace(
-            /\n{2,}/g,
-            ". "
-        );
-
-
-    resultado =
-        resultado.replace(
-            /\s{2,}/g,
-            " "
-        );
-
-
-    return resultado.trim();
-
 }
 
 
@@ -593,25 +363,24 @@ if (imageInput) {
             const arquivo =
                 this.files[0];
 
-
             if (!arquivo) {
                 return;
             }
 
-
-            if (!arquivo.type.startsWith("image/")) {
+            if (
+                !arquivo.type.startsWith(
+                    "image/"
+                )
+            ) {
 
                 alert(
                     "Selecione uma imagem válida."
                 );
 
-                this.value =
-                    "";
+                this.value = "";
 
                 return;
-
             }
-
 
             if (
                 arquivo.size >
@@ -622,39 +391,42 @@ if (imageInput) {
                     "A imagem deve ter no máximo 10 MB."
                 );
 
-                this.value =
-                    "";
+                this.value = "";
 
                 return;
-
             }
-
 
             imagemSelecionada =
                 arquivo;
 
-
             const leitor =
                 new FileReader();
-
 
             leitor.onload =
                 function (event) {
 
                     if (previewImage) {
-                        previewImage.src = event.target.result;
+
+                        previewImage.src =
+                            event.target.result;
+
                     }
 
                     if (imageName) {
-                        imageName.textContent = arquivo.name;
+
+                        imageName.textContent =
+                            arquivo.name;
+
                     }
 
                     if (imagePreview) {
-                        imagePreview.style.display = "flex";
+
+                        imagePreview.style.display =
+                            "flex";
+
                     }
 
                 };
-
 
             leitor.readAsDataURL(
                 arquivo
@@ -675,14 +447,12 @@ function removerImagem() {
     imagemSelecionada =
         null;
 
-
     if (imageInput) {
 
         imageInput.value =
             "";
 
     }
-
 
     if (previewImage) {
 
@@ -691,7 +461,6 @@ function removerImagem() {
 
     }
 
-
     if (imageName) {
 
         imageName.textContent =
@@ -699,14 +468,12 @@ function removerImagem() {
 
     }
 
-
     if (imagePreview) {
 
         imagePreview.style.display =
             "none";
 
     }
-
 }
 
 
@@ -716,11 +483,15 @@ function removerImagem() {
 
 async function enviarMensagem() {
 
-    if (!input) return;
+    // parar microfone
+    if (gravando) {
+
+        pararMicrofone();
+
+    }
 
     const mensagem =
         input.value.trim();
-
 
     if (
         !mensagem &&
@@ -731,24 +502,10 @@ async function enviarMensagem() {
 
     }
 
-
-    if (
-        "speechSynthesis" in window
-    ) {
-
-        speechSynthesis.cancel();
-
-        falando =
-            false;
-
-    }
-
-
     const welcome =
         document.getElementById(
             "welcome"
         );
-
 
     if (welcome) {
 
@@ -757,14 +514,13 @@ async function enviarMensagem() {
 
     }
 
-
     const imagemEnviar =
         imagemSelecionada;
-
 
     const mensagemEnviar =
         mensagem;
 
+    // mostrar mensagem do utilizador
 
     if (imagemEnviar) {
 
@@ -783,31 +539,23 @@ async function enviarMensagem() {
 
     }
 
-
     input.value =
         "";
 
-
     removerImagem();
-
 
     ajustarTextarea();
 
-
-    if (sendButton) {
-        sendButton.disabled = true;
-    }
-
+    sendButton.disabled =
+        true;
 
     const loading =
         adicionarLoading();
-
 
     try {
 
         const formData =
             new FormData();
-
 
         if (mensagemEnviar) {
 
@@ -818,7 +566,6 @@ async function enviarMensagem() {
 
         }
 
-
         if (imagemEnviar) {
 
             formData.append(
@@ -828,22 +575,16 @@ async function enviarMensagem() {
 
         }
 
-
         const resposta =
             await fetch(
                 "/chat",
                 {
-                    method:
-                        "POST",
-
-                    body:
-                        formData
+                    method: "POST",
+                    body: formData
                 }
             );
 
-
         let data;
-
 
         try {
 
@@ -861,9 +602,7 @@ async function enviarMensagem() {
 
         }
 
-
         loading.remove();
-
 
         if (!resposta.ok) {
 
@@ -874,9 +613,7 @@ async function enviarMensagem() {
             );
 
             return;
-
         }
-
 
         adicionarMensagem(
             "bot",
@@ -884,6 +621,10 @@ async function enviarMensagem() {
             "Não consegui gerar uma resposta."
         );
 
+        adicionarHistorico(
+            mensagemEnviar ||
+            "📷 Imagem enviada"
+        );
 
     } catch (erro) {
 
@@ -892,31 +633,26 @@ async function enviarMensagem() {
             erro
         );
 
-
         loading.remove();
-
 
         adicionarMensagem(
             "bot",
             "Não consegui conectar ao servidor da Mello IA."
         );
 
-
     } finally {
 
-        if (sendButton) {
-            sendButton.disabled = false;
-        }
+        sendButton.disabled =
+            false;
 
         input.focus();
 
     }
-
 }
 
 
 // =====================================================
-// MENSAGEM NORMAL
+// ADICIONAR MENSAGEM
 // =====================================================
 
 function adicionarMensagem(
@@ -924,54 +660,45 @@ function adicionarMensagem(
     texto
 ) {
 
-    if (!chatBox) return;
-
     const message =
         document.createElement(
             "div"
         );
 
-
     message.className =
         `message ${tipo}`;
-
 
     const avatar =
         document.createElement(
             "div"
         );
 
-
     avatar.className =
         "message-avatar";
-
 
     avatar.textContent =
         tipo === "bot"
             ? "M"
             : "👤";
 
-
     const content =
         document.createElement(
             "div"
         );
 
-
     content.className =
         "message-content";
 
-
     if (
         tipo === "bot" &&
-        typeof marked !== "undefined"
+        typeof marked !==
+        "undefined"
     ) {
 
         const html =
             marked.parse(
                 texto
             );
-
 
         if (
             typeof DOMPurify !==
@@ -990,7 +717,6 @@ function adicionarMensagem(
 
         }
 
-
     } else {
 
         content.textContent =
@@ -998,69 +724,21 @@ function adicionarMensagem(
 
     }
 
-
-    if (tipo === "bot") {
-
-        const voiceReplyButton =
-            document.createElement(
-                "button"
-            );
-
-
-        voiceReplyButton.type =
-            "button";
-
-
-        voiceReplyButton.className =
-            "reply-voice-button";
-
-
-        voiceReplyButton.textContent =
-            "🔊 Ouvir";
-
-
-        voiceReplyButton.title =
-            "Ouvir resposta";
-
-
-        voiceReplyButton.onclick =
-            function () {
-
-                falarTexto(
-                    texto,
-                    voiceReplyButton
-                );
-
-            };
-
-
-        content.appendChild(
-            voiceReplyButton
-        );
-
-    }
-
-
     message.appendChild(
         avatar
     );
-
 
     message.appendChild(
         content
     );
 
-
     chatBox.appendChild(
         message
     );
 
-
     scrollChat();
 
-
     return message;
-
 }
 
 
@@ -1074,72 +752,57 @@ function adicionarMensagemImagem(
     arquivo
 ) {
 
-    if (!chatBox) return;
-
     const message =
         document.createElement(
             "div"
         );
 
-
     message.className =
         `message ${tipo}`;
-
 
     const avatar =
         document.createElement(
             "div"
         );
 
-
     avatar.className =
         "message-avatar";
-
 
     avatar.textContent =
         tipo === "bot"
             ? "M"
             : "👤";
 
-
     const content =
         document.createElement(
             "div"
         );
 
-
     content.className =
         "message-content";
-
 
     const img =
         document.createElement(
             "img"
         );
 
-
     img.className =
         "message-image";
 
-
     img.alt =
         "Imagem enviada";
-
 
     const url =
         URL.createObjectURL(
             arquivo
         );
 
-
     img.src =
         url;
-
 
     content.appendChild(
         img
     );
-
 
     if (texto) {
 
@@ -1148,14 +811,11 @@ function adicionarMensagemImagem(
                 "div"
             );
 
-
         textoElemento.className =
             "image-message-text";
 
-
         textoElemento.textContent =
             texto;
-
 
         content.appendChild(
             textoElemento
@@ -1163,27 +823,21 @@ function adicionarMensagemImagem(
 
     }
 
-
     message.appendChild(
         avatar
     );
-
 
     message.appendChild(
         content
     );
 
-
     chatBox.appendChild(
         message
     );
 
-
     scrollChat();
 
-
     return message;
-
 }
 
 
@@ -1193,51 +847,40 @@ function adicionarMensagemImagem(
 
 function adicionarLoading() {
 
-    if (!chatBox) return;
-
     const message =
         document.createElement(
             "div"
         );
 
-
     message.className =
         "message bot";
-
 
     const avatar =
         document.createElement(
             "div"
         );
 
-
     avatar.className =
         "message-avatar";
 
-
     avatar.textContent =
         "M";
-
 
     const content =
         document.createElement(
             "div"
         );
 
-
     content.className =
         "message-content";
-
 
     const loading =
         document.createElement(
             "div"
         );
 
-
     loading.className =
         "typing";
-
 
     loading.innerHTML = `
         <span></span>
@@ -1245,32 +888,25 @@ function adicionarLoading() {
         <span></span>
     `;
 
-
     content.appendChild(
         loading
     );
-
 
     message.appendChild(
         avatar
     );
 
-
     message.appendChild(
         content
     );
-
 
     chatBox.appendChild(
         message
     );
 
-
     scrollChat();
 
-
     return message;
-
 }
 
 
@@ -1280,7 +916,9 @@ function adicionarLoading() {
 
 function scrollChat() {
 
-    if (!chatBox) return;
+    if (!chatBox) {
+        return;
+    }
 
     chatBox.scrollTo({
 
@@ -1326,21 +964,17 @@ if (input) {
         ajustarTextarea
     );
 
-    input.addEventListener(
-        "keydown",
-        handleKey
-    );
-
 }
 
 
 function ajustarTextarea() {
 
-    if (!input) return;
+    if (!input) {
+        return;
+    }
 
     input.style.height =
         "auto";
-
 
     input.style.height =
         Math.min(
@@ -1359,11 +993,8 @@ function usarSugestao(
     texto
 ) {
 
-    if (!input) return;
-
     input.value =
         texto;
-
 
     ajustarTextarea();
 
@@ -1371,5 +1002,258 @@ function usarSugestao(
 
     enviarMensagem();
 
+}
+
+
+// =====================================================
+// NOVA CONVERSA
+// =====================================================
+
+function novaConversa() {
+
+    chatBox.innerHTML =
+        "";
+
+    const novaTela =
+        document.createElement(
+            "div"
+        );
+
+    novaTela.className =
+        "welcome";
+
+    novaTela.id =
+        "welcome";
+
+    novaTela.innerHTML = `
+
+        <div class="welcome-logo">
+            M
+        </div>
+
+        <h1>
+            Olá! Eu sou a
+            <span>Mello IA</span>
+        </h1>
+
+        <p>
+            Assistente inteligente de tecnologia,
+            programação, estudos e inovação.
+        </p>
+
+        <div class="suggestions">
+
+            <button onclick="usarSugestao('Explique-me inteligência artificial de forma simples')">
+                🤖
+                <span>
+                    <strong>
+                        Inteligência Artificial
+                    </strong>
+                    Aprender conceitos de IA
+                </span>
+            </button>
+
+            <button onclick="usarSugestao('Ajude-me a aprender programação')">
+                💻
+                <span>
+                    <strong>
+                        Programação
+                    </strong>
+                    Aprender a programar
+                </span>
+            </button>
+
+            <button onclick="usarSugestao('Ajude-me com os meus estudos')">
+                📚
+                <span>
+                    <strong>
+                        Estudos
+                    </strong>
+                    Explicar matérias
+                </span>
+            </button>
+
+            <button onclick="usarSugestao('Explique redes de computadores')">
+                🌐
+                <span>
+                    <strong>
+                        Tecnologia
+                    </strong>
+                    Redes e informática
+                </span>
+            </button>
+
+        </div>
+    `;
+
+    chatBox.appendChild(
+        novaTela
+    );
+
+    removerImagem();
+
+    input.value =
+        "";
+
+    ajustarTextarea();
+
+    input.focus();
+
+}
+
+
+// =====================================================
+// SIDEBAR
+// =====================================================
+
+function toggleSidebar() {
+
+    const sidebar =
+        document.getElementById(
+            "sidebar"
+        );
+
+    if (sidebar) {
+
+        sidebar.classList.toggle(
+            "open"
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// HISTÓRICO
+// =====================================================
+
+function adicionarHistorico(
+    mensagem
+) {
+
+    const history =
+        document.getElementById(
+            "history"
+        );
+
+    if (!history) {
+        return;
+    }
+
+    let titulo =
+        mensagem;
+
+    if (
+        titulo.length >
+        35
+    ) {
+
+        titulo =
+            titulo.substring(
+                0,
+                35
+            ) + "...";
+
+    }
+
+    const item =
+        document.createElement(
+            "button"
+        );
+
+    item.className =
+        "history-item";
+
+    item.textContent =
+        "💬 " + titulo;
+
+    item.onclick =
+        function () {
+
+            input.value =
+                mensagem;
+
+            ajustarTextarea();
+
+            input.focus();
+
+        };
+
+    history.prepend(
+        item
+    );
+
+    while (
+        history.children.length >
+        10
+    ) {
+
+        history.removeChild(
+            history.lastChild
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// FECHAR SIDEBAR
+// =====================================================
+
+document.addEventListener(
+    "click",
+    function (event) {
+
+        const sidebar =
+            document.getElementById(
+                "sidebar"
+            );
+
+        const menu =
+            document.querySelector(
+                ".menu-button"
+            );
+
+        if (
+
+            window.innerWidth <= 800 &&
+
+            sidebar &&
+
+            sidebar.classList.contains(
+                "open"
+            ) &&
+
+            !sidebar.contains(
+                event.target
+            ) &&
+
+            menu &&
+
+            !menu.contains(
+                event.target
+            )
+
+        ) {
+
+            sidebar.classList.remove(
+                "open"
+            );
+
         }
-        
+
+    }
+);
+
+
+// =====================================================
+// INICIAR
+// =====================================================
+
+if (input) {
+
+    input.focus();
+
+}
