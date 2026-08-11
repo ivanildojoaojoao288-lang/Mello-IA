@@ -1,36 +1,110 @@
-<div id="chat-box" style="border: 1px solid #ccc; height: 300px; overflow-y: scroll; margin-bottom: 10px;"></div>
-<input type="text" id="user-input" placeholder="Escreva algo...">
-<button onclick="enviarMensagem()">Enviar</button>
+<!DOCTYPE html>
 
-<script>
-async function enviarMensagem() {
-    const input = document.getElementById('user-input');
-    const msg = input.value;
-    if (!msg) return; // Não envia se estiver vazio
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    console.log("A enviar:", msg);
+```
+<title>Criar conta — Mello IA</title>
 
-    try {
-        const res = await fetch('/chat', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({message: msg})
-        });
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}">
+```
 
-        // Verifica se o servidor respondeu com erro (ex: 500)
-        if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+</head>
 
-        const data = await res.json();
-        
-        // Exibe na tela
-        document.getElementById('chat-box').innerHTML += `<p><b>Você:</b> ${msg}</p>`;
-        document.getElementById('chat-box').innerHTML += `<p><b>Mello IA:</b> ${data.reply}</p>`;
-        
-        // Limpa o campo de entrada
-        input.value = '';
-    } catch (e) {
-        console.error("Erro na comunicação:", e);
-        document.getElementById('chat-box').innerHTML += `<p style="color:red;">Erro: O servidor não respondeu. Verifique o terminal.</p>`;
-    }
-}
+<body>
+
+<div class="auth-container">
+
+```
+<div class="auth-card">
+
+    <div class="auth-logo">
+        M
+    </div>
+
+    <h1>Criar conta na <span>Mello IA</span></h1>
+
+    <p class="auth-subtitle">
+        Crie a sua conta gratuitamente.
+    </p>
+
+    <button
+        type="button"
+        id="google-register"
+        class="google-button"
+    >
+        <span>G</span>
+        Criar conta com Google
+    </button>
+
+    <div class="divider">
+        <span>ou</span>
+    </div>
+
+    <form id="register-form">
+
+        <label for="name">
+            Nome
+        </label>
+
+        <input
+            type="text"
+            id="name"
+            placeholder="Seu nome"
+            required
+        >
+
+        <label for="email">
+            E-mail
+        </label>
+
+        <input
+            type="email"
+            id="email"
+            placeholder="seu@email.com"
+            required
+        >
+
+        <label for="password">
+            Palavra-passe
+        </label>
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Mínimo de 6 caracteres"
+            minlength="6"
+            required
+        >
+
+        <button
+            type="submit"
+            id="register-button"
+            class="auth-button"
+        >
+            Criar conta
+        </button>
+
+    </form>
+
+    <p id="auth-message" class="auth-message"></p>
+
+    <p class="auth-link">
+        Já tens uma conta?
+        <a href="/login">Entrar</a>
+    </p>
+
+</div>
+```
+
+</div>
+
+<script type="module"
+        src="{{ url_for('static', filename='login.js') }}">
 </script>
+
+</body>
+</html>

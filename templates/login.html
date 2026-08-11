@@ -1,37 +1,98 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-from flask_login import LoginManager, login_user, login_required, UserMixin
+<!DOCTYPE html>
 
-app = Flask(__name__)
-app.secret_key = 'chave_secreta_super_segura' # Necessário para o login
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-# 1. Configuração do LoginManager
-login_manager = LoginManager()
-login_manager.init_app(app)
-# Define exatamente o nome da função abaixo como o login_view
-login_manager.login_view = 'fazer_login' 
+```
+<title>Entrar — Mello IA</title>
 
-# Mock de utilizador para teste (podes ligar à tua base de dados depois)
-class User(UserMixin):
-    id = 1
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}">
+```
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User()
+</head>
 
-# 2. Rota de Login (O ENDPOINT agora chama-se 'fazer_login')
-@app.route('/login', methods=['GET', 'POST'])
-def fazer_login():
-    if request.method == 'POST':
-        # Aqui entra a tua lógica de verificação de credenciais
-        user = User()
-        login_user(user)
-        return redirect(url_for('index'))
-    return render_template('login.html')
+<body>
 
-# 3. Rota Protegida
-@app.route('/')
-@login_required
-def index():
-    return render_template('chat.html')
+<div class="auth-container">
 
-# ... Resto da tua lógica de chat ...
+```
+<div class="auth-card">
+
+    <div class="auth-logo">
+        M
+    </div>
+
+    <h1>Bem-vindo à <span>Mello IA</span></h1>
+
+    <p class="auth-subtitle">
+        Entre na sua conta para continuar.
+    </p>
+
+    <button
+        type="button"
+        id="google-login"
+        class="google-button"
+    >
+        <span>G</span>
+        Continuar com Google
+    </button>
+
+    <div class="divider">
+        <span>ou</span>
+    </div>
+
+    <form id="login-form">
+
+        <label for="email">
+            E-mail
+        </label>
+
+        <input
+            type="email"
+            id="email"
+            placeholder="seu@email.com"
+            required
+        >
+
+        <label for="password">
+            Palavra-passe
+        </label>
+
+        <input
+            type="password"
+            id="password"
+            placeholder="••••••••"
+            required
+        >
+
+        <button
+            type="submit"
+            id="login-button"
+            class="auth-button"
+        >
+            Entrar
+        </button>
+
+    </form>
+
+    <p id="auth-message" class="auth-message"></p>
+
+    <p class="auth-link">
+        Ainda não tens conta?
+        <a href="/register">Criar conta</a>
+    </p>
+
+</div>
+```
+
+</div>
+
+<script type="module"
+        src="{{ url_for('static', filename='login.js') }}">
+</script>
+
+</body>
+</html>
