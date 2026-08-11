@@ -119,11 +119,9 @@ def usuario_atual():
 
     try:
 
-        usuario = auth.get_user(
+        return auth.get_user(
             uid
         )
-
-        return usuario
 
     except Exception as erro:
 
@@ -138,7 +136,7 @@ def usuario_atual():
 
 
 # ============================================================
-# PROTEGER PÁGINAS
+# PROTEÇÃO
 # ============================================================
 
 def pagina_protegida():
@@ -208,7 +206,7 @@ def register():
 
 
 # ============================================================
-# AUTENTICAÇÃO FIREBASE
+# LOGIN FIREBASE
 # ============================================================
 
 @app.route(
@@ -243,7 +241,6 @@ def firebase_login():
             }), 400
 
 
-        # Verificar token Firebase
         decoded_token = auth.verify_id_token(
             id_token
         )
@@ -272,7 +269,6 @@ def firebase_login():
             }), 401
 
 
-        # Criar sessão Flask
         session["firebase_uid"] = uid
         session["email"] = email
         session["name"] = name
@@ -344,12 +340,15 @@ def logout():
 )
 def chat():
 
-    # Verificar autenticação
+    # Verificar login
     if not usuario_atual():
 
         return jsonify({
+
             "success": False,
+
             "error": "Não autenticado."
+
         }), 401
 
 
@@ -362,8 +361,11 @@ def chat():
     if not dados:
 
         return jsonify({
+
             "success": False,
+
             "error": "Dados inválidos."
+
         }), 400
 
 
@@ -379,8 +381,11 @@ def chat():
     ):
 
         return jsonify({
+
             "success": False,
+
             "error": "Mensagem inválida."
+
         }), 400
 
 
@@ -390,8 +395,11 @@ def chat():
     if not mensagem:
 
         return jsonify({
+
             "success": False,
+
             "error": "Mensagem vazia."
+
         }), 400
 
 
@@ -403,7 +411,7 @@ def chat():
             "success": False,
 
             "error":
-                "OPENROUTER_API_KEY não está configurada no servidor."
+                "OPENROUTER_API_KEY não está configurada."
 
         }), 500
 
@@ -431,9 +439,19 @@ clara, profissional e útil.
 
 Não inventes informações.
 
-Se não souberes algo, diz claramente
-que não tens informação suficiente.
+Se não souberes alguma coisa,
+diz claramente que não tens informação suficiente.
 
 Quando o utilizador estiver a estudar,
 explica passo a passo.
 
+Quando for programação,
+fornece código correto e explica como utilizar.
+
+Quando houver cálculos,
+mostra o raciocínio de forma clara.
+
+Não afirmes que tens acesso a informações
+em tempo real se não tiveres.
+
+Não dig
