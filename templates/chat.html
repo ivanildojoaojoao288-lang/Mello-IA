@@ -10,10 +10,22 @@
         content="width=device-width, initial-scale=1.0"
     >
 
+    <meta
+        name="theme-color"
+        content="#0284c7"
+    >
+
+    <meta
+        name="description"
+        content="Mello IA — Assistente Inteligente"
+    >
+
     <title>Mello IA</title>
 
 
-    <!-- CSS -->
+    <!-- =====================================================
+         CSS
+         ===================================================== -->
 
     <link
         rel="stylesheet"
@@ -21,14 +33,22 @@
     >
 
 
-    <!-- MARKDOWN -->
+    <!-- =====================================================
+         MARKDOWN
+         ===================================================== -->
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/marked/marked.min.js">
+    </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js">
+    </script>
 
 
-    <!-- KATEX -->
+    <!-- =====================================================
+         KATEX
+         ===================================================== -->
 
     <link
         rel="stylesheet"
@@ -44,13 +64,12 @@
 
 <body>
 
-
 <div class="app">
 
 
-    <!-- =================================================
+    <!-- =====================================================
          SIDEBAR
-         ================================================= -->
+         ===================================================== -->
 
     <aside
         class="sidebar"
@@ -80,6 +99,7 @@
 
         <button
             class="new-chat"
+            type="button"
             onclick="novaConversa()"
         >
 
@@ -103,7 +123,6 @@
 
 
         <div class="sidebar-bottom">
-
 
             <button
                 class="sidebar-button"
@@ -143,29 +162,29 @@
 
             </div>
 
-
         </div>
-
 
     </aside>
 
 
-    <!-- =================================================
-         MAIN
-         ================================================= -->
+    <!-- =====================================================
+         ÁREA PRINCIPAL
+         ===================================================== -->
 
     <main class="main">
 
 
-        <!-- TOPBAR -->
+        <!-- =================================================
+             TOPBAR
+             ================================================= -->
 
         <header class="topbar">
 
-
             <button
                 class="menu-button"
-                onclick="toggleSidebar()"
                 type="button"
+                onclick="toggleSidebar()"
+                aria-label="Abrir menu"
             >
 
                 ☰
@@ -175,11 +194,9 @@
 
             <div class="topbar-title">
 
-
                 <div class="mini-logo">
                     M
                 </div>
-
 
                 <div>
 
@@ -193,20 +210,20 @@
 
                 </div>
 
-
             </div>
 
 
             <button
                 class="new-mobile"
-                onclick="novaConversa()"
                 type="button"
+                onclick="novaConversa()"
+                title="Nova conversa"
+                aria-label="Nova conversa"
             >
 
                 ＋
 
             </button>
-
 
         </header>
 
@@ -220,12 +237,14 @@
             id="chat-box"
         >
 
+            <!-- =================================================
+                 TELA INICIAL
+                 ================================================= -->
 
             <div
                 class="welcome"
                 id="welcome"
             >
-
 
                 <div class="welcome-logo">
                     M
@@ -250,6 +269,10 @@
 
                 </p>
 
+
+                <!-- =================================================
+                     SUGESTÕES
+                     ================================================= -->
 
                 <div class="suggestions">
 
@@ -336,45 +359,45 @@
 
                 </div>
 
-
             </div>
-
 
         </section>
 
 
         <!-- =================================================
-             INPUT
+             ÁREA DE INPUT
              ================================================= -->
 
         <div class="input-wrapper">
 
 
-            <!-- PREVIEW DA IMAGEM -->
+            <!-- =================================================
+                 PREVIEW DA IMAGEM
+                 ================================================= -->
 
             <div
                 class="image-preview"
                 id="image-preview"
-                style="display:none;"
+                style="display: none;"
             >
 
                 <img
                     id="preview-image"
                     src=""
-                    alt="Pré-visualização"
+                    alt="Pré-visualização da imagem"
                 >
 
 
                 <div class="image-preview-info">
 
-                    <span id="image-name">
-                    </span>
+                    <span id="image-name"></span>
 
 
                     <button
                         type="button"
                         onclick="removerImagem()"
                         title="Remover imagem"
+                        aria-label="Remover imagem"
                     >
 
                         ×
@@ -383,9 +406,12 @@
 
                 </div>
 
-
             </div>
 
+
+            <!-- =================================================
+                 CAIXA DE TEXTO
+                 ================================================= -->
 
             <div class="input-box">
 
@@ -400,13 +426,14 @@
                 >
 
 
-                <!-- ANEXAR -->
+                <!-- ANEXAR IMAGEM -->
 
                 <button
                     type="button"
                     class="attach-button"
                     id="attach-button"
                     title="Enviar foto"
+                    aria-label="Enviar foto"
                     onclick="document.getElementById('image-input').click()"
                 >
 
@@ -422,6 +449,7 @@
                     rows="1"
                     placeholder="Comande a Mello IA..."
                     onkeydown="handleKey(event)"
+                    autocomplete="off"
                 ></textarea>
 
 
@@ -432,6 +460,7 @@
                     class="voice-button"
                     id="voice-button"
                     title="Falar com a Mello IA"
+                    aria-label="Falar com a Mello IA"
                     onclick="alternarMicrofone()"
                 >
 
@@ -446,21 +475,31 @@
                     type="button"
                     class="send-button"
                     id="send-button"
+                    title="Enviar mensagem"
+                    aria-label="Enviar mensagem"
                     onclick="enviarMensagem()"
-                    title="Enviar"
                 >
 
                     ➤
 
                 </button>
 
-
             </div>
 
 
-            <div class="voice-status" id="voice-status">
-            </div>
+            <!-- =================================================
+                 ESTADO DO MICROFONE
+                 ================================================= -->
 
+            <div
+                class="voice-status"
+                id="voice-status"
+            ></div>
+
+
+            <!-- =================================================
+                 AVISO
+                 ================================================= -->
 
             <div class="input-info">
 
@@ -469,17 +508,16 @@
 
             </div>
 
-
         </div>
 
-
     </main>
-
 
 </div>
 
 
-<!-- JAVASCRIPT -->
+<!-- =====================================================
+     JAVASCRIPT
+     ===================================================== -->
 
 <script
     src="{{ url_for('static', filename='script.js') }}">
