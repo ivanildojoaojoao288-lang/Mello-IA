@@ -347,9 +347,6 @@ function falarTexto(
     }
 
 
-    // Se já estiver falando,
-    // parar.
-
     if (falando) {
 
         speechSynthesis.cancel();
@@ -508,16 +505,12 @@ function limparTextoParaVoz(
         texto;
 
 
-    // Remover URLs
-
     resultado =
         resultado.replace(
             /https?:\/\/\S+/gi,
             ""
         );
 
-
-    // Remover markdown de links
 
     resultado =
         resultado.replace(
@@ -526,16 +519,12 @@ function limparTextoParaVoz(
         );
 
 
-    // Remover títulos
-
     resultado =
         resultado.replace(
             /^#{1,6}\s*/gm,
             ""
         );
 
-
-    // Remover negrito
 
     resultado =
         resultado.replace(
@@ -544,16 +533,12 @@ function limparTextoParaVoz(
         );
 
 
-    // Remover itálico
-
     resultado =
         resultado.replace(
             /\*(.*?)\*/g,
             "$1"
         );
 
-
-    // Remover código
 
     resultado =
         resultado.replace(
@@ -562,8 +547,6 @@ function limparTextoParaVoz(
         );
 
 
-    // Remover crases
-
     resultado =
         resultado.replace(
             /`([^`]+)`/g,
@@ -571,16 +554,12 @@ function limparTextoParaVoz(
         );
 
 
-    // Remover emojis mais comuns
-
     resultado =
         resultado.replace(
             /[\u{1F300}-\u{1FAFF}]/gu,
             ""
         );
 
-
-    // Limpar espaços
 
     resultado =
         resultado.replace(
@@ -662,16 +641,17 @@ if (imageInput) {
             leitor.onload =
                 function (event) {
 
-                    previewImage.src =
-                        event.target.result;
+                    if (previewImage) {
+                        previewImage.src = event.target.result;
+                    }
 
+                    if (imageName) {
+                        imageName.textContent = arquivo.name;
+                    }
 
-                    imageName.textContent =
-                        arquivo.name;
-
-
-                    imagePreview.style.display =
-                        "flex";
+                    if (imagePreview) {
+                        imagePreview.style.display = "flex";
+                    }
 
                 };
 
@@ -731,10 +711,12 @@ function removerImagem() {
 
 
 // =====================================================
-// ENVIAR
+// ENVIAR MENSAGEM
 // =====================================================
 
 async function enviarMensagem() {
+
+    if (!input) return;
 
     const mensagem =
         input.value.trim();
@@ -749,8 +731,6 @@ async function enviarMensagem() {
 
     }
 
-
-    // Parar leitura anterior
 
     if (
         "speechSynthesis" in window
@@ -814,8 +794,9 @@ async function enviarMensagem() {
     ajustarTextarea();
 
 
-    sendButton.disabled =
-        true;
+    if (sendButton) {
+        sendButton.disabled = true;
+    }
 
 
     const loading =
@@ -904,12 +885,6 @@ async function enviarMensagem() {
         );
 
 
-        adicionarHistorico(
-            mensagemEnviar ||
-            "📷 Imagem enviada"
-        );
-
-
     } catch (erro) {
 
         console.error(
@@ -929,8 +904,9 @@ async function enviarMensagem() {
 
     } finally {
 
-        sendButton.disabled =
-            false;
+        if (sendButton) {
+            sendButton.disabled = false;
+        }
 
         input.focus();
 
@@ -947,6 +923,8 @@ function adicionarMensagem(
     tipo,
     texto
 ) {
+
+    if (!chatBox) return;
 
     const message =
         document.createElement(
@@ -1020,10 +998,6 @@ function adicionarMensagem(
 
     }
 
-
-    // =================================================
-    // BOTÃO DE VOZ
-    // =================================================
 
     if (tipo === "bot") {
 
@@ -1099,6 +1073,8 @@ function adicionarMensagemImagem(
     texto,
     arquivo
 ) {
+
+    if (!chatBox) return;
 
     const message =
         document.createElement(
@@ -1217,6 +1193,8 @@ function adicionarMensagemImagem(
 
 function adicionarLoading() {
 
+    if (!chatBox) return;
+
     const message =
         document.createElement(
             "div"
@@ -1302,6 +1280,8 @@ function adicionarLoading() {
 
 function scrollChat() {
 
+    if (!chatBox) return;
+
     chatBox.scrollTo({
 
         top:
@@ -1339,13 +1319,24 @@ function handleKey(event) {
 // TEXTAREA
 // =====================================================
 
-input.addEventListener(
-    "input",
-    ajustarTextarea
-);
+if (input) {
+
+    input.addEventListener(
+        "input",
+        ajustarTextarea
+    );
+
+    input.addEventListener(
+        "keydown",
+        handleKey
+    );
+
+}
 
 
 function ajustarTextarea() {
+
+    if (!input) return;
 
     input.style.height =
         "auto";
@@ -1368,6 +1359,8 @@ function usarSugestao(
     texto
 ) {
 
+    if (!input) return;
+
     input.value =
         texto;
 
@@ -1378,7 +1371,5 @@ function usarSugestao(
 
     enviarMensagem();
 
-}
-
-
-// ====================================
+        }
+        
