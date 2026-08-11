@@ -1,5 +1,6 @@
 // =====================================================
 // MELLO IA — SCRIPT PRINCIPAL
+// CHAT + IMAGEM + VOZ
 // =====================================================
 
 
@@ -28,12 +29,576 @@ const previewImage =
 const imageName =
     document.getElementById("image-name");
 
+const voiceButton =
+    document.getElementById("voice-button");
+
+const voiceStatus =
+    document.getElementById("voice-status");
+
 
 // =====================================================
 // ESTADO
 // =====================================================
 
 let imagemSelecionada = null;
+
+let reconhecimento = null;
+
+let ouvindo = false;
+
+let falando = false;
+
+
+// =====================================================
+// RECONHECIMENTO DE VOZ
+// =====================================================
+
+const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+
+if (SpeechRecognition) {
+
+    reconhecimento =
+        new SpeechRecognition();
+
+
+    reconhecimento.lang =
+        "pt-MZ";
+
+
+    reconhecimento.continuous =
+        false;
+
+
+    reconhecimento.interimResults =
+        true;
+
+
+    reconhecimento.maxAlternatives =
+        1;
+
+
+    reconhecimento.onstart =
+        function () {
+
+            ouvindo =
+                true;
+
+
+            if (voiceButton) {
+
+                voiceButton.classList.add(
+                    "recording"
+                );
+
+                voiceButton.textContent =
+                    "🔴";
+
+            }
+
+
+            mostrarStatusVoz(
+                "A ouvir... fala com a Mello IA 🎙️"
+            );
+
+        };
+
+
+    reconhecimento.onresult =
+        function (event) {
+
+            let textoFinal =
+                "";
+
+            let textoParcial =
+                "";
+
+
+            for (
+                let i = event.resultIndex;
+                i < event.results.length;
+                i++
+            ) {
+
+                const resultado =
+                    event.results[i];
+
+
+                const texto =
+                    resultado[0].transcript;
+
+
+                if (
+                    resultado.isFinal
+                ) {
+
+                    textoFinal +=
+                        texto;
+
+                } else {
+
+                    textoParcial +=
+                        texto;
+
+                }
+
+            }
+
+
+            if (textoFinal) {
+
+                input.value =
+                    textoFinal.trim();
+
+            } else if (textoParcial) {
+
+                input.value =
+                    textoParcial.trim();
+
+            }
+
+
+            ajustarTextarea();
+
+        };
+
+
+    reconhecimento.onerror =
+        function (event) {
+
+            console.error(
+                "Erro de reconhecimento:",
+                event.error
+            );
+
+
+            if (
+                event.error ===
+                "not-allowed"
+            ) {
+
+                mostrarStatusVoz(
+                    "Permissão do microfone foi recusada."
+                );
+
+            } else if (
+                event.error ===
+                "no-speech"
+            ) {
+
+                mostrarStatusVoz(
+                    "Não ouvi nenhuma fala."
+                );
+
+            } else {
+
+                mostrarStatusVoz(
+                    "Não foi possível usar o microfone."
+                );
+
+            }
+
+        };
+
+
+    reconhecimento.onend =
+        function () {
+
+            ouvindo =
+                false;
+
+
+            if (voiceButton) {
+
+                voiceButton.classList.remove(
+                    "recording"
+                );
+
+                voiceButton.textContent =
+                    "🎙️";
+
+            }
+
+
+            setTimeout(
+                function () {
+
+                    limparStatusVoz();
+
+                },
+                2000
+            );
+
+        };
+
+} else {
+
+    console.warn(
+        "Reconhecimento de voz não suportado."
+    );
+
+}
+
+
+// =====================================================
+// MICROFONE
+// =====================================================
+
+function alternarMicrofone() {
+
+    if (!reconhecimento) {
+
+        alert(
+            "O teu navegador não suporta reconhecimento de voz. Tenta usar Google Chrome."
+        );
+
+        return;
+
+    }
+
+
+    if (ouvindo) {
+
+        reconhecimento.stop();
+
+        return;
+
+    }
+
+
+    try {
+
+        reconhecimento.start();
+
+    } catch (erro) {
+
+        console.error(
+            erro
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// STATUS DA VOZ
+// =====================================================
+
+function mostrarStatusVoz(
+    mensagem
+) {
+
+    if (!voiceStatus) {
+        return;
+    }
+
+
+    voiceStatus.textContent =
+        mensagem;
+
+
+    voiceStatus.classList.add(
+        "active"
+    );
+
+}
+
+
+function limparStatusVoz() {
+
+    if (!voiceStatus) {
+        return;
+    }
+
+
+    voiceStatus.textContent =
+        "";
+
+
+    voiceStatus.classList.remove(
+        "active"
+    );
+
+}
+
+
+// =====================================================
+// FALAR RESPOSTA DA MELLO
+// =====================================================
+
+function falarTexto(
+    texto,
+    botao
+) {
+
+    if (
+        !("speechSynthesis" in window)
+    ) {
+
+        alert(
+            "O teu navegador não suporta leitura de voz."
+        );
+
+        return;
+
+    }
+
+
+    // Se já estiver falando,
+    // parar.
+
+    if (falando) {
+
+        speechSynthesis.cancel();
+
+        falando =
+            false;
+
+
+        if (botao) {
+
+            botao.textContent =
+                "🔊 Ouvir";
+
+        }
+
+        return;
+
+    }
+
+
+    const textoLimpo =
+        limparTextoParaVoz(
+            texto
+        );
+
+
+    if (!textoLimpo) {
+        return;
+    }
+
+
+    speechSynthesis.cancel();
+
+
+    const utterance =
+        new SpeechSynthesisUtterance(
+            textoLimpo
+        );
+
+
+    utterance.lang =
+        "pt-MZ";
+
+
+    utterance.rate =
+        0.95;
+
+
+    utterance.pitch =
+        1;
+
+
+    utterance.volume =
+        1;
+
+
+    const vozes =
+        speechSynthesis.getVoices();
+
+
+    const vozPortugues =
+        vozes.find(
+            function (voz) {
+
+                return (
+                    voz.lang &&
+                    voz.lang
+                        .toLowerCase()
+                        .startsWith("pt")
+                );
+
+            }
+        );
+
+
+    if (vozPortugues) {
+
+        utterance.voice =
+            vozPortugues;
+
+    }
+
+
+    utterance.onstart =
+        function () {
+
+            falando =
+                true;
+
+
+            if (botao) {
+
+                botao.textContent =
+                    "⏹️ Parar";
+
+            }
+
+        };
+
+
+    utterance.onend =
+        function () {
+
+            falando =
+                false;
+
+
+            if (botao) {
+
+                botao.textContent =
+                    "🔊 Ouvir";
+
+            }
+
+        };
+
+
+    utterance.onerror =
+        function () {
+
+            falando =
+                false;
+
+
+            if (botao) {
+
+                botao.textContent =
+                    "🔊 Ouvir";
+
+            }
+
+        };
+
+
+    speechSynthesis.speak(
+        utterance
+    );
+
+}
+
+
+// =====================================================
+// LIMPAR MARKDOWN PARA VOZ
+// =====================================================
+
+function limparTextoParaVoz(
+    texto
+) {
+
+    if (!texto) {
+        return "";
+    }
+
+
+    let resultado =
+        texto;
+
+
+    // Remover URLs
+
+    resultado =
+        resultado.replace(
+            /https?:\/\/\S+/gi,
+            ""
+        );
+
+
+    // Remover markdown de links
+
+    resultado =
+        resultado.replace(
+            /\[([^\]]+)\]\([^)]+\)/g,
+            "$1"
+        );
+
+
+    // Remover títulos
+
+    resultado =
+        resultado.replace(
+            /^#{1,6}\s*/gm,
+            ""
+        );
+
+
+    // Remover negrito
+
+    resultado =
+        resultado.replace(
+            /\*\*(.*?)\*\*/g,
+            "$1"
+        );
+
+
+    // Remover itálico
+
+    resultado =
+        resultado.replace(
+            /\*(.*?)\*/g,
+            "$1"
+        );
+
+
+    // Remover código
+
+    resultado =
+        resultado.replace(
+            /```[\s\S]*?```/g,
+            " bloco de código "
+        );
+
+
+    // Remover crases
+
+    resultado =
+        resultado.replace(
+            /`([^`]+)`/g,
+            "$1"
+        );
+
+
+    // Remover emojis mais comuns
+
+    resultado =
+        resultado.replace(
+            /[\u{1F300}-\u{1FAFF}]/gu,
+            ""
+        );
+
+
+    // Limpar espaços
+
+    resultado =
+        resultado.replace(
+            /\n{2,}/g,
+            ". "
+        );
+
+
+    resultado =
+        resultado.replace(
+            /\s{2,}/g,
+            " "
+        );
+
+
+    return resultado.trim();
+
+}
 
 
 // =====================================================
@@ -61,9 +626,11 @@ if (imageInput) {
                     "Selecione uma imagem válida."
                 );
 
-                this.value = "";
+                this.value =
+                    "";
 
                 return;
+
             }
 
 
@@ -76,9 +643,11 @@ if (imageInput) {
                     "A imagem deve ter no máximo 10 MB."
                 );
 
-                this.value = "";
+                this.value =
+                    "";
 
                 return;
+
             }
 
 
@@ -96,8 +665,10 @@ if (imageInput) {
                     previewImage.src =
                         event.target.result;
 
+
                     imageName.textContent =
                         arquivo.name;
+
 
                     imagePreview.style.display =
                         "flex";
@@ -126,17 +697,26 @@ function removerImagem() {
 
 
     if (imageInput) {
-        imageInput.value = "";
+
+        imageInput.value =
+            "";
+
     }
 
 
     if (previewImage) {
-        previewImage.src = "";
+
+        previewImage.src =
+            "";
+
     }
 
 
     if (imageName) {
-        imageName.textContent = "";
+
+        imageName.textContent =
+            "";
+
     }
 
 
@@ -170,7 +750,19 @@ async function enviarMensagem() {
     }
 
 
-    // esconder welcome
+    // Parar leitura anterior
+
+    if (
+        "speechSynthesis" in window
+    ) {
+
+        speechSynthesis.cancel();
+
+        falando =
+            false;
+
+    }
+
 
     const welcome =
         document.getElementById(
@@ -186,8 +778,6 @@ async function enviarMensagem() {
     }
 
 
-    // guardar imagem antes de limpar
-
     const imagemEnviar =
         imagemSelecionada;
 
@@ -195,8 +785,6 @@ async function enviarMensagem() {
     const mensagemEnviar =
         mensagem;
 
-
-    // mostrar utilizador
 
     if (imagemEnviar) {
 
@@ -216,11 +804,12 @@ async function enviarMensagem() {
     }
 
 
-    // limpar
+    input.value =
+        "";
 
-    input.value = "";
 
     removerImagem();
+
 
     ajustarTextarea();
 
@@ -229,14 +818,11 @@ async function enviarMensagem() {
         true;
 
 
-    // loading
-
     const loading =
         adicionarLoading();
 
 
     try {
-
 
         const formData =
             new FormData();
@@ -266,8 +852,11 @@ async function enviarMensagem() {
             await fetch(
                 "/chat",
                 {
-                    method: "POST",
-                    body: formData
+                    method:
+                        "POST",
+
+                    body:
+                        formData
                 }
             );
 
@@ -304,6 +893,7 @@ async function enviarMensagem() {
             );
 
             return;
+
         }
 
 
@@ -394,10 +984,6 @@ function adicionarMensagem(
         "message-content";
 
 
-    // =================================================
-    // RESPOSTA DA IA
-    // =================================================
-
     if (
         tipo === "bot" &&
         typeof marked !== "undefined"
@@ -435,9 +1021,56 @@ function adicionarMensagem(
     }
 
 
+    // =================================================
+    // BOTÃO DE VOZ
+    // =================================================
+
+    if (tipo === "bot") {
+
+        const voiceReplyButton =
+            document.createElement(
+                "button"
+            );
+
+
+        voiceReplyButton.type =
+            "button";
+
+
+        voiceReplyButton.className =
+            "reply-voice-button";
+
+
+        voiceReplyButton.textContent =
+            "🔊 Ouvir";
+
+
+        voiceReplyButton.title =
+            "Ouvir resposta";
+
+
+        voiceReplyButton.onclick =
+            function () {
+
+                falarTexto(
+                    texto,
+                    voiceReplyButton
+                );
+
+            };
+
+
+        content.appendChild(
+            voiceReplyButton
+        );
+
+    }
+
+
     message.appendChild(
         avatar
     );
+
 
     message.appendChild(
         content
@@ -453,6 +1086,7 @@ function adicionarMensagem(
 
 
     return message;
+
 }
 
 
@@ -573,6 +1207,7 @@ function adicionarMensagemImagem(
 
 
     return message;
+
 }
 
 
@@ -657,6 +1292,7 @@ function adicionarLoading() {
 
 
     return message;
+
 }
 
 
@@ -745,300 +1381,4 @@ function usarSugestao(
 }
 
 
-// =====================================================
-// NOVA CONVERSA
-// =====================================================
-
-function novaConversa() {
-
-    chatBox.innerHTML =
-        "";
-
-
-    const novaTela =
-        document.createElement(
-            "div"
-        );
-
-
-    novaTela.className =
-        "welcome";
-
-
-    novaTela.id =
-        "welcome";
-
-
-    novaTela.innerHTML = `
-
-        <div class="welcome-logo">
-            M
-        </div>
-
-        <h1>
-            Olá! Eu sou a
-            <span>Mello IA</span>
-        </h1>
-
-        <p>
-            Assistente inteligente de tecnologia,
-            programação, estudos e inovação.
-        </p>
-
-        <div class="suggestions">
-
-            <button onclick="usarSugestao('Explique-me inteligência artificial de forma simples')">
-
-                🤖
-
-                <span>
-
-                    <strong>
-                        Inteligência Artificial
-                    </strong>
-
-                    Aprender conceitos de IA
-
-                </span>
-
-            </button>
-
-
-            <button onclick="usarSugestao('Ajude-me a aprender programação')">
-
-                💻
-
-                <span>
-
-                    <strong>
-                        Programação
-                    </strong>
-
-                    Aprender a programar
-
-                </span>
-
-            </button>
-
-
-            <button onclick="usarSugestao('Ajude-me com os meus estudos')">
-
-                📚
-
-                <span>
-
-                    <strong>
-                        Estudos
-                    </strong>
-
-                    Explicar matérias
-
-                </span>
-
-            </button>
-
-
-            <button onclick="usarSugestao('Explique redes de computadores')">
-
-                🌐
-
-                <span>
-
-                    <strong>
-                        Tecnologia
-                    </strong>
-
-                    Redes e informática
-
-                </span>
-
-            </button>
-
-        </div>
-
-    `;
-
-
-    chatBox.appendChild(
-        novaTela
-    );
-
-
-    removerImagem();
-
-
-    input.value =
-        "";
-
-
-    ajustarTextarea();
-
-
-    input.focus();
-
-}
-
-
-// =====================================================
-// SIDEBAR
-// =====================================================
-
-function toggleSidebar() {
-
-    const sidebar =
-        document.getElementById(
-            "sidebar"
-        );
-
-
-    if (sidebar) {
-
-        sidebar.classList.toggle(
-            "open"
-        );
-
-    }
-
-}
-
-
-// =====================================================
-// HISTÓRICO
-// =====================================================
-
-function adicionarHistorico(
-    mensagem
-) {
-
-    const history =
-        document.getElementById(
-            "history"
-        );
-
-
-    if (!history) {
-        return;
-    }
-
-
-    let titulo =
-        mensagem;
-
-
-    if (
-        titulo.length >
-        35
-    ) {
-
-        titulo =
-            titulo.substring(
-                0,
-                35
-            ) + "...";
-
-    }
-
-
-    const item =
-        document.createElement(
-            "button"
-        );
-
-
-    item.className =
-        "history-item";
-
-
-    item.textContent =
-        "💬 " + titulo;
-
-
-    item.onclick =
-        function () {
-
-            input.value =
-                mensagem;
-
-            ajustarTextarea();
-
-            input.focus();
-
-        };
-
-
-    history.prepend(
-        item
-    );
-
-
-    while (
-        history.children.length >
-        10
-    ) {
-
-        history.removeChild(
-            history.lastChild
-        );
-
-    }
-
-}
-
-
-// =====================================================
-// FECHAR SIDEBAR
-// =====================================================
-
-document.addEventListener(
-    "click",
-    function (event) {
-
-        const sidebar =
-            document.getElementById(
-                "sidebar"
-            );
-
-
-        const menu =
-            document.querySelector(
-                ".menu-button"
-            );
-
-
-        if (
-
-            window.innerWidth <= 800 &&
-
-            sidebar &&
-
-            sidebar.classList.contains(
-                "open"
-            ) &&
-
-            !sidebar.contains(
-                event.target
-            ) &&
-
-            menu &&
-
-            !menu.contains(
-                event.target
-            )
-
-        ) {
-
-            sidebar.classList.remove(
-                "open"
-            );
-
-        }
-
-    }
-);
-
-
-// =====================================================
-// INICIAR
-// =====================================================
-
-input.focus();
+// ====================================
