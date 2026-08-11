@@ -1,6 +1,7 @@
-/* =====================================================
-   MELLO IA — TEMA AZUL + BRANCO
-   ===================================================== */
+/* =========================================================
+   MELLO IA — PREMIUM AI INTERFACE
+   Design System v2.0
+   ========================================================= */
 
 * {
     box-sizing: border-box;
@@ -9,155 +10,408 @@
 }
 
 :root {
-    --blue: #0ea5e9;
-    --blue-dark: #0369a1;
-    --blue-light: #38bdf8;
 
-    --bg: #f8fafc;
-    --white: #ffffff;
-    --sidebar: #ffffff;
+    /* =========================
+       CORES PRINCIPAIS
+       ========================= */
 
-    --border: #e2e8f0;
+    --blue-50: #f0f9ff;
+    --blue-100: #e0f2fe;
+    --blue-200: #bae6fd;
+    --blue-300: #7dd3fc;
+    --blue-400: #38bdf8;
+    --blue-500: #0ea5e9;
+    --blue-600: #0284c7;
+    --blue-700: #0369a1;
+    --blue-800: #075985;
+    --blue-900: #0c4a6e;
 
-    --text: #0f172a;
-    --muted: #64748b;
+    /* =========================
+       BACKGROUND
+       ========================= */
 
-    --user: #0284c7;
-    --bot: #ffffff;
+    --bg-main: #f7fbff;
+    --bg-soft: #f1f7fc;
+    --bg-white: #ffffff;
+
+    /* =========================
+       TEXTOS
+       ========================= */
+
+    --text-primary: #0b1220;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+
+    /* =========================
+       BORDERS
+       ========================= */
+
+    --border: rgba(148, 163, 184, 0.22);
+    --border-blue: rgba(14, 165, 233, 0.25);
+
+    /* =========================
+       SOMBRAS
+       ========================= */
+
+    --shadow-sm:
+        0 2px 8px rgba(15, 23, 42, 0.04);
+
+    --shadow-md:
+        0 8px 30px rgba(15, 23, 42, 0.07);
+
+    --shadow-lg:
+        0 20px 60px rgba(15, 23, 42, 0.10);
+
+    --shadow-blue:
+        0 15px 45px rgba(14, 165, 233, 0.20);
+
+    /* =========================
+       RADIUS
+       ========================= */
+
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+
+    /* =========================
+       TRANSIÇÃO
+       ========================= */
+
+    --ease:
+        cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 
-/* =====================================================
+/* =========================================================
    BASE
-   ===================================================== */
+   ========================================================= */
 
+html,
 body {
     width: 100%;
-    height: 100vh;
+    height: 100%;
+}
+
+body {
+
+    min-height: 100vh;
+
     overflow: hidden;
 
-    font-family: "Segoe UI", Arial, sans-serif;
+    font-family:
+        Inter,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
 
-    background: var(--bg);
-    color: var(--text);
+    color: var(--text-primary);
+
+    background:
+
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(56, 189, 248, 0.10),
+            transparent 30%
+        ),
+
+        radial-gradient(
+            circle at 90% 5%,
+            rgba(14, 165, 233, 0.08),
+            transparent 28%
+        ),
+
+        linear-gradient(
+            135deg,
+            #f8fcff,
+            #f3f8fc
+        );
+
+    -webkit-font-smoothing: antialiased;
 }
 
 
-/* =====================================================
+/* =========================================================
+   SELEÇÃO
+   ========================================================= */
+
+::selection {
+    background: rgba(14, 165, 233, 0.20);
+    color: var(--blue-800);
+}
+
+
+/* =========================================================
+   SCROLLBAR GLOBAL
+   ========================================================= */
+
+::-webkit-scrollbar {
+    width: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+
+    background:
+        linear-gradient(
+            180deg,
+            #bae6fd,
+            #7dd3fc
+        );
+
+    border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--blue-400);
+}
+
+
+/* =========================================================
    APP
-   ===================================================== */
+   ========================================================= */
 
 .app {
+
     width: 100%;
     height: 100vh;
 
     display: flex;
+
+    position: relative;
+
+    overflow: hidden;
 }
 
 
-/* =====================================================
+/* =========================================================
    SIDEBAR
-   ===================================================== */
+   ========================================================= */
 
 .sidebar {
-    width: 270px;
+
+    width: 280px;
     height: 100vh;
 
     flex-shrink: 0;
 
-    background: #ffffff;
+    position: relative;
 
-    border-right: 1px solid var(--border);
+    z-index: 50;
 
     display: flex;
     flex-direction: column;
 
     padding: 20px 15px;
 
-    transition: transform 0.3s ease;
-}
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,0.96),
+            rgba(248,252,255,0.94)
+        );
 
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
 
-/* =====================================================
-   LOGO
-   ===================================================== */
-
-.brand-logo,
-.mini-logo,
-.welcome-logo {
-    background: linear-gradient(
-        135deg,
-        #0284c7,
-        #38bdf8
-    );
-
-    color: #ffffff;
-}
-
-
-/* LOGO DA SIDEBAR */
-
-.brand-logo {
-    width: 42px;
-    height: 42px;
-
-    border-radius: 13px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    font-size: 22px;
-    font-weight: 800;
+    border-right:
+        1px solid
+        rgba(148,163,184,0.18);
 
     box-shadow:
-        0 6px 18px rgba(14, 165, 233, 0.25);
+        8px 0 35px
+        rgba(15,23,42,0.035);
+
+    transition:
+        transform 0.4s var(--ease),
+        box-shadow 0.3s ease;
 }
 
 
-/* =====================================================
+/* brilho lateral */
+
+.sidebar::after {
+
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    right: -1px;
+
+    width: 1px;
+    height: 100%;
+
+    background:
+        linear-gradient(
+            180deg,
+            transparent,
+            rgba(56,189,248,0.45),
+            transparent
+        );
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
    BRAND
-   ===================================================== */
+   ========================================================= */
 
 .brand {
+
     display: flex;
     align-items: center;
 
     gap: 12px;
 
-    padding: 5px 8px 25px;
+    padding:
+        4px
+        8px
+        25px;
 }
 
+
+/* =========================================================
+   LOGOS
+   ========================================================= */
+
+.brand-logo,
+.mini-logo,
+.welcome-logo {
+
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+
+    background:
+
+        linear-gradient(
+            135deg,
+            #0369a1 0%,
+            #0284c7 45%,
+            #38bdf8 100%
+        );
+
+    box-shadow:
+        0 10px 30px
+        rgba(14,165,233,0.25);
+
+    overflow: hidden;
+}
+
+
+/* brilho */
+
+.brand-logo::before,
+.mini-logo::before,
+.welcome-logo::before {
+
+    content: "";
+
+    position: absolute;
+
+    width: 70%;
+    height: 70%;
+
+    top: -30%;
+    left: -20%;
+
+    background:
+        rgba(255,255,255,0.30);
+
+    filter: blur(15px);
+
+    transform: rotate(25deg);
+}
+
+
+/* =========================================================
+   LOGO SIDEBAR
+   ========================================================= */
+
+.brand-logo {
+
+    width: 44px;
+    height: 44px;
+
+    border-radius: 14px;
+
+    font-size: 22px;
+    font-weight: 900;
+
+    isolation: isolate;
+}
+
+
+/* =========================================================
+   BRAND TEXT
+   ========================================================= */
+
 .brand-name {
+
     font-size: 18px;
-    font-weight: 700;
+
+    font-weight: 800;
+
+    letter-spacing: -0.4px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #0f172a,
+            #0369a1
+        );
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .brand-version {
-    font-size: 12px;
-    color: var(--muted);
+
+    margin-top: 2px;
+
+    font-size: 11px;
+
+    color: var(--text-muted);
+
+    letter-spacing: 0.3px;
 }
 
 
-/* =====================================================
+/* =========================================================
    NOVA CONVERSA
-   ===================================================== */
+   ========================================================= */
 
 .new-chat {
+
     width: 100%;
 
-    border: 1px solid #bae6fd;
+    border: 1px solid var(--border-blue);
 
-    background: #f0f9ff;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(240,249,255,0.95),
+            rgba(224,242,254,0.65)
+        );
 
-    color: #0369a1;
+    color: var(--blue-700);
 
-    padding: 12px 15px;
+    padding: 13px 15px;
 
-    border-radius: 12px;
+    border-radius: 14px;
 
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
 
     cursor: pointer;
 
@@ -166,13 +420,39 @@ body {
 
     gap: 9px;
 
-    transition: 0.2s;
+    box-shadow:
+        0 5px 20px
+        rgba(14,165,233,0.06);
+
+    transition:
+        transform 0.25s var(--ease),
+        box-shadow 0.25s ease,
+        background 0.25s ease,
+        border-color 0.25s ease;
 }
 
 .new-chat:hover {
-    background: #e0f2fe;
 
-    transform: translateY(-1px);
+    transform:
+        translateY(-2px);
+
+    border-color:
+        rgba(14,165,233,0.45);
+
+    background:
+        linear-gradient(
+            135deg,
+            #e0f2fe,
+            #f0f9ff
+        );
+
+    box-shadow:
+        0 10px 30px
+        rgba(14,165,233,0.14);
+}
+
+.new-chat:active {
+    transform: scale(0.98);
 }
 
 .new-chat span {
@@ -180,101 +460,126 @@ body {
 }
 
 
-/* =====================================================
+/* =========================================================
    SECÇÃO
-   ===================================================== */
+   ========================================================= */
 
 .sidebar-section {
-    margin: 28px 8px 12px;
+
+    margin:
+        28px 8px 12px;
 
     font-size: 10px;
-    font-weight: 700;
+
+    font-weight: 800;
 
     color: #94a3b8;
 
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+
+    text-transform: uppercase;
 }
 
 
-/* =====================================================
+/* =========================================================
    HISTÓRICO
-   ===================================================== */
+   ========================================================= */
 
 .history {
+
     flex: 1;
 
     overflow-y: auto;
-}
 
-.history::-webkit-scrollbar {
-    width: 4px;
-}
-
-.history::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-
-    border-radius: 10px;
+    padding-right: 2px;
 }
 
 
-/* HISTÓRICO */
+/* =========================================================
+   HISTÓRICO ITEM
+   ========================================================= */
 
 .history-item {
+
     width: 100%;
 
-    border: none;
-
-    background: transparent;
-
-    padding: 10px;
-
-    border-radius: 9px;
-
-    text-align: left;
-
-    color: #475569;
-
-    cursor: pointer;
-
-    font-size: 13px;
-
-    transition: 0.2s;
-}
-
-.history-item:hover {
-    background: #f0f9ff;
-
-    color: #0284c7;
-}
-
-
-/* =====================================================
-   PARTE INFERIOR
-   ===================================================== */
-
-.sidebar-bottom {
-    border-top: 1px solid var(--border);
-
-    padding-top: 15px;
-}
-
-.sidebar-button {
-    width: 100%;
-
-    border: none;
+    border: 1px solid transparent;
 
     background: transparent;
 
     padding: 11px 10px;
 
-    border-radius: 10px;
+    margin-bottom: 3px;
+
+    border-radius: 11px;
+
+    text-align: left;
+
+    color: var(--text-secondary);
+
+    cursor: pointer;
+
+    font-size: 13px;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.history-item:hover {
+
+    background:
+        rgba(240,249,255,0.9);
+
+    border-color:
+        rgba(125,211,252,0.22);
+
+    color:
+        var(--blue-700);
+
+    transform:
+        translateX(2px);
+}
+
+
+/* =========================================================
+   PARTE INFERIOR
+   ========================================================= */
+
+.sidebar-bottom {
+
+    border-top:
+        1px solid
+        var(--border);
+
+    padding-top: 15px;
+}
+
+
+/* =========================================================
+   SIDEBAR BUTTON
+   ========================================================= */
+
+.sidebar-button {
+
+    width: 100%;
+
+    border: 1px solid transparent;
+
+    background: transparent;
+
+    padding: 11px 10px;
+
+    border-radius: 11px;
 
     display: flex;
     align-items: center;
 
     gap: 10px;
 
-    color: #475569;
+    color: var(--text-secondary);
 
     cursor: pointer;
 
@@ -282,222 +587,381 @@ body {
 
     font-size: 14px;
 
-    transition: 0.2s;
+    transition:
+        0.2s ease;
 }
 
 .sidebar-button:hover {
-    background: #f1f5f9;
 
-    color: #0284c7;
+    background:
+        #f0f9ff;
+
+    border-color:
+        #e0f2fe;
+
+    color:
+        var(--blue-700);
 }
 
+
+/* =========================================================
+   CREATOR
+   ========================================================= */
+
 .creator-mini {
+
     margin-top: 15px;
 
-    padding: 10px;
+    padding: 12px 8px;
 
     text-align: center;
 
     font-size: 9px;
 
-    line-height: 1.5;
+    line-height: 1.6;
 
     color: #94a3b8;
 }
 
 .creator-mini strong {
-    color: #0284c7;
+    color: var(--blue-600);
 }
 
 
-/* =====================================================
+/* =========================================================
    MAIN
-   ===================================================== */
+   ========================================================= */
 
 .main {
+
     flex: 1;
 
-    height: 100vh;
-
     min-width: 0;
+
+    height: 100vh;
 
     display: flex;
     flex-direction: column;
 
+    position: relative;
+
     background:
+
         radial-gradient(
             circle at 50% 0%,
-            rgba(14, 165, 233, 0.08),
-            transparent 40%
+            rgba(14,165,233,0.09),
+            transparent 36%
         ),
-        #f8fafc;
+
+        radial-gradient(
+            circle at 100% 80%,
+            rgba(56,189,248,0.05),
+            transparent 30%
+        ),
+
+        #f8fbfe;
 }
 
 
-/* =====================================================
+/* =========================================================
    TOPBAR
-   ===================================================== */
+   ========================================================= */
 
 .topbar {
+
     height: 70px;
 
     flex-shrink: 0;
 
-    background: rgba(255, 255, 255, 0.92);
+    position: relative;
 
-    backdrop-filter: blur(12px);
-
-    border-bottom: 1px solid var(--border);
+    z-index: 30;
 
     display: flex;
     align-items: center;
 
     padding: 0 25px;
+
+    background:
+        rgba(255,255,255,0.76);
+
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    border-bottom:
+        1px solid
+        rgba(148,163,184,0.17);
+
+    box-shadow:
+        0 4px 20px
+        rgba(15,23,42,0.025);
 }
 
+
+/* =========================================================
+   TOPBAR TITLE
+   ========================================================= */
+
 .topbar-title {
+
     display: flex;
     align-items: center;
 
-    gap: 10px;
+    gap: 11px;
 }
 
 .topbar-title strong {
+
     display: block;
 
     font-size: 15px;
+
+    font-weight: 750;
+
+    letter-spacing: -0.2px;
 }
 
 .topbar-title span {
+
     display: block;
 
-    font-size: 11px;
+    margin-top: 1px;
 
-    color: var(--muted);
+    font-size: 10px;
+
+    color: var(--text-muted);
 }
+
+
+/* =========================================================
+   MINI LOGO
+   ========================================================= */
 
 .mini-logo {
-    width: 35px;
-    height: 35px;
 
-    border-radius: 10px;
+    width: 36px;
+    height: 36px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: 11px;
 
-    font-weight: 800;
+    font-size: 14px;
+    font-weight: 900;
 }
 
 
-/* =====================================================
-   CHAT
-   ===================================================== */
+/* =========================================================
+   CHAT AREA
+   ========================================================= */
 
 .chat-area {
+
     flex: 1;
 
     overflow-y: auto;
 
-    padding: 40px 20px 150px;
-}
+    padding:
+        40px
+        20px
+        170px;
 
-.chat-area::-webkit-scrollbar {
-    width: 6px;
-}
-
-.chat-area::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-
-    border-radius: 20px;
+    scroll-behavior: smooth;
 }
 
 
-/* =====================================================
+/* =========================================================
    WELCOME
-   ===================================================== */
+   ========================================================= */
 
 .welcome {
-    max-width: 850px;
 
-    margin: 40px auto;
+    max-width: 900px;
+
+    margin:
+        50px auto;
 
     text-align: center;
+
+    animation:
+        welcomeIn
+        0.7s
+        var(--ease);
 }
+
+@keyframes welcomeIn {
+
+    from {
+        opacity: 0;
+        transform:
+            translateY(18px)
+            scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+
+/* =========================================================
+   WELCOME LOGO
+   ========================================================= */
 
 .welcome-logo {
-    width: 72px;
-    height: 72px;
 
-    margin: 0 auto 20px;
+    width: 82px;
+    height: 82px;
 
-    border-radius: 22px;
+    margin:
+        0 auto 23px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: 25px;
 
-    font-size: 38px;
-    font-weight: 800;
+    font-size: 40px;
+    font-weight: 900;
 
     box-shadow:
-        0 15px 35px rgba(
-            14,
-            165,
-            233,
-            0.25
-        );
+
+        0 15px 45px
+        rgba(14,165,233,0.25),
+
+        0 0 0 8px
+        rgba(14,165,233,0.035);
+
+    animation:
+        logoFloat
+        4s
+        ease-in-out
+        infinite;
 }
 
+@keyframes logoFloat {
+
+    0%,
+    100% {
+        transform:
+            translateY(0);
+    }
+
+    50% {
+        transform:
+            translateY(-5px);
+    }
+}
+
+
+/* =========================================================
+   WELCOME TITLE
+   ========================================================= */
+
 .welcome h1 {
-    font-size: 32px;
 
-    margin-bottom: 10px;
+    font-size:
+        clamp(28px, 4vw, 38px);
 
-    color: #0f172a;
+    line-height: 1.15;
+
+    letter-spacing:
+        -1.2px;
+
+    margin-bottom: 12px;
+
+    color:
+        #0f172a;
 }
 
 .welcome h1 span {
-    color: #0284c7;
+
+    background:
+
+        linear-gradient(
+            90deg,
+            #0369a1,
+            #0284c7,
+            #38bdf8
+        );
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    background-size: 200% auto;
+
+    animation:
+        gradientText
+        4s
+        linear
+        infinite;
 }
 
+@keyframes gradientText {
+
+    to {
+        background-position:
+            200% center;
+    }
+}
+
+
+/* =========================================================
+   WELCOME DESCRIPTION
+   ========================================================= */
+
 .welcome p {
-    color: var(--muted);
 
-    font-size: 15px;
-
-    max-width: 600px;
+    max-width: 650px;
 
     margin: auto;
 
-    line-height: 1.6;
+    color:
+        var(--text-secondary);
+
+    font-size: 15px;
+
+    line-height: 1.7;
 }
 
 
-/* =====================================================
+/* =========================================================
    SUGESTÕES
-   ===================================================== */
+   ========================================================= */
 
 .suggestions {
-    margin-top: 35px;
+
+    margin-top: 40px;
 
     display: grid;
 
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+        repeat(2, 1fr);
 
-    gap: 12px;
+    gap: 14px;
 
     text-align: left;
 }
 
+
+/* =========================================================
+   SUGESTION BUTTON
+   ========================================================= */
+
 .suggestions button {
-    border: 1px solid var(--border);
 
-    background: #ffffff;
+    position: relative;
 
-    border-radius: 14px;
+    overflow: hidden;
 
-    padding: 16px;
+    border:
+        1px solid
+        rgba(148,163,184,0.22);
+
+    background:
+        rgba(255,255,255,0.88);
+
+    border-radius: 17px;
+
+    padding: 17px;
 
     cursor: pointer;
 
@@ -507,38 +971,87 @@ body {
 
     align-items: flex-start;
 
-    color: var(--text);
+    color:
+        var(--text-primary);
 
-    transition: 0.2s;
+    text-align: left;
 
     box-shadow:
-        0 2px 8px rgba(
-            15,
-            23,
-            42,
-            0.03
+        0 3px 12px
+        rgba(15,23,42,0.035);
+
+    transition:
+        transform 0.3s var(--ease),
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.suggestions button::before {
+
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        linear-gradient(
+            120deg,
+            transparent,
+            rgba(56,189,248,0.08),
+            transparent
         );
+
+    transform:
+        translateX(-100%);
+
+    transition:
+        transform 0.5s ease;
+}
+
+.suggestions button:hover::before {
+    transform:
+        translateX(100%);
 }
 
 .suggestions button:hover {
-    border-color: #7dd3fc;
 
-    transform: translateY(-2px);
+    border-color:
+        rgba(56,189,248,0.40);
+
+    transform:
+        translateY(-4px);
 
     box-shadow:
-        0 8px 25px rgba(
-            14,
-            165,
-            233,
-            0.12
-        );
+        0 15px 35px
+        rgba(14,165,233,0.10);
+}
+
+.suggestions button:active {
+    transform:
+        translateY(-1px)
+        scale(0.99);
 }
 
 .suggestions button > span:first-child {
-    font-size: 20px;
+
+    min-width: 36px;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+
+    background:
+        #f0f9ff;
+
+    font-size: 18px;
 }
 
 .suggestions button span {
+
     display: flex;
 
     flex-direction: column;
@@ -547,676 +1060,212 @@ body {
 
     font-size: 12px;
 
-    color: var(--muted);
+    color:
+        var(--text-muted);
 }
 
 .suggestions button strong {
-    color: var(--text);
+
+    color:
+        var(--text-primary);
 
     font-size: 14px;
 }
 
 
-/* =====================================================
+/* =========================================================
    MENSAGENS
-   ===================================================== */
+   ========================================================= */
 
 .message {
-    max-width: 850px;
 
-    margin: 0 auto 20px;
+    max-width: 900px;
+
+    margin:
+        0 auto 22px;
 
     display: flex;
 
     gap: 12px;
 
-    animation: messageIn 0.25s ease;
+    animation:
+        messageIn
+        0.35s
+        var(--ease);
 }
 
 @keyframes messageIn {
 
     from {
         opacity: 0;
-
-        transform: translateY(8px);
+        transform:
+            translateY(10px)
+            scale(0.99);
     }
 
     to {
         opacity: 1;
-
-        transform: translateY(0);
+        transform:
+            translateY(0)
+            scale(1);
     }
 }
 
 
-/* AVATAR */
+/* =========================================================
+   AVATAR
+   ========================================================= */
 
 .message-avatar {
-    width: 34px;
-    height: 34px;
+
+    width: 36px;
+    height: 36px;
 
     flex-shrink: 0;
 
-    border-radius: 10px;
+    border-radius: 11px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    font-size: 15px;
+    font-size: 14px;
 
-    font-weight: 700;
+    font-weight: 800;
+
+    box-shadow:
+        0 5px 15px
+        rgba(15,23,42,0.06);
 }
 
 
-/* BOT */
+/* =========================================================
+   BOT AVATAR
+   ========================================================= */
 
 .message.bot .message-avatar {
-    background: linear-gradient(
-        135deg,
-        #0284c7,
-        #38bdf8
-    );
 
     color: white;
+
+    background:
+        linear-gradient(
+            135deg,
+            #0369a1,
+            #0284c7,
+            #38bdf8
+        );
+
+    box-shadow:
+        0 7px 22px
+        rgba(14,165,233,0.22);
 }
 
 
-/* UTILIZADOR */
+/* =========================================================
+   USER
+   ========================================================= */
 
 .message.user {
-    justify-content: flex-end;
+
+    justify-content:
+        flex-end;
 }
 
 .message.user .message-avatar {
-    background: #e2e8f0;
-
-    color: #475569;
 
     order: 2;
+
+    background:
+        #e2e8f0;
+
+    color:
+        #475569;
 }
 
 
-/* CONTEÚDO */
+/* =========================================================
+   CONTENT
+   ========================================================= */
 
 .message-content {
-    max-width: 75%;
 
-    padding: 13px 16px;
+    max-width: 78%;
 
-    border-radius: 16px;
+    padding:
+        14px 17px;
+
+    border-radius:
+        17px;
 
     font-size: 14px;
 
-    line-height: 1.65;
+    line-height: 1.7;
+
+    word-wrap: break-word;
 }
 
 
-/* RESPOSTA DA IA */
+/* =========================================================
+   BOT CONTENT
+   ========================================================= */
 
 .message.bot .message-content {
-    background: #ffffff;
 
-    border: 1px solid var(--border);
+    background:
+        rgba(255,255,255,0.92);
 
-    border-top-left-radius: 5px;
+    border:
+        1px solid
+        rgba(148,163,184,0.20);
 
-    color: var(--text);
+    border-top-left-radius:
+        6px;
+
+    color:
+        var(--text-primary);
+
+    box-shadow:
+        0 4px 20px
+        rgba(15,23,42,0.035);
 }
 
 
-/* MENSAGEM DO UTILIZADOR */
+/* =========================================================
+   USER CONTENT
+   ========================================================= */
 
 .message.user .message-content {
-    background: #0284c7;
 
-    color: #ffffff;
+    background:
+        linear-gradient(
+            135deg,
+            #0369a1,
+            #0284c7,
+            #0ea5e9
+        );
 
-    border-top-right-radius: 5px;
+    color:
+        #ffffff;
+
+    border-top-right-radius:
+        6px;
+
+    box-shadow:
+        0 8px 25px
+        rgba(14,165,233,0.18);
 }
 
 
-/* =====================================================
+/* =========================================================
    IMAGENS
-   ===================================================== */
+   ========================================================= */
 
 .message-image {
+
     display: block;
 
     width: auto;
 
     max-width: 100%;
 
-    max-height: 420px;
-
-    object-fit: contain;
-
-    border-radius: 12px;
-
-    border: 1px solid #e2e8f0;
-
-    box-shadow:
-        0 5px 18px rgba(
-            15,
-            23,
-            42,
-            0.08
-        );
-
-    margin-bottom: 5px;
-}
-
-.message.user .message-content {
-    overflow: hidden;
-}
-
-
-/* =====================================================
-   INPUT
-   ===================================================== */
-
-.input-wrapper {
-    position: absolute;
-
-    bottom: 0;
-
-    right: 0;
-
-    left: 270px;
-
-    z-index: 20;
-
-    padding: 15px 25px 18px;
-
-    background:
-        linear-gradient(
-            to top,
-            #f8fafc 75%,
-            transparent
-        );
-}
-
-.input-box {
-    max-width: 850px;
-
-    margin: auto;
-
-    min-height: 58px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    padding: 7px 8px 7px 12px;
-
-    background: #ffffff;
-
-    border: 1px solid #cbd5e1;
-
-    border-radius: 18px;
-
-    box-shadow:
-        0 8px 30px rgba(
-            15,
-            23,
-            42,
-            0.08
-        );
-
-    transition: 0.2s;
-}
-
-.input-box:focus-within {
-    border-color: #38bdf8;
-
-    box-shadow:
-        0 0 0 3px rgba(
-            56,
-            189,
-            248,
-            0.12
-        ),
-        0 8px 30px rgba(
-            15,
-            23,
-            42,
-            0.08
-        );
-}
-
-
-/* TEXTAREA */
-
-.input-box textarea {
-    flex: 1;
-
-    resize: none;
-
-    border: none;
-
-    outline: none;
-
-    background: transparent;
-
-    font-family: inherit;
-
-    font-size: 14px;
-
-    color: var(--text);
-
-    max-height: 130px;
-
-    padding: 10px;
-}
-
-.input-box textarea::placeholder {
-    color: #94a3b8;
-}
-
-
-/* =====================================================
-   BOTÃO ANEXAR
-   ===================================================== */
-
-.attach-button {
-    width: 40px;
-
-    height: 40px;
-
-    flex-shrink: 0;
-
-    border: none;
-
-    border-radius: 12px;
-
-    background: transparent;
-
-    color: #64748b;
-
-    font-size: 22px;
-
-    cursor: pointer;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    transition: 0.2s;
-}
-
-.attach-button:hover {
-    background: #e0f2fe;
-
-    color: #0284c7;
-
-    transform: scale(1.05);
-}
-
-
-/* =====================================================
-   BOTÃO ENVIAR
-   ===================================================== */
-
-.send-button {
-    width: 42px;
-
-    height: 42px;
-
-    flex-shrink: 0;
-
-    border: none;
-
-    border-radius: 13px;
-
-    background: linear-gradient(
-        135deg,
-        #0284c7,
-        #0ea5e9
-    );
-
-    color: #ffffff;
-
-    font-size: 19px;
-
-    cursor: pointer;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    transition:
-        transform 0.2s,
-        box-shadow 0.2s,
-        opacity 0.2s;
-}
-
-.send-button:hover {
-    transform: translateY(-1px);
-
-    box-shadow:
-        0 6px 18px rgba(
-            14,
-            165,
-            233,
-            0.3
-        );
-}
-
-.send-button:disabled {
-    opacity: 0.55;
-
-    cursor: not-allowed;
-
-    transform: none;
-
-    box-shadow: none;
-}
-
-
-/* =====================================================
-   PREVIEW DA IMAGEM
-   ===================================================== */
-
-.image-preview {
-    max-width: 850px;
-
-    margin: 0 auto 10px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-    padding: 10px;
-
-    background: #ffffff;
-
-    border: 1px solid #bae6fd;
-
-    border-radius: 14px;
-
-    box-shadow:
-        0 6px 20px rgba(
-            15,
-            23,
-            42,
-            0.08
-        );
-}
-
-.image-preview img {
-    width: 64px;
-
-    height: 64px;
-
-    object-fit: cover;
-
-    border-radius: 10px;
-
-    border: 1px solid #e2e8f0;
-}
-
-.image-preview-info {
-    flex: 1;
-
-    min-width: 0;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 10px;
-}
-
-.image-preview-info span {
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
-    white-space: nowrap;
-
-    font-size: 13px;
-
-    color: #475569;
-}
-
-.image-preview-info button {
-    width: 30px;
-
-    height: 30px;
-
-    border: none;
-
-    border-radius: 50%;
-
-    background: #f1f5f9;
-
-    color: #64748b;
-
-    font-size: 20px;
-
-    cursor: pointer;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    transition: 0.2s;
-}
-
-.image-preview-info button:hover {
-    background: #e0f2fe;
-
-    color: #0284c7;
-}
-
-
-/* =====================================================
-   LOADING
-   ===================================================== */
-
-.typing {
-    display: flex;
-
-    align-items: center;
-
-    gap: 5px;
-
-    min-height: 20px;
-}
-
-.typing span {
-    width: 7px;
-
-    height: 7px;
-
-    background: #0284c7;
-
-    border-radius: 50%;
-
-    animation:
-        typingAnimation
-        1.2s
-        infinite
-        ease-in-out;
-}
-
-.typing span:nth-child(2) {
-    animation-delay: 0.15s;
-}
-
-.typing span:nth-child(3) {
-    animation-delay: 0.30s;
-}
-
-@keyframes typingAnimation {
-
-    0%,
-    60%,
-    100% {
-        opacity: 0.35;
-
-        transform: translateY(0);
-    }
-
-    30% {
-        opacity: 1;
-
-        transform: translateY(-4px);
-    }
-}
-
-
-/* =====================================================
-   AVISO DO INPUT
-   ===================================================== */
-
-.input-info {
-    max-width: 850px;
-
-    margin: 7px auto 0;
-
-    text-align: center;
-
-    font-size: 10px;
-
-    color: #94a3b8;
-}
-
-
-/* =====================================================
-   MENU MOBILE
-   ===================================================== */
-
-.menu-button,
-.new-mobile {
-    display: none;
-
-    border: none;
-
-    background: transparent;
-
-    font-size: 22px;
-
-    cursor: pointer;
-
-    color: #334155;
-}
-
-
-/* =====================================================
-   RESPONSIVIDADE
-   ===================================================== */
-
-@media (max-width: 800px) {
-
-    .sidebar {
-        position: fixed;
-
-        left: 0;
-        top: 0;
-
-        z-index: 100;
-
-        transform: translateX(-100%);
-
-        box-shadow:
-            10px 0 30px rgba(
-                15,
-                23,
-                42,
-                0.12
-            );
-    }
-
-    .sidebar.open {
-        transform: translateX(0);
-    }
-
-    .menu-button,
-    .new-mobile {
-        display: block;
-    }
-
-    .topbar {
-        justify-content: space-between;
-
-        padding: 0 15px;
-    }
-
-    .input-wrapper {
-        left: 0;
-
-        padding:
-            12px
-            12px
-            15px;
-    }
-
-    .suggestions {
-        grid-template-columns: 1fr;
-    }
-
-    .message {
-        max-width: 100%;
-    }
-
-    .message-content {
-        max-width: 82%;
-    }
-
-    .image-preview {
-        margin-left: 0;
-
-        margin-right: 0;
-    }
-}
-
-
-/* =====================================================
-   TELEMÓVEL PEQUENO
-   ===================================================== */
-
-@media (max-width: 480px) {
-
-    .welcome h1 {
-        font-size: 26px;
-    }
-
-    .welcome-logo {
-        width: 62px;
-        height: 62px;
-
-        font-size: 32px;
-    }
-
-    .message-content {
-        max-width: 88%;
-    }
-
-    .message-image {
-        max-height: 280px;
-    }
-
-    .input-box {
-        border-radius: 15px;
-    }
-
-    .send-button {
-        width: 40px;
-        height: 40px;
-    }
-
-    .attach-button {
-        width: 38px;
-        height: 38px;
-    }
-}
+    max-height: 440px;
