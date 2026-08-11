@@ -385,7 +385,6 @@ real se não tiveres.
 Se não souberes alguma informação,
 diz claramente que não tens dados
 suficientes para confirmar.
-"""
                 },
 
                 {
