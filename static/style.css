@@ -1,1548 +1,580 @@
-/* =========================================================
-   MELLO IA
-   PREMIUM — AZUL 💙 + VERMELHO ❤️ + DOURADO 🟡
-   Compatível com o HTML enviado
-   ========================================================= */
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+/* =====================================================
+   MELLO IA — ESTILOS PRINCIPAIS
+   ===================================================== */
 
 :root {
-
-    /* =========================
-       CORES
-       ========================= */
-
-    --blue: #2563eb;
-    --blue-dark: #1e3a8a;
-    --blue-light: #3b82f6;
-
-    --red: #dc2626;
-    --red-dark: #991b1b;
-    --red-light: #ef4444;
-
-    --gold: #d4af37;
-    --gold-light: #f5d76e;
-    --gold-dark: #a67c00;
-
-    --white: #ffffff;
-
-    --background: #f5f8ff;
-
-    --text: #0f172a;
-    --muted: #64748b;
-
-    --border: #e2e8f0;
-
-    --sidebar: #ffffff;
-
-    --shadow:
-        0 20px 60px rgba(15, 23, 42, 0.10);
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-chat: #090d16;
+    --accent-color: #0284c7;
+    --accent-hover: #0369a1;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+    --sidebar-width: 280px;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --transition: all 0.3s ease;
 }
 
-
-/* =========================================================
-   BODY
-   ========================================================= */
-
-html,
-body {
-    width: 100%;
-    height: 100%;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 body {
-
-    font-family:
-        "Segoe UI",
-        Arial,
-        Helvetica,
-        sans-serif;
-
-    color:
-        var(--text);
-
-    background:
-
-        radial-gradient(
-            circle at 10% 10%,
-            rgba(37, 99, 235, 0.10),
-            transparent 30%
-        ),
-
-        radial-gradient(
-            circle at 90% 15%,
-            rgba(220, 38, 38, 0.07),
-            transparent 28%
-        ),
-
-        radial-gradient(
-            circle at 50% 100%,
-            rgba(212, 175, 55, 0.08),
-            transparent 30%
-        ),
-
-        linear-gradient(
-            135deg,
-            #f8fbff,
-            #eef4ff
-        );
-
-    overflow:
-        hidden;
-}
-
-
-/* =========================================================
-   APP
-   ========================================================= */
-
-.app {
-
-    width: 100%;
+    background-color: var(--bg-primary);
+    color: var(--text-main);
     height: 100vh;
-
-    display: flex;
-
-    position: relative;
-
     overflow: hidden;
 }
 
+/* =====================================================
+   LAYOUT PRINCIPAL
+   ===================================================== */
 
-/* =========================================================
+.app {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+/* =====================================================
    SIDEBAR
-   ========================================================= */
+   ===================================================== */
 
 .sidebar {
-
-    width: 280px;
-    height: 100vh;
-
-    flex-shrink: 0;
-
+    width: var(--sidebar-width);
+    background-color: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-
-    padding: 22px 16px;
-
-    background:
-        rgba(255, 255, 255, 0.94);
-
-    border-right:
-        1px solid
-        var(--border);
-
-    box-shadow:
-        8px 0 30px
-        rgba(15, 23, 42, 0.04);
-
-    position: relative;
-
+    padding: 1rem;
     z-index: 100;
-
-    overflow-y: auto;
+    transition: var(--transition);
 }
-
-
-/* linha premium */
-
-.sidebar::before {
-
-    content: "";
-
-    position: absolute;
-
-    top: 0;
-    left: 0;
-
-    width: 100%;
-    height: 3px;
-
-    background:
-        linear-gradient(
-            90deg,
-            var(--blue-dark),
-            var(--blue),
-            var(--gold),
-            var(--red),
-            var(--blue)
-        );
-
-    background-size:
-        250% 100%;
-
-    animation:
-        premiumLine 6s linear infinite;
-}
-
-@keyframes premiumLine {
-
-    0% {
-        background-position:
-            0% 50%;
-    }
-
-    100% {
-        background-position:
-            250% 50%;
-    }
-}
-
-
-/* =========================================================
-   BRAND
-   ========================================================= */
 
 .brand {
-
     display: flex;
-
     align-items: center;
-
-    gap: 12px;
-
-    padding:
-        4px 6px 24px;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
 }
-
 
 .brand-logo {
-
-    width: 48px;
-    height: 48px;
-
-    flex-shrink: 0;
-
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #0284c7, #38bdf8);
+    border-radius: var(--radius-md);
     display: flex;
-
     align-items: center;
     justify-content: center;
-
-    border-radius: 15px;
-
-    color:
-        var(--white);
-
-    font-size:
-        24px;
-
-    font-weight:
-        800;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--blue-dark),
-            var(--blue),
-            var(--gold),
-            var(--red)
-        );
-
-    border:
-        1px solid
-        rgba(212, 175, 55, 0.45);
-
-    box-shadow:
-
-        0 8px 22px
-        rgba(37, 99, 235, 0.22),
-
-        0 4px 12px
-        rgba(220, 38, 38, 0.08);
+    font-weight: bold;
+    font-size: 1.2rem;
 }
-
 
 .brand-name {
-
-    font-size:
-        18px;
-
-    font-weight:
-        800;
-
-    background:
-        linear-gradient(
-            90deg,
-            var(--blue-dark),
-            var(--blue),
-            var(--red)
-        );
-
-    -webkit-background-clip:
-        text;
-
-    -webkit-text-fill-color:
-        transparent;
+    font-weight: 700;
+    font-size: 1.1rem;
 }
-
 
 .brand-version {
-
-    margin-top:
-        2px;
-
-    font-size:
-        11px;
-
-    color:
-        var(--muted);
+    font-size: 0.75rem;
+    color: var(--text-muted);
 }
-
-
-/* =========================================================
-   NOVA CONVERSA
-   ========================================================= */
 
 .new-chat {
-
     width: 100%;
-
-    height: 48px;
-
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
     display: flex;
-
     align-items: center;
     justify-content: center;
-
-    gap: 8px;
-
-    border:
-        none;
-
-    border-radius:
-        14px;
-
-    color:
-        #ffffff;
-
-    font-size:
-        14px;
-
-    font-weight:
-        700;
-
-    cursor:
-        pointer;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--blue-dark),
-            var(--blue),
-            var(--blue-light)
-        );
-
-    box-shadow:
-        0 8px 20px
-        rgba(37, 99, 235, 0.20);
-
-    transition:
-        0.2s ease;
+    gap: 0.5rem;
+    transition: var(--transition);
 }
-
-
-.new-chat span {
-
-    font-size:
-        22px;
-
-    line-height:
-        1;
-}
-
 
 .new-chat:hover {
-
-    transform:
-        translateY(-2px);
-
-    box-shadow:
-        0 12px 25px
-        rgba(37, 99, 235, 0.28);
+    background-color: var(--accent-hover);
 }
-
-
-.new-chat:active {
-
-    transform:
-        scale(0.98);
-}
-
-
-/* =========================================================
-   SIDEBAR SECTION
-   ========================================================= */
 
 .sidebar-section {
-
-    margin:
-        25px 8px 10px;
-
-    font-size:
-        11px;
-
-    font-weight:
-        700;
-
-    text-transform:
-        uppercase;
-
-    letter-spacing:
-        0.8px;
-
-    color:
-        var(--muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin: 0.5rem 0;
 }
-
-
-/* =========================================================
-   HISTORY
-   ========================================================= */
 
 .history {
-
-    display:
-        flex;
-
-    flex-direction:
-        column;
-
-    gap:
-        6px;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
-
 
 .history-item {
-
-    width:
-        100%;
-
-    padding:
-        12px 13px;
-
-    border:
-        1px solid
-        transparent;
-
-    border-radius:
-        11px;
-
-    text-align:
-        left;
-
-    color:
-        #475569;
-
-    background:
-        transparent;
-
-    font-size:
-        13px;
-
-    cursor:
-        pointer;
-
-    transition:
-        0.2s ease;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: var(--transition);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-
 
 .history-item:hover {
-
-    color:
-        var(--blue);
-
-    background:
-        #eff6ff;
-
-    border-color:
-        #dbeafe;
+    background-color: rgba(255, 255, 255, 0.05);
 }
-
-
-/* =========================================================
-   SIDEBAR BOTTOM
-   ========================================================= */
 
 .sidebar-bottom {
-
-    margin-top:
-        auto;
-
-    padding-top:
-        20px;
-
-    border-top:
-        1px solid
-        var(--border);
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
-
 
 .sidebar-button {
-
-    width:
-        100%;
-
-    min-height:
-        42px;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    gap:
-        10px;
-
-    padding:
-        9px 11px;
-
-    border:
-        none;
-
-    border-radius:
-        10px;
-
-    background:
-        transparent;
-
-    color:
-        #475569;
-
-    text-align:
-        left;
-
-    font-size:
-        13px;
-
-    cursor:
-        pointer;
-
-    transition:
-        0.2s ease;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
 }
-
 
 .sidebar-button:hover {
-
-    color:
-        var(--blue);
-
-    background:
-        #eff6ff;
+    color: var(--text-main);
+    background-color: rgba(255, 255, 255, 0.05);
 }
-
 
 .creator-mini {
-
-    margin-top:
-        18px;
-
-    padding:
-        12px;
-
-    border-radius:
-        12px;
-
-    text-align:
-        center;
-
-    font-size:
-        9px;
-
-    line-height:
-        1.5;
-
-    color:
-        #94a3b8;
-
-    background:
-        linear-gradient(
-            135deg,
-            #f8fafc,
-            #fffbeb
-        );
-
-    border:
-        1px solid
-        rgba(212, 175, 55, 0.18);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 0.5rem;
 }
 
-
-.creator-mini strong {
-
-    color:
-        var(--gold-dark);
-
-    font-weight:
-        700;
-}
-
-
-/* =========================================================
-   OVERLAY MOBILE
-   ========================================================= */
+/* OVERLAY MOBILE */
 
 .sidebar-overlay {
-
-    display:
-        none;
-
-    position:
-        fixed;
-
-    inset:
-        0;
-
-    background:
-        rgba(15, 23, 42, 0.45);
-
-    backdrop-filter:
-        blur(3px);
-
-    z-index:
-        90;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 90;
+    display: none;
+    opacity: 0;
+    transition: var(--transition);
 }
 
-
-/* =========================================================
-   MAIN
-   ========================================================= */
+/* =====================================================
+   ÁREA PRINCIPAL (MAIN)
+   ===================================================== */
 
 .main {
-
-    flex:
-        1;
-
-    min-width:
-        0;
-
-    height:
-        100vh;
-
-    display:
-        flex;
-
-    flex-direction:
-        column;
-
-    position:
-        relative;
-
-    background:
-        rgba(248, 250, 252, 0.68);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-chat);
+    position: relative;
+    height: 100%;
 }
-
-
-/* =========================================================
-   TOPBAR
-   ========================================================= */
 
 .topbar {
-
-    height:
-        70px;
-
-    flex-shrink:
-        0;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        space-between;
-
-    padding:
-        0 24px;
-
-    background:
-        rgba(255, 255, 255, 0.88);
-
-    border-bottom:
-        1px solid
-        var(--border);
-
-    backdrop-filter:
-        blur(15px);
-
-    z-index:
-        20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
 }
 
-
-/* =========================================================
-   MENU BUTTON
-   ========================================================= */
-
-.menu-button {
-
-    display:
-        none;
-
-    width:
-        40px;
-
-    height:
-        40px;
-
-    border:
-        none;
-
-    border-radius:
-        10px;
-
-    background:
-        #eff6ff;
-
-    color:
-        var(--blue);
-
-    font-size:
-        20px;
-
-    cursor:
-        pointer;
+.menu-button, .new-mobile {
+    background: none;
+    border: none;
+    color: var(--text-main);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: none;
 }
-
-
-/* =========================================================
-   TOPBAR TITLE
-   ========================================================= */
 
 .topbar-title {
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    gap:
-        10px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
-
 
 .mini-logo {
-
-    width:
-        38px;
-
-    height:
-        38px;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    border-radius:
-        11px;
-
-    color:
-        white;
-
-    font-weight:
-        800;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--blue-dark),
-            var(--blue),
-            var(--gold)
-        );
-
-    box-shadow:
-        0 5px 15px
-        rgba(37, 99, 235, 0.18);
+    width: 32px;
+    height: 32px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
 }
-
-
-.topbar-title strong {
-
-    display:
-        block;
-
-    font-size:
-        15px;
-}
-
 
 .topbar-title span {
-
-    display:
-        block;
-
-    margin-top:
-        2px;
-
-    font-size:
-        10px;
-
-    color:
-        #22c55e;
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
 }
 
-
-/* =========================================================
-   MOBILE NEW BUTTON
-   ========================================================= */
-
-.new-mobile {
-
-    width:
-        40px;
-
-    height:
-        40px;
-
-    display:
-        none;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    border:
-        none;
-
-    border-radius:
-        11px;
-
-    background:
-        #eff6ff;
-
-    color:
-        var(--blue);
-
-    font-size:
-        22px;
-
-    cursor:
-        pointer;
-}
-
-
-/* =========================================================
-   CHAT AREA
-   ========================================================= */
+/* =====================================================
+   ÁREA DE CHAT E MENSAGENS
+   ===================================================== */
 
 .chat-area {
-
-    flex:
-        1;
-
-    width:
-        100%;
-
-    overflow-y:
-        auto;
-
-    padding:
-        35px 40px 25px;
-
-    scroll-behavior:
-        smooth;
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    scroll-behavior: smooth;
 }
-
-
-/* =========================================================
-   CHAT SCROLLBAR
-   ========================================================= */
-
-.chat-area::-webkit-scrollbar {
-
-    width:
-        7px;
-}
-
-
-.chat-area::-webkit-scrollbar-track {
-
-    background:
-        transparent;
-}
-
-
-.chat-area::-webkit-scrollbar-thumb {
-
-    border-radius:
-        20px;
-
-    background:
-        linear-gradient(
-            180deg,
-            var(--blue),
-            var(--gold),
-            var(--red)
-        );
-}
-
-
-/* =========================================================
-   WELCOME
-   ========================================================= */
 
 .welcome {
-
-    max-width:
-        850px;
-
-    margin:
-        0 auto;
-
-    min-height:
-        100%;
-
-    display:
-        flex;
-
-    flex-direction:
-        column;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    text-align:
-        center;
-
-    padding:
-        30px 10px 50px;
+    margin: auto;
+    max-width: 600px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
 }
-
-
-/* =========================================================
-   WELCOME LOGO
-   ========================================================= */
 
 .welcome-logo {
-
-    width:
-        82px;
-
-    height:
-        82px;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    margin-bottom:
-        22px;
-
-    border-radius:
-        25px;
-
-    color:
-        #ffffff;
-
-    font-size:
-        38px;
-
-    font-weight:
-        800;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--blue-dark),
-            var(--blue),
-            var(--gold),
-            var(--red)
-        );
-
-    border:
-        2px solid
-        rgba(212, 175, 55, 0.40);
-
-    box-shadow:
-
-        0 18px 40px
-        rgba(37, 99, 235, 0.20),
-
-        0 8px 20px
-        rgba(220, 38, 38, 0.08);
-
-    animation:
-        floatLogo 4s ease-in-out infinite;
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #0284c7, #38bdf8);
+    border-radius: 50%;
+    font-size: 2rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-
-
-@keyframes floatLogo {
-
-    0%,
-    100% {
-        transform:
-            translateY(0);
-    }
-
-    50% {
-        transform:
-            translateY(-6px);
-    }
-}
-
-
-/* =========================================================
-   WELCOME TITLE
-   ========================================================= */
-
-.welcome h1 {
-
-    font-size:
-        clamp(27px, 4vw, 40px);
-
-    line-height:
-        1.2;
-
-    font-weight:
-        800;
-
-    letter-spacing:
-        -1px;
-}
-
 
 .welcome h1 span {
-
-    background:
-        linear-gradient(
-            90deg,
-            var(--blue),
-            var(--gold),
-            var(--red)
-        );
-
-    -webkit-background-clip:
-        text;
-
-    -webkit-text-fill-color:
-        transparent;
+    color: var(--accent-color);
 }
-
-
-/* =========================================================
-   WELCOME TEXT
-   ========================================================= */
 
 .welcome p {
-
-    max-width:
-        650px;
-
-    margin-top:
-        14px;
-
-    color:
-        var(--muted);
-
-    font-size:
-        14px;
-
-    line-height:
-        1.7;
+    color: var(--text-muted);
+    font-size: 0.95rem;
 }
-
-
-/* =========================================================
-   SUGGESTIONS
-   ========================================================= */
 
 .suggestions {
-
-    width:
-        100%;
-
-    max-width:
-        760px;
-
-    margin-top:
-        35px;
-
-    display:
-        grid;
-
-    grid-template-columns:
-        repeat(2, 1fr);
-
-    gap:
-        12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    width: 100%;
+    margin-top: 1rem;
 }
-
-
-/* =========================================================
-   SUGGESTION BUTTON
-   ========================================================= */
 
 .suggestions button {
-
-    min-height:
-        82px;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    gap:
-        13px;
-
-    padding:
-        15px;
-
-    border:
-        1px solid
-        var(--border);
-
-    border-radius:
-        16px;
-
-    background:
-        rgba(255, 255, 255, 0.88);
-
-    color:
-        #64748b;
-
-    text-align:
-        left;
-
-    cursor:
-        pointer;
-
-    transition:
-        0.25s ease;
-
-    box-shadow:
-        0 5px 18px
-        rgba(15, 23, 42, 0.04);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    cursor: pointer;
+    text-align: left;
+    transition: var(--transition);
 }
-
-
-.suggestions button > span:first-child {
-
-    width:
-        40px;
-
-    height:
-        40px;
-
-    flex-shrink:
-        0;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    border-radius:
-        12px;
-
-    background:
-        #eff6ff;
-
-    font-size:
-        20px;
-}
-
 
 .suggestions button:hover {
-
-    transform:
-        translateY(-3px);
-
-    border-color:
-        #93c5fd;
-
-    box-shadow:
-        0 12px 25px
-        rgba(37, 99, 235, 0.10);
-
-    background:
-        #ffffff;
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
 }
 
+/* MENSAGENS NO CHAT */
 
-.suggestions button:nth-child(2):hover {
-
-    border-color:
-        rgba(212, 175, 55, 0.55);
+.message {
+    display: flex;
+    gap: 0.75rem;
+    max-width: 80%;
+    animation: fadeIn 0.3s ease;
 }
 
-
-.suggestions button:nth-child(3):hover {
-
-    border-color:
-        rgba(37, 99, 235, 0.50);
+.message.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
 }
 
-
-.suggestions button:nth-child(4):hover {
-
-    border-color:
-        rgba(220, 38, 38, 0.45);
+.message.bot {
+    align-self: flex-start;
 }
 
-
-.suggestions button strong {
-
-    display:
-        block;
-
-    margin-bottom:
-        4px;
-
-    color:
-        var(--text);
-
-    font-size:
-        13px;
+.message-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    flex-shrink: 0;
 }
 
-
-.suggestions button > span:last-child {
-
-    font-size:
-        11px;
-
-    line-height:
-        1.4;
+.message.user .message-avatar {
+    background-color: var(--accent-color);
 }
 
+.message-content {
+    background-color: var(--bg-secondary);
+    padding: 0.85rem 1.1rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    line-height: 1.5;
+    font-size: 0.95rem;
+    word-break: break-word;
+}
 
-/* =========================================================
-   INPUT WRAPPER
-   ========================================================= */
+.message.user .message-content {
+    background-color: var(--accent-color);
+    border-color: var(--accent-hover);
+}
+
+.message-image {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: var(--radius-md);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.reply-voice-button {
+    margin-top: 0.5rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: var(--transition);
+}
+
+.reply-voice-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* ANIMAÇÃO TYPING DE CARREGAMENTO */
+
+.typing {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.5rem;
+}
+
+.typing span {
+    width: 8px;
+    height: 8px;
+    background-color: var(--text-muted);
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing span:nth-child(1) { animation-delay: 0s; }
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    50% { transform: translateY(-4px); opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =====================================================
+   ÁREA DE ENTRADA (INPUT)
+   ===================================================== */
 
 .input-wrapper {
-
-    width:
-        100%;
-
-    max-width:
-        900px;
-
-    margin:
-        0 auto;
-
-    padding:
-        10px 25px 20px;
+    padding: 1rem 1.5rem;
+    background-color: var(--bg-primary);
+    border-top: 1px solid var(--border-color);
 }
-
-
-/* =========================================================
-   IMAGE PREVIEW
-   ========================================================= */
 
 .image-preview {
-
-    width:
-        fit-content;
-
-    max-width:
-        100%;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    gap:
-        10px;
-
-    margin-bottom:
-        9px;
-
-    padding:
-        7px 10px;
-
-    border:
-        1px solid
-        #bfdbfe;
-
-    border-radius:
-        12px;
-
-    background:
-        #ffffff;
-
-    box-shadow:
-        0 5px 15px
-        rgba(15, 23, 42, 0.06);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg-secondary);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 0.5rem;
+    width: fit-content;
+    border: 1px solid var(--border-color);
 }
-
 
 .image-preview img {
-
-    width:
-        45px;
-
-    height:
-        45px;
-
-    object-fit:
-        cover;
-
-    border-radius:
-        8px;
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
 }
-
 
 .image-preview-info {
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    gap:
-        10px;
-
-    font-size:
-        11px;
-
-    color:
-        var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
 }
-
 
 .image-preview-info button {
-
-    width:
-        25px;
-
-    height:
-        25px;
-
-    border:
-        none;
-
-    border-radius:
-        50%;
-
-    background:
-        #fee2e2;
-
-    color:
-        var(--red);
-
-    font-size:
-        18px;
-
-    cursor:
-        pointer;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
 }
-
-
-/* =========================================================
-   INPUT BOX
-   ========================================================= */
 
 .input-box {
-
-    min-height:
-        58px;
-
-    display:
-        flex;
-
-    align-items:
-        flex-end;
-
-    gap:
-        8px;
-
-    padding:
-        7px;
-
-    border:
-        1px solid
-        #cbd5e1;
-
-    border-radius:
-        18px;
-
-    background:
-        #ffffff;
-
-    box-shadow:
-
-        0 10px 30px
-        rgba(15, 23, 42, 0.07),
-
-        0 0 0 1px
-        rgba(37, 99, 235, 0.02);
-
-    transition:
-        0.25s ease;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 0.5rem 0.75rem;
 }
-
 
 .input-box:focus-within {
-
-    border-color:
-        var(--blue);
-
-    box-shadow:
-
-        0 0 0 3px
-        rgba(37, 99, 235, 0.09),
-
-        0 12px 35px
-        rgba(15, 23, 42, 0.08);
+    border-color: var(--accent-color);
 }
 
-
-/* =========================================================
-   ATTACH BUTTON
-   ========================================================= */
-
-.attach-button {
-
-    width:
-        42px;
-
-    height:
-        42px;
-
-    flex-shrink:
-        0;
-
-    border:
-        none;
-
-    border-radius:
-        12px;
-
-    background:
-        #eff6ff;
-
-    color:
-        var(--blue);
-
-    font-size:
-        19px;
-
-    cursor:
-        pointer;
-
-    transition:
-        0.2s ease;
+.input-box textarea {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    resize: none;
+    max-height: 130px;
+    outline: none;
+    padding: 0.4rem 0;
 }
 
-
-.attach-button:hover {
-
-    background:
-        #dbeafe;
-
-    transform:
-        scale(1.05);
+.attach-button, .send-button, #voice-button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    padding: 0.4rem;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
 }
 
-
-/* =========================================================
-   TEXTAREA
-   ========================================================= */
-
-#message {
-
-    flex:
-        1;
-
-    min-width:
-        0;
-
-    max-height:
-        140px;
-
-    resize:
-        none;
-
-    overflow-y:
-        auto;
-
-    border:
-        none;
-
-    outline:
-        none;
-
-    padding:
-        11px 8px;
-
-    font-family:
-        inherit;
-
-    font-size:
-        14px;
-
-    line-height:
-        1.5;
-
-    color:
-        var(--text);
-
-    background:
-        transparent;
+.attach-button:hover, #voice-button:hover {
+    color: var(--text-main);
+    background-color: rgba(255, 255, 255, 0.05);
 }
-
-
-#message::placeholder {
-
-    color:
-        #94a3b8;
-}
-
-
-/* =========================================================
-   SEND BUTTON
-   ========================================================= */
 
 .send-button {
+    color: var(--accent-color);
+}
 
-    width:
-        44px;
+.send-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
 
-    height:
-        44px;
+#voice-button.recording {
+    color: #ef4444;
+    animation: pulse 1s infinite;
+}
 
-    flex-shrink:
-        0;
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
 
-    border:
-        none;
+.input-info {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+}
 
-    border-radius:
-        13px;
+/* =====================================================
+   RESPONSIVIDADE (MOBILE)
+   ===================================================== */
 
-    color:
-       
+@media (max-width: 768px) {
+    .menu-button, .new-mobile {
+        display: block;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -100%; /* Esconde a sidebar completamente para fora da tela */
+        height: 100vh;
+        z-index: 1000;
+        box-shadow: 4px 0 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .sidebar.open {
+        left: 0; /* Abre a sidebar no mobile */
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    .suggestions {
+        grid-template-columns: 1fr;
+    }
+
+    .message {
+        max-width: 90%;
+    }
+       }
+   
