@@ -56,7 +56,8 @@ OPENROUTER_URL = (
     "https://openrouter.ai/api/v1/chat/completions"
 )
 
-# Limite pequeno para evitar respostas muito grandes.
+# Limite máximo da resposta.
+# Mantemos pequeno para reduzir o consumo.
 MAX_TOKENS = 300
 
 
@@ -74,6 +75,7 @@ FIREBASE_KEY = os.path.join(
 )
 
 if not os.path.exists(FIREBASE_KEY):
+
     raise FileNotFoundError(
         "O ficheiro firebase-service-account.json "
         "não foi encontrado."
@@ -123,6 +125,7 @@ def usuario_atual():
     )
 
     if not uid:
+
         return None
 
     try:
@@ -272,14 +275,22 @@ def firebase_login():
         )
 
         return jsonify({
+
             "success": True,
+
             "message":
                 "Autenticação efetuada com sucesso.",
+
             "user": {
+
                 "uid": uid,
+
                 "email": email,
+
                 "name": name
+
             }
+
         })
 
     except Exception as erro:
@@ -290,9 +301,12 @@ def firebase_login():
         )
 
         return jsonify({
+
             "success": False,
+
             "error":
                 "Não foi possível validar a autenticação."
+
         }), 401
 
 
@@ -327,9 +341,12 @@ def chat():
     if not exigir_login():
 
         return jsonify({
+
             "success": False,
+
             "error":
                 "Não autenticado."
+
         }), 401
 
 
@@ -340,9 +357,12 @@ def chat():
     if not OPENROUTER_API_KEY:
 
         return jsonify({
+
             "success": False,
+
             "error":
                 "OPENROUTER_API_KEY não configurada."
+
         }), 500
 
 
@@ -357,9 +377,12 @@ def chat():
     if not dados:
 
         return jsonify({
+
             "success": False,
+
             "error":
                 "Dados inválidos."
+
         }), 400
 
 
@@ -384,9 +407,12 @@ def chat():
     if not mensagem:
 
         return jsonify({
+
             "success": False,
+
             "error":
                 "Mensagem vazia."
+
         }), 400
 
 
@@ -397,9 +423,11 @@ def chat():
     mensagens = [
 
         {
+
             "role": "system",
 
             "content": (
+
                 "Tu és a Mello IA, uma assistente "
                 "inteligente desenvolvida pelo "
                 "Eng. Ivanildo João Paulo Augusto. "
@@ -424,6 +452,7 @@ def chat():
 
                 "Se não souberes, diz claramente."
             )
+
         }
 
     ]
@@ -472,8 +501,11 @@ def chat():
                 continue
 
             mensagens.append({
+
                 "role": role,
+
                 "content": content
+
             })
 
 
@@ -518,13 +550,13 @@ def chat():
     payload = {
 
         "model":
-            "openrouter/free",
+            OPENROUTER_MODEL,
 
         "messages":
             mensagens,
 
         "max_tokens":
-            300,
+            MAX_TOKENS,
 
         "temperature":
             0.3,
@@ -536,7 +568,7 @@ def chat():
 
 
     # --------------------------------------------------------
-    # LOG DO PAYLOAD
+    # LOG
     # --------------------------------------------------------
 
     logger.info(
@@ -563,7 +595,7 @@ def chat():
 
 
     # --------------------------------------------------------
-    # PEDIDO
+    # PEDIDO À OPENROUTER
     # --------------------------------------------------------
 
     try:
@@ -587,9 +619,12 @@ def chat():
         )
 
         return jsonify({
+
             "success": False,
+
             "error":
                 "A OpenRouter demorou demasiado para responder."
+
         }), 504
 
 
@@ -601,9 +636,12 @@ def chat():
         )
 
         return jsonify({
+
             "success": False,
+
             "error":
                 "Não foi possível conectar à OpenRouter."
+
         }), 502
 
 
@@ -633,9 +671,12 @@ def chat():
         )
 
         return jsonify({
+
             "success": False,
+
             "error":
                 "A OpenRouter devolveu uma resposta inválida."
+
         }), 502
 
 
@@ -661,11 +702,17 @@ def chat():
         ):
 
             mensagem_erro = (
+
                 erro.get("message")
+
                 or
+
                 erro.get("code")
+
                 or
+
                 "Erro desconhecido."
+
             )
 
         else:
@@ -681,17 +728,25 @@ def chat():
 
 
         # ----------------------------------------------------
-        # CRÉDITOS / LIMITE
+        # CRÉDITOS
         # ----------------------------------------------------
 
         if (
+
             resposta_http.status_code == 402
+
             or
+
             "credit" in erro_lower
+
             or
+
             "credits" in erro_lower
+
             or
+
             "afford" in erro_lower
+
         ):
 
             return jsonify({
@@ -699,11 +754,15 @@ def chat():
                 "success": False,
 
                 "error": (
+
                     "A OpenRouter recusou a requisição "
                     "por limite de créditos ou capacidade "
                     "da chave. "
-                    "O código da Mello IA está configurado "
-                    "para enviar apenas 300 tokens."
+
+                    f"A Mello IA está configurada para "
+                    f"usar no máximo {MAX_TOKENS} tokens "
+                    "por resposta."
+
                 )
 
             }), 402
@@ -714,13 +773,21 @@ def chat():
         # ----------------------------------------------------
 
         if (
+
             "model" in erro_lower
+
             and
+
             (
+
                 "not found" in erro_lower
+
                 or
+
                 "unavailable" in erro_lower
+
             )
+
         ):
 
             return jsonify({
@@ -728,8 +795,10 @@ def chat():
                 "success": False,
 
                 "error": (
-                    "O modelo gratuito da OpenRouter "
+
+                    "O modelo configurado na OpenRouter "
                     "não está disponível neste momento."
+
                 )
 
             }), 503
@@ -815,12 +884,14 @@ def chat():
                 ) == "text":
 
                     partes.append(
+
                         str(
                             parte.get(
                                 "text",
                                 ""
                             )
                         )
+
                     )
 
         texto = "\n".join(
@@ -840,8 +911,10 @@ def chat():
     if not texto:
 
         texto = (
+
             "O modelo recebeu a pergunta, "
             "mas não devolveu texto."
+
         )
 
 
@@ -880,8 +953,10 @@ def api_me():
     if not usuario:
 
         return jsonify({
+
             "authenticated":
                 False
+
         }), 401
 
 
@@ -899,12 +974,16 @@ def api_me():
                 usuario.email or "",
 
             "name": (
+
                 usuario.display_name
+
                 or
+
                 session.get(
                     "name",
                     ""
                 )
+
             )
 
         }
@@ -997,6 +1076,6 @@ if __name__ == "__main__":
             )
         ),
 
-        debug=True
+        debug=False
 
     )
