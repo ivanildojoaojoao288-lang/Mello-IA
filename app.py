@@ -40,6 +40,36 @@ app.secret_key = os.getenv(
 
 
 # ============================================================
+# OPENROUTER
+# ============================================================
+
+OPENROUTER_API_KEY = os.getenv(
+    "OPENROUTER_API_KEY"
+)
+
+OPENROUTER_MODEL = os.getenv(
+    "OPENROUTER_MODEL",
+    "openrouter/free"
+)
+
+OPENROUTER_URL = (
+    "https://openrouter.ai/api/v1/chat/completions"
+)
+
+
+# ============================================================
+# TOKENS
+# ============================================================
+
+# A Mello tenta primeiro responder com até 2000 tokens.
+MAX_TOKENS = 2000
+
+# Se a chave não conseguir suportar 2000,
+# tenta automaticamente estes limites.
+TOKEN_FALLBACKS = [600, 300]
+
+
+# ============================================================
 # FIREBASE
 # ============================================================
 
@@ -53,9 +83,12 @@ FIREBASE_KEY = os.path.join(
 )
 
 if not os.path.exists(FIREBASE_KEY):
+
     raise FileNotFoundError(
-        "O ficheiro firebase-service-account.json não foi encontrado."
+        "O ficheiro firebase-service-account.json "
+        "não foi encontrado."
     )
+
 
 if not firebase_admin._apps:
 
@@ -73,28 +106,8 @@ if not firebase_admin._apps:
 
 
 # ============================================================
-# OPENROUTER
+# STATUS
 # ============================================================
-
-OPENROUTER_API_KEY = os.getenv(
-    "OPENROUTER_API_KEY"
-)
-
-OPENROUTER_MODEL = os.getenv(
-    "OPENROUTER_MODEL",
-    "openrouter/free"
-)
-
-OPENROUTER_URL = (
-    "https://openrouter.ai/api/v1/chat/completions"
-)
-
-# IMPORTANTE:
-# Mantemos baixo para evitar gastar créditos.
-MAX_TOKENS = 300
-
-TEMPERATURE = 0.5
-
 
 if OPENROUTER_API_KEY:
 
@@ -120,15 +133,12 @@ def usuario_atual():
     )
 
     if not uid:
+
         return None
 
     try:
 
-        usuario = auth.get_user(
-            uid
-        )
-
-        return usuario
+        return auth.get_user(uid)
 
     except Exception as erro:
 
@@ -220,10 +230,14 @@ def firebase_login():
         if not dados:
 
             return jsonify({
+
                 "success": False,
+
                 "error":
                     "Dados de autenticação ausentes."
+
             }), 400
+
 
         id_token = dados.get(
             "idToken"
@@ -232,14 +246,19 @@ def firebase_login():
         if not id_token:
 
             return jsonify({
+
                 "success": False,
+
                 "error":
                     "ID token ausente."
+
             }), 400
+
 
         decoded_token = auth.verify_id_token(
             id_token
         )
+
 
         uid = decoded_token.get(
             "uid"
@@ -255,22 +274,29 @@ def firebase_login():
             ""
         )
 
+
         if not uid:
 
             return jsonify({
+
                 "success": False,
+
                 "error":
                     "Token inválido."
+
             }), 401
+
 
         session["firebase_uid"] = uid
         session["email"] = email
         session["name"] = name
 
+
         logger.info(
             "Login efetuado: %s",
             email
         )
+
 
         return jsonify({
 
@@ -281,18 +307,25 @@ def firebase_login():
 
             "user": {
 
-                "uid": uid,
-                "email": email,
-                "name": name
+                "uid":
+                    uid,
+
+                "email":
+                    email,
+
+                "name":
+                    name
 
             }
 
         })
 
+
     except Exception as erro:
 
         logger.exception(
-            "Erro na autenticação Firebase."
+            "Erro na autenticação Firebase: %s",
+            erro
         )
 
         return jsonify({
@@ -320,6 +353,44 @@ def logout():
 
 
 # ============================================================
+# FUNÇÃO PARA IDENTIFICAR ERRO DE CAPACIDADE
+# ============================================================
+
+def erro_eh_limite_tokens(
+    status_code,
+    mensagem
+):
+
+    texto = str(
+        mensagem or ""
+    ).lower()
+
+
+    palavras = [
+
+        "credit",
+        "credits",
+        "afford",
+        "max_tokens",
+        "tokens",
+        "limit",
+        "capacity"
+
+    ]
+
+
+    if status_code == 402:
+
+        return True
+
+
+    return any(
+        palavra in texto
+        for palavra in palavras
+    )
+
+
+# ============================================================
 # CHAT
 # ============================================================
 
@@ -330,7 +401,7 @@ def logout():
 def chat():
 
     # --------------------------------------------------------
-    # AUTENTICAÇÃO
+    # LOGIN
     # --------------------------------------------------------
 
     if not exigir_login():
@@ -343,6 +414,22 @@ def chat():
                 "Não autenticado."
 
         }), 401
+
+
+    # --------------------------------------------------------
+    # API KEY
+    # --------------------------------------------------------
+
+    if not OPENROUTER_API_KEY:
+
+        return jsonify({
+
+            "success": False,
+
+            "error":
+                "OPENROUTER_API_KEY não configurada."
+
+        }), 500
 
 
     # --------------------------------------------------------
@@ -373,14 +460,14 @@ def chat():
     ).strip()
 
 
-    historico_recebido = dados.get(
+    historico = dados.get(
         "history",
         []
     )
 
 
     # --------------------------------------------------------
-    # VALIDAÇÃO
+    # VALIDAR
     # --------------------------------------------------------
 
     if not mensagem:
@@ -395,70 +482,75 @@ def chat():
         }), 400
 
 
-    if not OPENROUTER_API_KEY:
+    # ========================================================
+    # SISTEMA DA MELLO IA
+    # ========================================================
 
-        return jsonify({
+    sistema = (
 
-            "success": False,
+        "Tu és a Mello IA, uma assistente "
+        "inteligente desenvolvida pelo "
+        "Eng. Ivanildo João Paulo Augusto. "
 
-            "error":
-                "OPENROUTER_API_KEY não configurada."
+        "Responde sempre em português. "
 
-        }), 500
+        "Sê clara, natural, objetiva e útil. "
+
+        "Para perguntas simples, responde "
+        "diretamente e de forma curta. "
+
+        "Para questões escolares, apresenta "
+        "a resposta e uma explicação simples. "
+
+        "Para matemática, mostra os cálculos "
+        "necessários. "
+
+        "Para programação, fornece código correto "
+        "e explicação clara. "
+
+        "Quando o utilizador pedir código, "
+        "fornece código completo quando necessário. "
+
+        "Não inventes informações. "
+
+        "Se não souberes alguma coisa, "
+        "diz claramente que não sabes."
+
+    )
 
 
-    # --------------------------------------------------------
-    # SISTEMA
-    # --------------------------------------------------------
+    # ========================================================
+    # CONSTRUIR MENSAGENS
+    # ========================================================
 
     mensagens = [
 
         {
             "role": "system",
-
-            "content": (
-                "Tu és a Mello IA, uma assistente "
-                "inteligente desenvolvida pelo "
-                "Eng. Ivanildo João Paulo Augusto. "
-
-                "Responde sempre em português. "
-
-                "Sê clara, natural, objetiva e útil. "
-
-                "Para perguntas simples, responde "
-                "diretamente. "
-
-                "Para perguntas escolares, explica "
-                "de forma simples e passo a passo. "
-
-                "Para programação, fornece código "
-                "correto e explica brevemente. "
-
-                "Não inventes informações. "
-
-                "Se não souberes algo, diz claramente."
-            )
+            "content": sistema
         }
 
     ]
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # HISTÓRICO
-    # --------------------------------------------------------
+    # ========================================================
 
     if isinstance(
-        historico_recebido,
+        historico,
         list
     ):
 
-        for item in historico_recebido[-6:]:
+        for item in historico[-6:]:
 
             if not isinstance(
                 item,
                 dict
             ):
+
                 continue
+
 
             role = item.get(
                 "role"
@@ -468,51 +560,60 @@ def chat():
                 "content"
             )
 
+
             if role not in (
                 "user",
                 "assistant"
             ):
+
                 continue
+
 
             if not isinstance(
                 content,
                 str
             ):
+
                 continue
+
 
             content = content.strip()
 
+
             if not content:
+
                 continue
 
-            # Limita o tamanho do histórico
-            content = content[:2000]
 
             mensagens.append({
 
-                "role": role,
+                "role":
+                    role,
 
-                "content": content
+                "content":
+                    content
 
             })
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # PERGUNTA ATUAL
-    # --------------------------------------------------------
+    # ========================================================
 
     mensagens.append({
 
-        "role": "user",
+        "role":
+            "user",
 
-        "content": mensagem
+        "content":
+            mensagem
 
     })
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # HEADERS
-    # --------------------------------------------------------
+    # ========================================================
 
     headers = {
 
@@ -531,244 +632,424 @@ def chat():
     }
 
 
-    # --------------------------------------------------------
-    # PAYLOAD
-    # --------------------------------------------------------
+    # ========================================================
+    # TENTATIVAS
+    # ========================================================
 
-    payload = {
+    limites = [
 
-        "model":
-            OPENROUTER_MODEL,
+        MAX_TOKENS
 
-        "messages":
-            mensagens,
-
-        # IMPORTANTE:
-        # Nunca usar 2000 aqui.
-        "max_tokens":
-            MAX_TOKENS,
-
-        "temperature":
-            TEMPERATURE,
-
-        "stream":
-            False
-
-    }
+    ] + TOKEN_FALLBACKS
 
 
-    logger.info(
-        "======================================"
-    )
-
-    logger.info(
-        "PERGUNTA PARA OPENROUTER"
-    )
-
-    logger.info(
-        "Modelo: %s",
-        OPENROUTER_MODEL
-    )
-
-    logger.info(
-        "Max tokens enviado: %s",
-        payload["max_tokens"]
-    )
-
-    logger.info(
-        "======================================"
-    )
+    ultima_resposta = None
+    ultima_mensagem_erro = ""
 
 
-    # --------------------------------------------------------
-    # OPENROUTER
-    # --------------------------------------------------------
+    for limite_tokens in limites:
 
-    try:
-
-        resposta_http = requests.post(
-
-            OPENROUTER_URL,
-
-            headers=headers,
-
-            json=payload,
-
-            timeout=90
-
+        logger.info(
+            "Tentando OpenRouter com %s tokens.",
+            limite_tokens
         )
 
-    except requests.exceptions.Timeout:
 
-        logger.error(
-            "Timeout ao contactar OpenRouter."
-        )
+        payload = {
 
-        return jsonify({
+            "model":
+                OPENROUTER_MODEL,
 
-            "success": False,
+            "messages":
+                mensagens,
 
-            "error":
-                "A OpenRouter demorou demasiado para responder."
+            "max_tokens":
+                limite_tokens,
 
-        }), 504
+            "temperature":
+                0.3,
 
+            "stream":
+                False
 
-    except requests.exceptions.RequestException as erro:
-
-        logger.exception(
-            "Erro de conexão com OpenRouter: %s",
-            erro
-        )
-
-        return jsonify({
-
-            "success": False,
-
-            "error":
-                "Não foi possível conectar à OpenRouter."
-
-        }), 502
-
-
-    # --------------------------------------------------------
-    # STATUS
-    # --------------------------------------------------------
-
-    logger.info(
-        "OpenRouter respondeu HTTP %s",
-        resposta_http.status_code
-    )
-
-
-    # --------------------------------------------------------
-    # JSON
-    # --------------------------------------------------------
-
-    try:
-
-        resultado = resposta_http.json()
-
-    except ValueError:
-
-        logger.error(
-            "Resposta não JSON: %s",
-            resposta_http.text[:1000]
-        )
-
-        return jsonify({
-
-            "success": False,
-
-            "error":
-                "A OpenRouter devolveu uma resposta inválida."
-
-        }), 502
-
-
-    # --------------------------------------------------------
-    # ERRO OPENROUTER
-    # --------------------------------------------------------
-
-    if not resposta_http.ok:
-
-        logger.error(
-            "Erro OpenRouter: %s",
-            resultado
-        )
-
-        erro_openrouter = resultado.get(
-            "error",
-            {}
-        )
-
-        if isinstance(
-            erro_openrouter,
-            dict
-        ):
-
-            mensagem_erro = (
-                erro_openrouter.get(
-                    "message"
-                )
-                or
-                erro_openrouter.get(
-                    "code"
-                )
-                or
-                "Erro desconhecido da OpenRouter."
-            )
-
-        else:
-
-            mensagem_erro = str(
-                erro_openrouter
-            )
-
-
-        erro_lower = str(
-            mensagem_erro
-        ).lower()
+        }
 
 
         # ----------------------------------------------------
-        # CRÉDITOS
+        # PEDIDO
         # ----------------------------------------------------
 
-        if (
-            resposta_http.status_code == 402
-            or
-            "credit" in erro_lower
-            or
-            "credits" in erro_lower
-            or
-            "afford" in erro_lower
-        ):
+        try:
+
+            resposta_http = requests.post(
+
+                OPENROUTER_URL,
+
+                headers=headers,
+
+                json=payload,
+
+                timeout=90
+
+            )
+
+
+        except requests.exceptions.Timeout:
+
+            logger.error(
+                "Timeout na OpenRouter."
+            )
 
             return jsonify({
 
                 "success": False,
 
-                "error": (
-                    "A OpenRouter recusou a requisição "
-                    "porque a chave não possui créditos "
-                    "suficientes para este pedido. "
-                    "O código está configurado para "
-                    f"{MAX_TOKENS} tokens."
+                "error":
+                    "A OpenRouter demorou demasiado "
+                    "para responder."
+
+            }), 504
+
+
+        except requests.exceptions.RequestException as erro:
+
+            logger.exception(
+                "Erro de conexão: %s",
+                erro
+            )
+
+            return jsonify({
+
+                "success": False,
+
+                "error":
+                    "Não foi possível conectar "
+                    "à OpenRouter."
+
+            }), 502
+
+
+        # ----------------------------------------------------
+        # STATUS
+        # ----------------------------------------------------
+
+        logger.info(
+            "OpenRouter respondeu HTTP %s.",
+            resposta_http.status_code
+        )
+
+
+        # ----------------------------------------------------
+        # JSON
+        # ----------------------------------------------------
+
+        try:
+
+            resultado = resposta_http.json()
+
+
+        except ValueError:
+
+            logger.error(
+                "Resposta inválida da OpenRouter."
+            )
+
+            return jsonify({
+
+                "success": False,
+
+                "error":
+                    "A OpenRouter devolveu "
+                    "uma resposta inválida."
+
+            }), 502
+
+
+        # ----------------------------------------------------
+        # SE DEU CERTO
+        # ----------------------------------------------------
+
+        if resposta_http.ok:
+
+            choices = resultado.get(
+                "choices",
+                []
+            )
+
+
+            if not choices:
+
+                logger.error(
+                    "Resposta sem choices: %s",
+                    resultado
                 )
 
-            }), 402
+                return jsonify({
+
+                    "success": False,
+
+                    "error":
+                        "A Mello IA não recebeu "
+                        "resposta do modelo."
+
+                }), 500
+
+
+            message = choices[0].get(
+                "message",
+                {}
+            )
+
+
+            texto = message.get(
+                "content",
+                ""
+            )
+
+
+            # ------------------------------------------------
+            # CONTENT EM LISTA
+            # ------------------------------------------------
+
+            if isinstance(
+                texto,
+                list
+            ):
+
+                partes = []
+
+
+                for parte in texto:
+
+                    if isinstance(
+                        parte,
+                        dict
+                    ):
+
+                        if parte.get(
+                            "type"
+                        ) == "text":
+
+                            partes.append(
+
+                                str(
+                                    parte.get(
+                                        "text",
+                                        ""
+                                    )
+                                )
+
+                            )
+
+
+                texto = "\n".join(
+                    partes
+                )
+
+
+            texto = str(
+                texto or ""
+            ).strip()
+
+
+            if not texto:
+
+                texto = (
+
+                    "O modelo recebeu a pergunta, "
+                    "mas não devolveu texto."
+
+                )
+
+
+            logger.info(
+                "Resposta gerada com sucesso usando %s tokens.",
+                limite_tokens
+            )
+
+
+            return jsonify({
+
+                "success":
+                    True,
+
+                "reply":
+                    texto,
+
+                "response":
+                    texto,
+
+                "tokens_limit":
+                    limite_tokens
+
+            })
+
+
+        # ----------------------------------------------------
+        # ERRO
+        # ----------------------------------------------------
+
+        erro = resultado.get(
+            "error",
+            {}
+        )
+
+
+        if isinstance(
+            erro,
+            dict
+        ):
+
+            mensagem_erro = (
+
+                erro.get(
+                    "message"
+                )
+
+                or
+
+                erro.get(
+                    "code"
+                )
+
+                or
+
+                "Erro desconhecido."
+
+            )
+
+
+        else:
+
+            mensagem_erro = str(
+                erro
+            )
+
+
+        ultima_resposta = resposta_http.status_code
+        ultima_mensagem_erro = str(
+            mensagem_erro
+        )
+
+
+        logger.error(
+            "Erro OpenRouter: %s",
+            mensagem_erro
+        )
+
+
+        # ----------------------------------------------------
+        # FALHA DE TOKEN/CAPACIDADE
+        # ----------------------------------------------------
+
+        if erro_eh_limite_tokens(
+
+            resposta_http.status_code,
+
+            mensagem_erro
+
+        ):
+
+            if limite_tokens != limites[-1]:
+
+                logger.warning(
+
+                    "Limite insuficiente para %s tokens. "
+                    "Tentando fallback."
+
+                    ,
+
+                    limite_tokens
+
+                )
+
+                continue
+
+
+        # ----------------------------------------------------
+        # ERRO DE AUTENTICAÇÃO
+        # ----------------------------------------------------
+
+        if resposta_http.status_code == 401:
+
+            return jsonify({
+
+                "success":
+                    False,
+
+                "error":
+                    "A chave da OpenRouter é inválida "
+                    "ou não foi autorizada."
+
+            }), 401
+
+
+        # ----------------------------------------------------
+        # RATE LIMIT
+        # ----------------------------------------------------
+
+        if resposta_http.status_code == 429:
+
+            return jsonify({
+
+                "success":
+                    False,
+
+                "error":
+                    "A OpenRouter atingiu o limite "
+                    "de requisições. Tenta novamente "
+                    "dentro de alguns instantes."
+
+            }), 429
 
 
         # ----------------------------------------------------
         # MODELO
         # ----------------------------------------------------
 
+        erro_lower = str(
+            mensagem_erro
+        ).lower()
+
+
         if (
+
             "model" in erro_lower
+
             and
+
             (
+
                 "not found" in erro_lower
+
                 or
+
                 "unavailable" in erro_lower
+
             )
+
         ):
 
             return jsonify({
 
-                "success": False,
+                "success":
+                    False,
 
-                "error": (
-                    "O modelo configurado não está "
-                    "disponível neste momento."
-                )
+                "error":
+                    "O modelo configurado na OpenRouter "
+                    "não está disponível neste momento."
 
             }), 503
 
 
+        # ----------------------------------------------------
+        # OUTRO ERRO
+        # ----------------------------------------------------
+
         return jsonify({
 
-            "success": False,
+            "success":
+                False,
 
             "error":
                 f"OpenRouter: {mensagem_erro}"
@@ -776,121 +1057,41 @@ def chat():
         }), resposta_http.status_code
 
 
-    # --------------------------------------------------------
-    # CHOICES
-    # --------------------------------------------------------
-
-    choices = resultado.get(
-        "choices",
-        []
-    )
-
-    if not choices:
-
-        logger.error(
-            "Resposta sem choices: %s",
-            resultado
-        )
-
-        return jsonify({
-
-            "success": False,
-
-            "error":
-                "A Mello IA não recebeu resposta do modelo."
-
-        }), 500
-
-
-    # --------------------------------------------------------
-    # RESPOSTA
-    # --------------------------------------------------------
-
-    mensagem_modelo = choices[0].get(
-        "message",
-        {}
-    )
-
-    texto = mensagem_modelo.get(
-        "content",
-        ""
-    )
-
-
-    if isinstance(
-        texto,
-        list
-    ):
-
-        partes = []
-
-        for parte in texto:
-
-            if isinstance(
-                parte,
-                dict
-            ):
-
-                if parte.get(
-                    "type"
-                ) == "text":
-
-                    partes.append(
-                        str(
-                            parte.get(
-                                "text",
-                                ""
-                            )
-                        )
-                    )
-
-        texto = "\n".join(
-            partes
-        )
-
-
-    texto = str(
-        texto or ""
-    ).strip()
-
-
-    if not texto:
-
-        texto = (
-            "O modelo recebeu a pergunta, "
-            "mas não devolveu texto."
-        )
-
-
-    logger.info(
-        "Resposta gerada com sucesso."
-    )
-
+    # ========================================================
+    # TODAS AS TENTATIVAS FALHARAM
+    # ========================================================
 
     return jsonify({
 
         "success":
-            True,
+            False,
 
-        "reply":
-            texto,
+        "error": (
 
-        "response":
-            texto
+            "A Mello IA tentou responder com "
+            f"{MAX_TOKENS}, 600 e 300 tokens, "
+            "mas a OpenRouter não autorizou "
+            "nenhuma das tentativas. "
 
-    })
+            f"Último erro: {ultima_mensagem_erro}"
+
+        ),
+
+        "status":
+            ultima_resposta
+
+    }), 402
 
 
 # ============================================================
-# UTILIZADOR
+# API DO UTILIZADOR
 # ============================================================
 
-@app.route(
-    "/api/me"
-)
+@app.route("/api/me")
 def api_me():
 
     usuario = usuario_atual()
+
 
     if not usuario:
 
@@ -916,12 +1117,16 @@ def api_me():
                 usuario.email or "",
 
             "name": (
+
                 usuario.display_name
+
                 or
+
                 session.get(
                     "name",
                     ""
                 )
+
             )
 
         }
@@ -930,12 +1135,10 @@ def api_me():
 
 
 # ============================================================
-# HEALTH
+# HEALTH CHECK
 # ============================================================
 
-@app.route(
-    "/health"
-)
+@app.route("/health")
 def health():
 
     return jsonify({
@@ -957,13 +1160,16 @@ def health():
             OPENROUTER_MODEL,
 
         "max_tokens":
-            MAX_TOKENS
+            MAX_TOKENS,
+
+        "fallbacks":
+            TOKEN_FALLBACKS
 
     })
 
 
 # ============================================================
-# EXECUÇÃO
+# INICIAR
 # ============================================================
 
 if __name__ == "__main__":
@@ -996,13 +1202,19 @@ if __name__ == "__main__":
     )
 
     logger.info(
-        "Max tokens: %s",
+        "Max tokens principal: %s",
         MAX_TOKENS
+    )
+
+    logger.info(
+        "Fallbacks: %s",
+        TOKEN_FALLBACKS
     )
 
     logger.info(
         "======================================"
     )
+
 
     app.run(
 
@@ -1015,6 +1227,6 @@ if __name__ == "__main__":
             )
         ),
 
-        debug=True
+        debug=False
 
     )
