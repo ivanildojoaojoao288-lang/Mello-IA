@@ -58,7 +58,7 @@ OPENROUTER_URL = (
 
 # Limite máximo da resposta.
 # Mantemos pequeno para reduzir o consumo.
-MAX_TOKENS = 300
+MAX_TOKENS = 2000
 
 
 # ============================================================
