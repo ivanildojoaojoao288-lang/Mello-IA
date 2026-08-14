@@ -1,16 +1,7 @@
 import os
 import logging
 
-from flask import (
-    Flask,
-    render_template,
-    request,
-    jsonify,
-    redirect,
-    url_for,
-    session
-)
-
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from dotenv import load_dotenv
 
 import firebase_admin
@@ -36,7 +27,7 @@ app = Flask(__name__)
 
 app.secret_key = os.getenv(
     "FLASK_SECRET_KEY",
-    "mello-ia-chave-local-temporaria"
+    "mello-ia-chave-local"
 )
 
 
@@ -55,8 +46,7 @@ FIREBASE_KEY = os.path.join(
 
 if not os.path.exists(FIREBASE_KEY):
     raise FileNotFoundError(
-        "O ficheiro firebase-service-account.json "
-        "não foi encontrado."
+        "firebase-service-account.json não encontrado."
     )
 
 if not firebase_admin._apps:
@@ -67,9 +57,7 @@ if not firebase_admin._apps:
 
     firebase_admin.initialize_app(cred)
 
-    logger.info(
-        "Firebase Admin inicializado."
-    )
+    logger.info("Firebase inicializado.")
 
 
 # ============================================================
@@ -80,10 +68,9 @@ OPENROUTER_API_KEY = os.getenv(
     "OPENROUTER_API_KEY"
 )
 
-# Modelo económico para reduzir consumo
 OPENROUTER_MODEL = os.getenv(
     "OPENROUTER_MODEL",
-    "meta-llama/llama-3.3-70b-instruct:free"
+    "meta-llama/llama-3.1-8b-instruct"
 )
 
 client = None
@@ -95,9 +82,7 @@ if OPENROUTER_API_KEY:
         api_key=OPENROUTER_API_KEY
     )
 
-    logger.info(
-        "OpenRouter configurado."
-    )
+    logger.info("OpenRouter configurado.")
 
 else:
 
@@ -212,7 +197,7 @@ def firebase_login():
 
             return jsonify({
                 "success": False,
-                "error": "Dados ausentes."
+                "error": "Dados de autenticação ausentes."
             }), 400
 
         id_token = dados.get(
@@ -261,13 +246,17 @@ def firebase_login():
         )
 
         return jsonify({
+
             "success": True,
-            "message": "Autenticação efetuada.",
+
+            "message": "Autenticação efetuada com sucesso.",
+
             "user": {
                 "uid": uid,
                 "email": email,
                 "name": name
             }
+
         })
 
     except Exception as erro:
@@ -278,8 +267,11 @@ def firebase_login():
         )
 
         return jsonify({
+
             "success": False,
-            "error": "Falha na autenticação."
+
+            "error": "Não foi possível validar a autenticação."
+
         }), 401
 
 
@@ -298,7 +290,7 @@ def logout():
 
 
 # ============================================================
-# CHAT DA MELLO IA
+# CHAT
 # ============================================================
 
 @app.route(
@@ -310,8 +302,11 @@ def chat():
     if not exigir_login():
 
         return jsonify({
+
             "success": False,
+
             "error": "Não autenticado."
+
         }), 401
 
     dados = request.get_json(
@@ -321,8 +316,11 @@ def chat():
     if not dados:
 
         return jsonify({
+
             "success": False,
+
             "error": "Dados inválidos."
+
         }), 400
 
     mensagem = str(
@@ -335,21 +333,29 @@ def chat():
     if not mensagem:
 
         return jsonify({
+
             "success": False,
+
             "error": "Mensagem vazia."
+
         }), 400
 
     if not client:
 
         return jsonify({
+
             "success": False,
-            "error": (
-                "A chave OPENROUTER_API_KEY "
-                "não está configurada."
-            )
+
+            "error": "OPENROUTER_API_KEY não configurada."
+
         }), 500
 
     try:
+
+        logger.info(
+            "Pergunta recebida: %s",
+            mensagem[:100]
+        )
 
         resposta = client.chat.completions.create(
 
@@ -364,23 +370,13 @@ def chat():
                         "Tu és a Mello IA, uma assistente "
                         "inteligente desenvolvida pelo "
                         "Eng. Ivanildo João Paulo Augusto. "
-
-                        "Responde sempre em português. "
-
-                        "Sê natural, clara, objetiva e útil. "
-
-                        "Para perguntas simples, responde "
-                        "de forma curta. "
-
-                        "Para perguntas escolares, explica "
-                        "passo a passo, mas sem gastar "
-                        "tokens desnecessariamente. "
-
-                        "Para programação, apresenta "
-                        "código correto e uma explicação "
-                        "objetiva. "
-
+                        "Responde em português. "
+                        "Sê clara, natural e objetiva. "
                         "Não inventes informações. "
+                        "Para perguntas escolares, explica "
+                        "passo a passo. "
+                        "Para programação, fornece código "
+                        "correto e explica brevemente."
                     )
                 },
 
@@ -392,8 +388,7 @@ def chat():
 
             ],
 
-            # IMPORTANTE:
-            # limite pequeno para gastar menos créditos
+            # Mantemos baixo para reduzir consumo
             max_tokens=300,
 
             temperature=0.5
@@ -402,11 +397,11 @@ def chat():
         if not resposta.choices:
 
             return jsonify({
+
                 "success": False,
-                "error": (
-                    "A Mello IA não devolveu "
-                    "uma resposta."
-                )
+
+                "error": "A IA não devolveu uma resposta."
+
             }), 500
 
         texto = (
@@ -418,9 +413,11 @@ def chat():
 
         if not texto:
 
-            texto = (
-                "Não consegui gerar uma resposta."
-            )
+            texto = "Não consegui gerar uma resposta."
+
+        logger.info(
+            "Resposta gerada com sucesso."
+        )
 
         return jsonify({
 
@@ -435,16 +432,12 @@ def chat():
     except Exception as erro:
 
         logger.exception(
-            "Erro na Mello IA."
+            "Erro na OpenRouter."
         )
 
         erro_texto = str(
             erro
         ).lower()
-
-        # ====================================================
-        # ERRO DE CRÉDITOS
-        # ====================================================
 
         if (
             "credit" in erro_texto
@@ -458,34 +451,25 @@ def chat():
                 "success": False,
 
                 "error": (
-                    "A Mello IA não conseguiu responder "
-                    "porque a chave OpenRouter atingiu "
-                    "o limite disponível. "
-                    "Tenta novamente com uma pergunta "
-                    "mais curta ou verifica os créditos "
-                    "da chave."
+                    "A chave da OpenRouter não possui "
+                    "créditos suficientes para esta resposta."
                 )
 
             }), 402
-
-        # ====================================================
-        # OUTROS ERROS
-        # ====================================================
 
         return jsonify({
 
             "success": False,
 
             "error": (
-                "Não foi possível comunicar "
-                "com o servidor da Mello IA."
+                "Erro ao comunicar com a OpenRouter."
             )
 
         }), 500
 
 
 # ============================================================
-# UTILIZADOR
+# UTILIZADOR ATUAL
 # ============================================================
 
 @app.route("/api/me")
@@ -496,7 +480,9 @@ def api_me():
     if not usuario:
 
         return jsonify({
+
             "authenticated": False
+
         }), 401
 
     return jsonify({
@@ -507,23 +493,20 @@ def api_me():
 
             "uid": usuario.uid,
 
-            "email": (
-                usuario.email or ""
-            ),
+            "email": usuario.email or "",
 
             "name": (
                 usuario.display_name
-                or session.get(
-                    "name",
-                    ""
-                )
+                or session.get("name", "")
             )
+
         }
+
     })
 
 
 # ============================================================
-# HEALTH CHECK
+# HEALTH
 # ============================================================
 
 @app.route("/health")
@@ -564,16 +547,12 @@ if __name__ == "__main__":
 
     logger.info(
         "Firebase: %s",
-        "OK"
-        if firebase_admin._apps
-        else "ERRO"
+        "OK" if firebase_admin._apps else "ERRO"
     )
 
     logger.info(
         "OpenRouter: %s",
-        "OK"
-        if client
-        else "NÃO CONFIGURADO"
+        "OK" if client else "NÃO CONFIGURADO"
     )
 
     logger.info(
@@ -590,15 +569,12 @@ if __name__ == "__main__":
     )
 
     app.run(
-
         host="0.0.0.0",
-
         port=int(
             os.getenv(
                 "PORT",
                 5000
             )
         ),
-
         debug=True
     )
