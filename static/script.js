@@ -18,6 +18,8 @@ let ouvindo = false;
 let vozes = [];
 let utteranceAtual = null;
 
+let historico = [];
+
 
 /* =====================================================
    VOZ
@@ -49,9 +51,7 @@ function obterVozPortugues() {
         "Microsoft Helena",
         "Microsoft António",
         "Google português",
-        "Google Português",
-        "Portuguese",
-        "Português"
+        "Google Português"
     ];
 
     for (const nome of preferidas) {
@@ -92,9 +92,7 @@ function limparTextoParaVoz(texto) {
 function falar(texto, botao = null) {
 
     if (!("speechSynthesis" in window)) {
-        alert(
-            "O teu navegador não suporta reprodução de voz."
-        );
+        alert("O teu navegador não suporta voz.");
         return;
     }
 
@@ -115,9 +113,7 @@ function falar(texto, botao = null) {
     }
 
     utteranceAtual =
-        new SpeechSynthesisUtterance(
-            textoLimpo
-        );
+        new SpeechSynthesisUtterance(textoLimpo);
 
     const voz =
         obterVozPortugues();
@@ -128,7 +124,7 @@ function falar(texto, botao = null) {
 
     utteranceAtual.lang = "pt-PT";
     utteranceAtual.rate = 0.95;
-    utteranceAtual.pitch = 1.02;
+    utteranceAtual.pitch = 1;
     utteranceAtual.volume = 1;
 
     utteranceAtual.onstart = function () {
@@ -140,7 +136,6 @@ function falar(texto, botao = null) {
         if (botao) {
             botao.classList.add("speaking");
             botao.innerHTML = "⏹";
-            botao.title = "Parar voz";
         }
     };
 
@@ -153,18 +148,12 @@ function falar(texto, botao = null) {
         if (botao) {
             botao.classList.remove("speaking");
             botao.innerHTML = "🔊";
-            botao.title = "Ouvir resposta";
         }
 
         utteranceAtual = null;
     };
 
-    utteranceAtual.onerror = function (erro) {
-
-        console.error(
-            "Erro de voz:",
-            erro
-        );
+    utteranceAtual.onerror = function () {
 
         document.body.classList.remove(
             "mello-speaking"
@@ -173,7 +162,6 @@ function falar(texto, botao = null) {
         if (botao) {
             botao.classList.remove("speaking");
             botao.innerHTML = "🔊";
-            botao.title = "Ouvir resposta";
         }
 
         utteranceAtual = null;
@@ -196,27 +184,18 @@ function pararVoz() {
     );
 
     document
-        .querySelectorAll(
-            ".message-voice-button"
-        )
+        .querySelectorAll(".message-voice-button")
         .forEach(botao => {
 
-            botao.classList.remove(
-                "speaking"
-            );
-
+            botao.classList.remove("speaking");
             botao.innerHTML = "🔊";
-            botao.title = "Ouvir resposta";
         });
 
     utteranceAtual = null;
 }
 
 
-function alternarVozMensagem(
-    texto,
-    botao
-) {
+function alternarVozMensagem(texto, botao) {
 
     if (
         "speechSynthesis" in window &&
@@ -226,10 +205,7 @@ function alternarVozMensagem(
         return;
     }
 
-    falar(
-        texto,
-        botao
-    );
+    falar(texto, botao);
 }
 
 
@@ -246,7 +222,7 @@ function iniciarMicrofone() {
     if (!SpeechRecognition) {
 
         alert(
-            "O reconhecimento de voz não está disponível. Use Google Chrome ou Microsoft Edge."
+            "O reconhecimento de voz não está disponível neste navegador."
         );
 
         return;
@@ -272,85 +248,49 @@ function iniciarMicrofone() {
         atualizarMicrofone(true);
     };
 
-    recognition.onresult =
-        function (event) {
+    recognition.onresult = function (event) {
 
-            let textoFinal = "";
-            let textoIntermedio = "";
+        let texto = "";
 
-            for (
-                let i = event.resultIndex;
-                i < event.results.length;
-                i++
-            ) {
+        for (
+            let i = event.resultIndex;
+            i < event.results.length;
+            i++
+        ) {
 
-                const transcript =
-                    event.results[i][0]
-                        .transcript;
+            texto +=
+                event.results[i][0].transcript;
+        }
 
-                if (
-                    event.results[i].isFinal
-                ) {
-                    textoFinal += transcript;
-                } else {
-                    textoIntermedio += transcript;
-                }
-            }
-
-            if (textoFinal) {
-
-                input.value =
-                    (
-                        input.value +
-                        " " +
-                        textoFinal
-                    ).trim();
-
-            } else if (textoIntermedio) {
-
-                input.value =
-                    (
-                        input.value +
-                        " " +
-                        textoIntermedio
-                    ).trim();
-            }
-
+        if (input) {
+            input.value = texto.trim();
             ajustarTextarea();
-        };
+        }
+    };
 
-    recognition.onerror =
-        function (event) {
+    recognition.onerror = function (event) {
 
-            console.error(
-                "Erro no microfone:",
-                event.error
-            );
+        console.error(
+            "Erro no microfone:",
+            event.error
+        );
+    };
 
-            if (
-                event.error === "not-allowed"
-            ) {
+    recognition.onend = function () {
 
-                alert(
-                    "O acesso ao microfone foi recusado. Permite o microfone no navegador."
-                );
-            }
-        };
+        ouvindo = false;
 
-    recognition.onend =
-        function () {
+        atualizarMicrofone(false);
 
-            ouvindo = false;
-
-            atualizarMicrofone(false);
-
-            if (input) {
-                input.focus();
-            }
-        };
+        if (input) {
+            input.focus();
+        }
+    };
 
     try {
+
         recognition.start();
+
     } catch (erro) {
 
         console.error(
@@ -373,9 +313,7 @@ function pararMicrofone() {
         try {
             recognition.stop();
         } catch (erro) {
-            console.log(
-                "Microfone já estava parado."
-            );
+            console.log("Microfone parado.");
         }
     }
 
@@ -388,9 +326,7 @@ function pararMicrofone() {
 function atualizarMicrofone(ativo) {
 
     const mic =
-        document.querySelector(
-            ".voice-button"
-        );
+        document.querySelector(".voice-button");
 
     if (!mic) {
         return;
@@ -399,20 +335,14 @@ function atualizarMicrofone(ativo) {
     if (ativo) {
 
         mic.classList.add("recording");
-
         mic.innerHTML = "■";
-
-        mic.title =
-            "Parar gravação";
+        mic.title = "Parar gravação";
 
     } else {
 
         mic.classList.remove("recording");
-
         mic.innerHTML = "🎙️";
-
-        mic.title =
-            "Falar com a Mello IA";
+        mic.title = "Falar com a Mello IA";
     }
 }
 
@@ -549,9 +479,7 @@ async function enviarMensagem() {
         imagemSelecionada;
 
     const welcome =
-        document.getElementById(
-            "welcome"
-        );
+        document.getElementById("welcome");
 
     if (welcome) {
         welcome.style.display = "none";
@@ -589,28 +517,32 @@ async function enviarMensagem() {
     try {
 
         /*
-         * O app.py atual recebe JSON.
-         * A imagem é mostrada no frontend,
-         * mas não é enviada ao modelo neste momento.
+         * Neste momento o backend recebe JSON.
+         * A imagem é mostrada no chat, mas ainda
+         * não é enviada para o modelo.
          */
 
         const resposta =
-            await fetch(
-                "/chat",
-                {
-                    method: "POST",
+            await fetch("/chat", {
 
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
+                method: "POST",
 
-                    body: JSON.stringify({
-                        message:
-                            mensagemEnviar
-                    })
-                }
-            );
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    message:
+                        mensagemEnviar,
+
+                    history:
+                        historico
+
+                })
+            });
+
 
         let data;
 
@@ -627,19 +559,20 @@ async function enviarMensagem() {
             };
         }
 
+
         if (loading) {
             loading.remove();
         }
 
-        if (
-            resposta.status === 401
-        ) {
+
+        if (resposta.status === 401) {
 
             window.location.href =
                 "/login";
 
             return;
         }
+
 
         if (!resposta.ok) {
 
@@ -652,20 +585,44 @@ async function enviarMensagem() {
             return;
         }
 
+
         const respostaIA =
             data.reply ||
             data.response ||
             "Não consegui gerar uma resposta.";
+
 
         adicionarMensagem(
             "bot",
             respostaIA
         );
 
+
+        historico.push({
+
+            role: "user",
+
+            content:
+                mensagemEnviar
+
+        });
+
+
+        historico.push({
+
+            role: "assistant",
+
+            content:
+                respostaIA
+
+        });
+
+
         adicionarHistorico(
             mensagemEnviar ||
             "📷 Imagem enviada"
         );
+
 
     } catch (erro) {
 
@@ -698,27 +655,21 @@ async function enviarMensagem() {
    MENSAGEM
    ===================================================== */
 
-function adicionarMensagem(
-    tipo,
-    texto
-) {
+function adicionarMensagem(tipo, texto) {
 
     if (!chatBox) {
         return;
     }
 
     const message =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     message.className =
         `message ${tipo}`;
 
+
     const avatar =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     avatar.className =
         "message-avatar";
@@ -728,13 +679,13 @@ function adicionarMensagem(
             ? "M"
             : "👤";
 
+
     const content =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     content.className =
         "message-content";
+
 
     if (
         tipo === "bot" &&
@@ -742,19 +693,14 @@ function adicionarMensagem(
     ) {
 
         const html =
-            marked.parse(
-                texto
-            );
+            marked.parse(texto);
 
         if (
-            typeof DOMPurify !==
-            "undefined"
+            typeof DOMPurify !== "undefined"
         ) {
 
             content.innerHTML =
-                DOMPurify.sanitize(
-                    html
-                );
+                DOMPurify.sanitize(html);
 
         } else {
 
@@ -768,25 +714,20 @@ function adicionarMensagem(
             texto;
     }
 
+
     if (tipo === "bot") {
 
         const voiceButton =
-            document.createElement(
-                "button"
-            );
+            document.createElement("button");
 
         voiceButton.className =
             "message-voice-button";
 
-        voiceButton.innerHTML = "🔊";
+        voiceButton.innerHTML =
+            "🔊";
 
         voiceButton.title =
             "Ouvir resposta";
-
-        voiceButton.setAttribute(
-            "aria-label",
-            "Ouvir resposta da Mello IA"
-        );
 
         voiceButton.addEventListener(
             "click",
@@ -803,6 +744,7 @@ function adicionarMensagem(
             voiceButton
         );
     }
+
 
     message.appendChild(avatar);
 
@@ -831,13 +773,405 @@ function adicionarMensagemImagem(
     }
 
     const message =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     message.className =
         `message ${tipo}`;
 
+
     const avatar =
-        document.createElement(
-           
+        document.createElement("div");
+
+    avatar.className =
+        "message-avatar";
+
+    avatar.textContent =
+        tipo === "bot"
+            ? "M"
+            : "👤";
+
+
+    const content =
+        document.createElement("div");
+
+    content.className =
+        "message-content";
+
+
+    const img =
+        document.createElement("img");
+
+    img.className =
+        "message-image";
+
+    img.alt =
+        "Imagem enviada";
+
+
+    const leitor =
+        new FileReader();
+
+    leitor.onload =
+        function (event) {
+
+            img.src =
+                event.target.result;
+        };
+
+    leitor.readAsDataURL(arquivo);
+
+
+    content.appendChild(img);
+
+
+    if (texto) {
+
+        const textoElement =
+            document.createElement("div");
+
+        textoElement.textContent =
+            texto;
+
+        content.appendChild(
+            textoElement
+        );
+    }
+
+
+    message.appendChild(avatar);
+
+    message.appendChild(content);
+
+    chatBox.appendChild(message);
+
+    scrollChat();
+
+    return message;
+}
+
+
+/* =====================================================
+   LOADING
+   ===================================================== */
+
+function adicionarLoading() {
+
+    if (!chatBox) {
+        return null;
+    }
+
+    const message =
+        document.createElement("div");
+
+    message.className =
+        "message bot";
+
+
+    const avatar =
+        document.createElement("div");
+
+    avatar.className =
+        "message-avatar";
+
+    avatar.textContent =
+        "M";
+
+
+    const content =
+        document.createElement("div");
+
+    content.className =
+        "message-content";
+
+
+    const typing =
+        document.createElement("div");
+
+    typing.className =
+        "typing";
+
+
+    for (let i = 0; i < 3; i++) {
+
+        const ponto =
+            document.createElement("span");
+
+        typing.appendChild(ponto);
+    }
+
+
+    content.appendChild(typing);
+
+    message.appendChild(avatar);
+
+    message.appendChild(content);
+
+    chatBox.appendChild(message);
+
+    scrollChat();
+
+    return message;
+}
+
+
+/* =====================================================
+   HISTÓRICO
+   ===================================================== */
+
+function adicionarHistorico(texto) {
+
+    const history =
+        document.getElementById("history");
+
+    if (!history || !texto) {
+        return;
+    }
+
+    const item =
+        document.createElement("button");
+
+    item.className =
+        "history-item";
+
+    item.type =
+        "button";
+
+    item.textContent =
+        texto.length > 32
+            ? texto.substring(0, 32) + "..."
+            : texto;
+
+
+    item.onclick =
+        function () {
+
+            input.value =
+                texto;
+
+            input.focus();
+
+            ajustarTextarea();
+        };
+
+
+    history.prepend(item);
+}
+
+
+/* =====================================================
+   NOVA CONVERSA
+   ===================================================== */
+
+function novaConversa() {
+
+    historico = [];
+
+    if (chatBox) {
+        chatBox.innerHTML = "";
+    }
+
+
+    const welcome =
+        document.getElementById("welcome");
+
+    if (welcome) {
+
+        welcome.style.display =
+            "block";
+    }
+
+
+    adicionarMensagem(
+        "bot",
+        "Olá 👋 Sou a Mello IA. Como posso ajudar hoje?"
+    );
+
+
+    if (input) {
+        input.value = "";
+        input.focus();
+    }
+
+
+    removerImagem();
+}
+
+
+/* =====================================================
+   SUGESTÃO
+   ===================================================== */
+
+function usarSugestao(texto) {
+
+    if (!input) {
+        return;
+    }
+
+    input.value =
+        texto;
+
+    ajustarTextarea();
+
+    input.focus();
+
+    enviarMensagem();
+}
+
+
+/* =====================================================
+   ENTER
+   ===================================================== */
+
+function handleKey(event) {
+
+    if (
+        event.key === "Enter" &&
+        !event.shiftKey
+    ) {
+
+        event.preventDefault();
+
+        enviarMensagem();
+    }
+}
+
+
+/* =====================================================
+   TEXTAREA
+   ===================================================== */
+
+function ajustarTextarea() {
+
+    if (!input) {
+        return;
+    }
+
+    input.style.height =
+        "auto";
+
+    input.style.height =
+        Math.min(
+            input.scrollHeight,
+            130
+        ) + "px";
+}
+
+
+if (input) {
+
+    input.addEventListener(
+        "input",
+        ajustarTextarea
+    );
+}
+
+
+/* =====================================================
+   SCROLL
+   ===================================================== */
+
+function scrollChat() {
+
+    if (!chatBox) {
+        return;
+    }
+
+    requestAnimationFrame(() => {
+
+        chatBox.scrollTo({
+
+            top:
+                chatBox.scrollHeight,
+
+            behavior:
+                "smooth"
+        });
+
+    });
+}
+
+
+/* =====================================================
+   SIDEBAR
+   ===================================================== */
+
+function toggleSidebar() {
+
+    const sidebar =
+        document.getElementById("sidebar");
+
+    if (!sidebar) {
+        return;
+    }
+
+    sidebar.classList.toggle("open");
+}
+
+
+/* =====================================================
+   FECHAR SIDEBAR NO MOBILE
+   ===================================================== */
+
+document.addEventListener(
+    "click",
+    function (event) {
+
+        const sidebar =
+            document.getElementById("sidebar");
+
+        const menuButton =
+            document.querySelector(".menu-button");
+
+        if (!sidebar) {
+            return;
+        }
+
+        if (
+            window.innerWidth <= 800 &&
+            sidebar.classList.contains("open") &&
+            !sidebar.contains(event.target) &&
+            !menuButton?.contains(event.target)
+        ) {
+
+            sidebar.classList.remove("open");
+        }
+    }
+);
+
+
+/* =====================================================
+   TECLA ENTER GLOBAL
+   ===================================================== */
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (
+            event.key === "Escape" &&
+            ouvindo
+        ) {
+
+            pararMicrofone();
+        }
+
+    }
+);
+
+
+/* =====================================================
+   INICIALIZAÇÃO
+   ===================================================== */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        ajustarTextarea();
+
+        console.log(
+            "Mello IA carregada com sucesso."
+        );
+
+    }
+);
