@@ -1,109 +1,268 @@
-<div class="input-box">
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- ANEXAR IMAGEM -->
-    <input
-        type="file"
-        id="image-input"
-        accept="image/*"
-        hidden
-    >
+    <title>Mello IA</title>
 
-    <button
-        type="button"
-        class="attach-button"
-        id="attach-button"
-        title="Enviar imagem"
-        onclick="document.getElementById('image-input').click()"
-    >
-        <span>＋</span>
-    </button>
+    <link rel="stylesheet" href="style.css">
+</head>
 
+<body>
 
-    <!-- CAMPO DE TEXTO -->
-    <textarea
-        id="user-input"
-        rows="1"
-        placeholder="Comande a Mello IA..."
-        onkeydown="handleKey(event)"
-    ></textarea>
+    <!-- ==============================
+         SPLASH SCREEN
+    =============================== -->
 
+    <section id="splash" class="splash">
 
-    <!-- MICROFONE ULTRA -->
-    <button
-        type="button"
-        class="voice-button"
-        id="voice-button"
-        onclick="alternarMicrofone()"
-        title="Falar com a Mello IA"
-        aria-label="Falar com a Mello IA"
-    >
+        <!-- Fundo decorativo -->
+        <div class="background-glow glow-1"></div>
+        <div class="background-glow glow-2"></div>
+        <div class="background-glow glow-3"></div>
 
-        <span class="voice-ring ring-1"></span>
-        <span class="voice-ring ring-2"></span>
+        <!-- Pequenos pontos -->
+        <div class="particles">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
 
-        <svg
-            class="mic-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <rect
-                x="9"
-                y="3"
-                width="6"
-                height="11"
-                rx="3"
-                stroke="currentColor"
-                stroke-width="1.8"
-            />
+        <!-- Conteúdo principal -->
+        <div class="logo-container">
 
-            <path
-                d="M5.5 11.5C5.5 15.09 8.41 18 12 18C15.59 18 18.5 15.09 18.5 11.5"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-            />
+            <!-- M gigante -->
+            <div id="bigM" class="big-m">
+                M
+            </div>
 
-            <path
-                d="M12 18V21"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-            />
+            <!-- MELLO -->
+            <div id="melloLogo" class="mello-logo">
 
-            <path
-                d="M9 21H15"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-            />
-        </svg>
+                <span>M</span>
+                <span>E</span>
+                <span>L</span>
+                <span>L</span>
+                <span>O</span>
 
-    </button>
+            </div>
 
+            <!-- Nome -->
+            <div id="brandName" class="brand-name">
+                <strong>MELLO</strong>
+                <span>IA</span>
+            </div>
 
-    <!-- ENVIAR -->
-    <button
-        type="button"
-        class="send-button"
-        id="send-button"
-        onclick="enviarMensagem()"
-        title="Enviar"
-    >
-        ➤
-    </button>
+            <!-- Slogan -->
+            <p id="slogan" class="slogan">
+                Inteligência que acompanha você.
+            </p>
 
-</div>
+        </div>
+
+        <!-- Barra de carregamento -->
+        <div id="loader" class="loader-container">
+
+            <div class="loader">
+                <div class="loader-progress"></div>
+            </div>
+
+            <span>Inicializando Mello IA...</span>
+
+        </div>
+
+        <!-- Botão entrar -->
+        <button id="enterButton" class="enter-button">
+            Entrar na Mello IA
+            <span>→</span>
+        </button>
+
+    </section>
 
 
-<!-- STATUS DA VOZ -->
-<div
-    class="voice-status"
-    id="voice-status"
-    aria-live="polite"
->
-    <span class="voice-status-dot"></span>
-    <span id="voice-status-text">
-        Pronto para ouvir
-    </span>
-</div>
+    <!-- ==============================
+         APLICAÇÃO PRINCIPAL
+    =============================== -->
+
+    <main id="app" class="app">
+
+        <!-- Sidebar -->
+
+        <aside class="sidebar">
+
+            <div class="sidebar-logo">
+                <div class="mini-logo">M</div>
+
+                <div>
+                    <strong>MELLO</strong>
+                    <small>IA</small>
+                </div>
+            </div>
+
+
+            <nav>
+
+                <a href="#" class="active">
+                    <span>💬</span>
+                    Chat
+                </a>
+
+                <a href="#">
+                    <span>📚</span>
+                    Estudos
+                </a>
+
+                <a href="#">
+                    <span>💻</span>
+                    Programação
+                </a>
+
+                <a href="#">
+                    <span>🧠</span>
+                    Simuladores
+                </a>
+
+                <a href="#">
+                    <span>📖</span>
+                    Biblioteca
+                </a>
+
+                <a href="#">
+                    <span>🖼️</span>
+                    Imagens
+                </a>
+
+            </nav>
+
+
+            <div class="sidebar-bottom">
+
+                <a href="#">
+                    <span>⚙️</span>
+                    Configurações
+                </a>
+
+                <div class="profile">
+
+                    <div class="profile-avatar">
+                        I
+                    </div>
+
+                    <div>
+                        <strong>Utilizador</strong>
+                        <small>Mello IA</small>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Área principal -->
+
+        <section class="main-content">
+
+            <header class="topbar">
+
+                <div>
+                    <h1>Olá 👋</h1>
+                    <p>Como posso ajudar você hoje?</p>
+                </div>
+
+                <button class="settings-button">
+                    ⚙️
+                </button>
+
+            </header>
+
+
+            <!-- Área do Chat -->
+
+            <section class="chat-area">
+
+                <div class="welcome">
+
+                    <div class="welcome-logo">
+                        M
+                    </div>
+
+                    <h2>
+                        Bem-vindo à <span>Mello IA</span>
+                    </h2>
+
+                    <p>
+                        Sua inteligência artificial para aprender,
+                        programar, estudar e criar.
+                    </p>
+
+                </div>
+
+
+                <!-- Sugestões -->
+
+                <div class="suggestions">
+
+                    <button>
+                        <span>💻</span>
+                        Aprender programação
+                    </button>
+
+                    <button>
+                        <span>📚</span>
+                        Estudar para uma prova
+                    </button>
+
+                    <button>
+                        <span>🧠</span>
+                        Explicar um assunto
+                    </button>
+
+                    <button>
+                        <span>🚀</span>
+                        Criar um projeto
+                    </button>
+
+                </div>
+
+
+                <!-- Campo de mensagem -->
+
+                <div class="chat-input-container">
+
+                    <textarea
+                        placeholder="Pergunte qualquer coisa à Mello IA..."
+                    ></textarea>
+
+                    <div class="input-actions">
+
+                        <button>
+                            📎
+                        </button>
+
+                        <button class="send-button">
+                            ↑
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </section>
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
