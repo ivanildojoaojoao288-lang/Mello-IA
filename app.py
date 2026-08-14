@@ -41,7 +41,7 @@ app.secret_key = os.getenv(
 
 
 # ============================================================
-# FIREBASE ADMIN
+# FIREBASE
 # ============================================================
 
 BASE_DIR = os.path.dirname(
@@ -55,8 +55,8 @@ FIREBASE_KEY = os.path.join(
 
 if not os.path.exists(FIREBASE_KEY):
     raise FileNotFoundError(
-        "A chave firebase-service-account.json "
-        "não foi encontrada."
+        "O ficheiro firebase-service-account.json "
+        "não foi encontrado."
     )
 
 if not firebase_admin._apps:
@@ -65,9 +65,7 @@ if not firebase_admin._apps:
         FIREBASE_KEY
     )
 
-    firebase_admin.initialize_app(
-        cred
-    )
+    firebase_admin.initialize_app(cred)
 
     logger.info(
         "Firebase Admin inicializado."
@@ -82,9 +80,10 @@ OPENROUTER_API_KEY = os.getenv(
     "OPENROUTER_API_KEY"
 )
 
+# Modelo económico para reduzir consumo
 OPENROUTER_MODEL = os.getenv(
     "OPENROUTER_MODEL",
-    "meta-llama/llama-3.1-8b-instruct"
+    "meta-llama/llama-3.3-70b-instruct:free"
 )
 
 client = None
@@ -108,25 +107,19 @@ else:
 
 
 # ============================================================
-# UTILIZADOR ATUAL
+# UTILIZADOR
 # ============================================================
 
 def usuario_atual():
 
-    uid = session.get(
-        "firebase_uid"
-    )
+    uid = session.get("firebase_uid")
 
     if not uid:
         return None
 
     try:
 
-        usuario = auth.get_user(
-            uid
-        )
-
-        return usuario
+        return auth.get_user(uid)
 
     except Exception as erro:
 
@@ -219,9 +212,7 @@ def firebase_login():
 
             return jsonify({
                 "success": False,
-                "error": (
-                    "Dados de autenticação ausentes."
-                )
+                "error": "Dados ausentes."
             }), 400
 
         id_token = dados.get(
@@ -270,37 +261,25 @@ def firebase_login():
         )
 
         return jsonify({
-
             "success": True,
-
-            "message": (
-                "Autenticação efetuada com sucesso."
-            ),
-
+            "message": "Autenticação efetuada.",
             "user": {
                 "uid": uid,
                 "email": email,
                 "name": name
             }
-
         })
 
     except Exception as erro:
 
         logger.exception(
-            "Erro na autenticação Firebase: %s",
+            "Erro Firebase: %s",
             erro
         )
 
         return jsonify({
-
             "success": False,
-
-            "error": (
-                "Não foi possível validar "
-                "a autenticação Firebase."
-            )
-
+            "error": "Falha na autenticação."
         }), 401
 
 
@@ -319,7 +298,7 @@ def logout():
 
 
 # ============================================================
-# CHAT
+# CHAT DA MELLO IA
 # ============================================================
 
 @app.route(
@@ -331,11 +310,8 @@ def chat():
     if not exigir_login():
 
         return jsonify({
-
             "success": False,
-
             "error": "Não autenticado."
-
         }), 401
 
     dados = request.get_json(
@@ -345,11 +321,8 @@ def chat():
     if not dados:
 
         return jsonify({
-
             "success": False,
-
             "error": "Dados inválidos."
-
         }), 400
 
     mensagem = str(
@@ -362,24 +335,18 @@ def chat():
     if not mensagem:
 
         return jsonify({
-
             "success": False,
-
             "error": "Mensagem vazia."
-
         }), 400
 
     if not client:
 
         return jsonify({
-
             "success": False,
-
             "error": (
-                "OPENROUTER_API_KEY "
+                "A chave OPENROUTER_API_KEY "
                 "não está configurada."
             )
-
         }), 500
 
     try:
@@ -397,40 +364,49 @@ def chat():
                         "Tu és a Mello IA, uma assistente "
                         "inteligente desenvolvida pelo "
                         "Eng. Ivanildo João Paulo Augusto. "
-                        "Responde em português de forma "
-                        "natural, clara, profissional e útil. "
+
+                        "Responde sempre em português. "
+
+                        "Sê natural, clara, objetiva e útil. "
+
+                        "Para perguntas simples, responde "
+                        "de forma curta. "
+
+                        "Para perguntas escolares, explica "
+                        "passo a passo, mas sem gastar "
+                        "tokens desnecessariamente. "
+
+                        "Para programação, apresenta "
+                        "código correto e uma explicação "
+                        "objetiva. "
+
                         "Não inventes informações. "
-                        "Quando o utilizador estiver a estudar, "
-                        "explica passo a passo. "
-                        "Quando for programação, fornece "
-                        "código correto e explica como utilizar. "
-                        "Não afirmes ter acesso a informações "
-                        "em tempo real se não tiveres."
                     )
                 },
 
                 {
                     "role": "user",
+
                     "content": mensagem
                 }
 
             ],
 
-            max_tokens=500,
+            # IMPORTANTE:
+            # limite pequeno para gastar menos créditos
+            max_tokens=300,
 
-            temperature=0.7
+            temperature=0.5
         )
 
         if not resposta.choices:
 
             return jsonify({
-
                 "success": False,
-
                 "error": (
-                    "A IA não devolveu uma resposta."
+                    "A Mello IA não devolveu "
+                    "uma resposta."
                 )
-
             }), 500
 
         texto = (
@@ -450,26 +426,31 @@ def chat():
 
             "success": True,
 
-            "response": texto,
+            "reply": texto,
 
-            "reply": texto
+            "response": texto
 
         })
 
     except Exception as erro:
 
         logger.exception(
-            "Erro no processamento da Mello IA."
+            "Erro na Mello IA."
         )
 
         erro_texto = str(
             erro
         ).lower()
 
+        # ====================================================
+        # ERRO DE CRÉDITOS
+        # ====================================================
+
         if (
             "credit" in erro_texto
             or "credits" in erro_texto
             or "402" in erro_texto
+            or "afford" in erro_texto
         ):
 
             return jsonify({
@@ -477,26 +458,34 @@ def chat():
                 "success": False,
 
                 "error": (
-                    "A OpenRouter recusou a solicitação "
-                    "porque a chave não possui créditos "
-                    "suficientes."
+                    "A Mello IA não conseguiu responder "
+                    "porque a chave OpenRouter atingiu "
+                    "o limite disponível. "
+                    "Tenta novamente com uma pergunta "
+                    "mais curta ou verifica os créditos "
+                    "da chave."
                 )
 
             }), 402
+
+        # ====================================================
+        # OUTROS ERROS
+        # ====================================================
 
         return jsonify({
 
             "success": False,
 
             "error": (
-                "Erro ao comunicar com a OpenRouter."
+                "Não foi possível comunicar "
+                "com o servidor da Mello IA."
             )
 
         }), 500
 
 
 # ============================================================
-# INFORMAÇÕES DO UTILIZADOR
+# UTILIZADOR
 # ============================================================
 
 @app.route("/api/me")
@@ -507,9 +496,7 @@ def api_me():
     if not usuario:
 
         return jsonify({
-
             "authenticated": False
-
         }), 401
 
     return jsonify({
@@ -526,11 +513,12 @@ def api_me():
 
             "name": (
                 usuario.display_name
-                or session.get("name", "")
+                or session.get(
+                    "name",
+                    ""
+                )
             )
-
         }
-
     })
 
 
@@ -555,7 +543,7 @@ def health():
 
         "model": OPENROUTER_MODEL,
 
-        "max_tokens": 500
+        "max_tokens": 300
 
     })
 
@@ -594,7 +582,7 @@ if __name__ == "__main__":
     )
 
     logger.info(
-        "Max tokens: 500"
+        "Max tokens: 300"
     )
 
     logger.info(
@@ -613,5 +601,4 @@ if __name__ == "__main__":
         ),
 
         debug=True
-
     )
