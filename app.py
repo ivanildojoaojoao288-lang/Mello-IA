@@ -56,8 +56,10 @@ OPENROUTER_URL = (
     "https://openrouter.ai/api/v1/chat/completions"
 )
 
-# Limite máximo da resposta.
-# Mantemos pequeno para reduzir o consumo.
+# ============================================================
+# LIMITE DE RESPOSTA
+# ============================================================
+
 MAX_TOKENS = 2000
 
 
@@ -115,7 +117,7 @@ else:
 
 
 # ============================================================
-# UTILIZADOR
+# UTILIZADOR ATUAL
 # ============================================================
 
 def usuario_atual():
@@ -222,10 +224,14 @@ def firebase_login():
         if not dados:
 
             return jsonify({
+
                 "success": False,
+
                 "error":
                     "Dados de autenticação ausentes."
+
             }), 400
+
 
         id_token = dados.get(
             "idToken"
@@ -234,14 +240,19 @@ def firebase_login():
         if not id_token:
 
             return jsonify({
+
                 "success": False,
+
                 "error":
                     "ID token ausente."
+
             }), 400
+
 
         decoded_token = auth.verify_id_token(
             id_token
         )
+
 
         uid = decoded_token.get(
             "uid"
@@ -257,22 +268,31 @@ def firebase_login():
             ""
         )
 
+
         if not uid:
 
             return jsonify({
+
                 "success": False,
+
                 "error":
                     "Token inválido."
+
             }), 401
 
+
         session["firebase_uid"] = uid
+
         session["email"] = email
+
         session["name"] = name
+
 
         logger.info(
             "Login efetuado: %s",
             email
         )
+
 
         return jsonify({
 
@@ -292,6 +312,7 @@ def firebase_login():
             }
 
         })
+
 
     except Exception as erro:
 
@@ -335,7 +356,7 @@ def logout():
 def chat():
 
     # --------------------------------------------------------
-    # LOGIN
+    # VERIFICAR LOGIN
     # --------------------------------------------------------
 
     if not exigir_login():
@@ -351,7 +372,7 @@ def chat():
 
 
     # --------------------------------------------------------
-    # API KEY
+    # VERIFICAR API KEY
     # --------------------------------------------------------
 
     if not OPENROUTER_API_KEY:
@@ -367,7 +388,7 @@ def chat():
 
 
     # --------------------------------------------------------
-    # DADOS
+    # RECEBER DADOS
     # --------------------------------------------------------
 
     dados = request.get_json(
@@ -401,7 +422,7 @@ def chat():
 
 
     # --------------------------------------------------------
-    # VALIDAÇÃO
+    # VALIDAR MENSAGEM
     # --------------------------------------------------------
 
     if not mensagem:
@@ -416,9 +437,9 @@ def chat():
         }), 400
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # SISTEMA DA MELLO IA
-    # --------------------------------------------------------
+    # ========================================================
 
     mensagens = [
 
@@ -446,11 +467,17 @@ def chat():
                 "necessários. "
 
                 "Para programação, fornece código correto "
-                "e uma explicação breve. "
+                "e uma explicação clara. "
+
+                "Quando o utilizador pedir código, "
+                "fornece o código completo quando "
+                "necessário. "
 
                 "Não inventes informações. "
 
-                "Se não souberes, diz claramente."
+                "Se não souberes alguma coisa, "
+                "diz claramente que não sabes."
+
             )
 
         }
@@ -458,9 +485,9 @@ def chat():
     ]
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # HISTÓRICO
-    # --------------------------------------------------------
+    # ========================================================
 
     if isinstance(
         historico,
@@ -473,58 +500,73 @@ def chat():
                 item,
                 dict
             ):
+
                 continue
+
 
             role = item.get(
                 "role"
             )
 
+
             content = item.get(
                 "content"
             )
+
 
             if role not in (
                 "user",
                 "assistant"
             ):
+
                 continue
+
 
             if not isinstance(
                 content,
                 str
             ):
+
                 continue
+
 
             content = content.strip()
 
+
             if not content:
+
                 continue
+
 
             mensagens.append({
 
-                "role": role,
+                "role":
+                    role,
 
-                "content": content
+                "content":
+                    content
 
             })
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # PERGUNTA ATUAL
-    # --------------------------------------------------------
+    # ========================================================
 
     mensagens.append({
 
-        "role": "user",
+        "role":
+            "user",
 
-        "content": mensagem
+        "content":
+            mensagem
 
     })
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # HEADERS
-    # --------------------------------------------------------
+    # ========================================================
 
     headers = {
 
@@ -543,9 +585,9 @@ def chat():
     }
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # PAYLOAD
-    # --------------------------------------------------------
+    # ========================================================
 
     payload = {
 
@@ -567,9 +609,9 @@ def chat():
     }
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # LOG
-    # --------------------------------------------------------
+    # ========================================================
 
     logger.info(
         "======================================"
@@ -590,13 +632,18 @@ def chat():
     )
 
     logger.info(
+        "Quantidade de mensagens: %s",
+        len(mensagens)
+    )
+
+    logger.info(
         "======================================"
     )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # PEDIDO À OPENROUTER
-    # --------------------------------------------------------
+    # ========================================================
 
     try:
 
@@ -612,6 +659,7 @@ def chat():
 
         )
 
+
     except requests.exceptions.Timeout:
 
         logger.error(
@@ -623,7 +671,8 @@ def chat():
             "success": False,
 
             "error":
-                "A OpenRouter demorou demasiado para responder."
+                "A OpenRouter demorou demasiado "
+                "para responder."
 
         }), 504
 
@@ -631,7 +680,7 @@ def chat():
     except requests.exceptions.RequestException as erro:
 
         logger.exception(
-            "Erro de conexão: %s",
+            "Erro de conexão com OpenRouter: %s",
             erro
         )
 
@@ -645,9 +694,9 @@ def chat():
         }), 502
 
 
-    # --------------------------------------------------------
-    # STATUS
-    # --------------------------------------------------------
+    # ========================================================
+    # STATUS HTTP
+    # ========================================================
 
     logger.info(
         "OpenRouter respondeu HTTP %s",
@@ -655,18 +704,19 @@ def chat():
     )
 
 
-    # --------------------------------------------------------
-    # JSON
-    # --------------------------------------------------------
+    # ========================================================
+    # TRANSFORMAR RESPOSTA EM JSON
+    # ========================================================
 
     try:
 
         resultado = resposta_http.json()
 
+
     except ValueError:
 
         logger.error(
-            "Resposta inválida: %s",
+            "Resposta inválida da OpenRouter: %s",
             resposta_http.text[:1000]
         )
 
@@ -680,9 +730,9 @@ def chat():
         }), 502
 
 
-    # --------------------------------------------------------
-    # ERROS OPENROUTER
-    # --------------------------------------------------------
+    # ========================================================
+    # ERROS DA OPENROUTER
+    # ========================================================
 
     if not resposta_http.ok:
 
@@ -691,10 +741,12 @@ def chat():
             resultado
         )
 
+
         erro = resultado.get(
             "error",
             {}
         )
+
 
         if isinstance(
             erro,
@@ -703,17 +755,22 @@ def chat():
 
             mensagem_erro = (
 
-                erro.get("message")
+                erro.get(
+                    "message"
+                )
 
                 or
 
-                erro.get("code")
+                erro.get(
+                    "code"
+                )
 
                 or
 
                 "Erro desconhecido."
 
             )
+
 
         else:
 
@@ -728,7 +785,7 @@ def chat():
 
 
         # ----------------------------------------------------
-        # CRÉDITOS
+        # CRÉDITOS / LIMITE
         # ----------------------------------------------------
 
         if (
@@ -747,11 +804,16 @@ def chat():
 
             "afford" in erro_lower
 
+            or
+
+            "limit" in erro_lower
+
         ):
 
             return jsonify({
 
-                "success": False,
+                "success":
+                    False,
 
                 "error": (
 
@@ -760,12 +822,49 @@ def chat():
                     "da chave. "
 
                     f"A Mello IA está configurada para "
-                    f"usar no máximo {MAX_TOKENS} tokens "
+                    f"permitir até {MAX_TOKENS} tokens "
                     "por resposta."
 
                 )
 
             }), 402
+
+
+        # ----------------------------------------------------
+        # ERRO DE AUTENTICAÇÃO
+        # ----------------------------------------------------
+
+        if resposta_http.status_code == 401:
+
+            return jsonify({
+
+                "success":
+                    False,
+
+                "error":
+                    "A chave da OpenRouter é inválida "
+                    "ou não foi autorizada."
+
+            }), 401
+
+
+        # ----------------------------------------------------
+        # LIMITE DE REQUISIÇÕES
+        # ----------------------------------------------------
+
+        if resposta_http.status_code == 429:
+
+            return jsonify({
+
+                "success":
+                    False,
+
+                "error":
+                    "A OpenRouter atingiu o limite de "
+                    "requisições. Tenta novamente dentro "
+                    "de alguns instantes."
+
+            }), 429
 
 
         # ----------------------------------------------------
@@ -792,7 +891,8 @@ def chat():
 
             return jsonify({
 
-                "success": False,
+                "success":
+                    False,
 
                 "error": (
 
@@ -810,7 +910,8 @@ def chat():
 
         return jsonify({
 
-            "success": False,
+            "success":
+                False,
 
             "error":
                 f"OpenRouter: {mensagem_erro}"
@@ -818,9 +919,9 @@ def chat():
         }), resposta_http.status_code
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # CHOICES
-    # --------------------------------------------------------
+    # ========================================================
 
     choices = resultado.get(
         "choices",
@@ -837,7 +938,8 @@ def chat():
 
         return jsonify({
 
-            "success": False,
+            "success":
+                False,
 
             "error":
                 "A Mello IA não recebeu resposta do modelo."
@@ -845,9 +947,9 @@ def chat():
         }), 500
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # MESSAGE
-    # --------------------------------------------------------
+    # ========================================================
 
     message = choices[0].get(
         "message",
@@ -861,9 +963,9 @@ def chat():
     )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # CONTENT EM LISTA
-    # --------------------------------------------------------
+    # ========================================================
 
     if isinstance(
         texto,
@@ -871,6 +973,7 @@ def chat():
     ):
 
         partes = []
+
 
         for parte in texto:
 
@@ -894,14 +997,15 @@ def chat():
 
                     )
 
+
         texto = "\n".join(
             partes
         )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # TEXTO FINAL
-    # --------------------------------------------------------
+    # ========================================================
 
     texto = str(
         texto or ""
@@ -923,9 +1027,9 @@ def chat():
     )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # RESPOSTA
-    # --------------------------------------------------------
+    # ========================================================
 
     return jsonify({
 
@@ -949,6 +1053,7 @@ def chat():
 def api_me():
 
     usuario = usuario_atual()
+
 
     if not usuario:
 
@@ -1023,7 +1128,7 @@ def health():
 
 
 # ============================================================
-# INICIAR
+# INICIAR APLICAÇÃO
 # ============================================================
 
 if __name__ == "__main__":
