@@ -40,7 +40,28 @@ app.secret_key = os.getenv(
 
 
 # ============================================================
-# FIREBASE
+# CONFIGURAÇÃO OPENROUTER
+# ============================================================
+
+OPENROUTER_API_KEY = os.getenv(
+    "OPENROUTER_API_KEY"
+)
+
+OPENROUTER_MODEL = os.getenv(
+    "OPENROUTER_MODEL",
+    "openrouter/free"
+)
+
+OPENROUTER_URL = (
+    "https://openrouter.ai/api/v1/chat/completions"
+)
+
+# Limite pequeno para evitar respostas muito grandes.
+MAX_TOKENS = 300
+
+
+# ============================================================
+# FIREBASE ADMIN
 # ============================================================
 
 BASE_DIR = os.path.dirname(
@@ -54,8 +75,10 @@ FIREBASE_KEY = os.path.join(
 
 if not os.path.exists(FIREBASE_KEY):
     raise FileNotFoundError(
-        "O ficheiro firebase-service-account.json não foi encontrado."
+        "O ficheiro firebase-service-account.json "
+        "não foi encontrado."
     )
+
 
 if not firebase_admin._apps:
 
@@ -73,28 +96,8 @@ if not firebase_admin._apps:
 
 
 # ============================================================
-# OPENROUTER
+# STATUS
 # ============================================================
-
-OPENROUTER_API_KEY = os.getenv(
-    "OPENROUTER_API_KEY"
-)
-
-OPENROUTER_MODEL = os.getenv(
-    "OPENROUTER_MODEL",
-    "openrouter/free"
-)
-
-OPENROUTER_URL = (
-    "https://openrouter.ai/api/v1/chat/completions"
-)
-
-# IMPORTANTE:
-# Mantemos baixo para evitar gastar créditos.
-MAX_TOKENS = 300
-
-TEMPERATURE = 0.5
-
 
 if OPENROUTER_API_KEY:
 
@@ -124,11 +127,7 @@ def usuario_atual():
 
     try:
 
-        usuario = auth.get_user(
-            uid
-        )
-
-        return usuario
+        return auth.get_user(uid)
 
     except Exception as erro:
 
@@ -273,35 +272,27 @@ def firebase_login():
         )
 
         return jsonify({
-
             "success": True,
-
             "message":
                 "Autenticação efetuada com sucesso.",
-
             "user": {
-
                 "uid": uid,
                 "email": email,
                 "name": name
-
             }
-
         })
 
     except Exception as erro:
 
         logger.exception(
-            "Erro na autenticação Firebase."
+            "Erro na autenticação Firebase: %s",
+            erro
         )
 
         return jsonify({
-
             "success": False,
-
             "error":
                 "Não foi possível validar a autenticação."
-
         }), 401
 
 
@@ -330,19 +321,29 @@ def logout():
 def chat():
 
     # --------------------------------------------------------
-    # AUTENTICAÇÃO
+    # LOGIN
     # --------------------------------------------------------
 
     if not exigir_login():
 
         return jsonify({
-
             "success": False,
-
             "error":
                 "Não autenticado."
-
         }), 401
+
+
+    # --------------------------------------------------------
+    # API KEY
+    # --------------------------------------------------------
+
+    if not OPENROUTER_API_KEY:
+
+        return jsonify({
+            "success": False,
+            "error":
+                "OPENROUTER_API_KEY não configurada."
+        }), 500
 
 
     # --------------------------------------------------------
@@ -356,12 +357,9 @@ def chat():
     if not dados:
 
         return jsonify({
-
             "success": False,
-
             "error":
                 "Dados inválidos."
-
         }), 400
 
 
@@ -373,7 +371,7 @@ def chat():
     ).strip()
 
 
-    historico_recebido = dados.get(
+    historico = dados.get(
         "history",
         []
     )
@@ -386,29 +384,14 @@ def chat():
     if not mensagem:
 
         return jsonify({
-
             "success": False,
-
             "error":
                 "Mensagem vazia."
-
         }), 400
 
 
-    if not OPENROUTER_API_KEY:
-
-        return jsonify({
-
-            "success": False,
-
-            "error":
-                "OPENROUTER_API_KEY não configurada."
-
-        }), 500
-
-
     # --------------------------------------------------------
-    # SISTEMA
+    # SISTEMA DA MELLO IA
     # --------------------------------------------------------
 
     mensagens = [
@@ -426,17 +409,20 @@ def chat():
                 "Sê clara, natural, objetiva e útil. "
 
                 "Para perguntas simples, responde "
-                "diretamente. "
+                "diretamente e de forma curta. "
 
-                "Para perguntas escolares, explica "
-                "de forma simples e passo a passo. "
+                "Para questões escolares, apresenta "
+                "a resposta e uma explicação simples. "
 
-                "Para programação, fornece código "
-                "correto e explica brevemente. "
+                "Para matemática, mostra os cálculos "
+                "necessários. "
+
+                "Para programação, fornece código correto "
+                "e uma explicação breve. "
 
                 "Não inventes informações. "
 
-                "Se não souberes algo, diz claramente."
+                "Se não souberes, diz claramente."
             )
         }
 
@@ -448,11 +434,11 @@ def chat():
     # --------------------------------------------------------
 
     if isinstance(
-        historico_recebido,
+        historico,
         list
     ):
 
-        for item in historico_recebido[-6:]:
+        for item in historico[-6:]:
 
             if not isinstance(
                 item,
@@ -485,15 +471,9 @@ def chat():
             if not content:
                 continue
 
-            # Limita o tamanho do histórico
-            content = content[:2000]
-
             mensagens.append({
-
                 "role": role,
-
                 "content": content
-
             })
 
 
@@ -538,24 +518,26 @@ def chat():
     payload = {
 
         "model":
-            OPENROUTER_MODEL,
+            "openrouter/free",
 
         "messages":
             mensagens,
 
-        # IMPORTANTE:
-        # Nunca usar 2000 aqui.
         "max_tokens":
-            MAX_TOKENS,
+            300,
 
         "temperature":
-            TEMPERATURE,
+            0.3,
 
         "stream":
             False
 
     }
 
+
+    # --------------------------------------------------------
+    # LOG DO PAYLOAD
+    # --------------------------------------------------------
 
     logger.info(
         "======================================"
@@ -567,7 +549,7 @@ def chat():
 
     logger.info(
         "Modelo: %s",
-        OPENROUTER_MODEL
+        payload["model"]
     )
 
     logger.info(
@@ -581,7 +563,7 @@ def chat():
 
 
     # --------------------------------------------------------
-    # OPENROUTER
+    # PEDIDO
     # --------------------------------------------------------
 
     try:
@@ -601,33 +583,27 @@ def chat():
     except requests.exceptions.Timeout:
 
         logger.error(
-            "Timeout ao contactar OpenRouter."
+            "Timeout na OpenRouter."
         )
 
         return jsonify({
-
             "success": False,
-
             "error":
                 "A OpenRouter demorou demasiado para responder."
-
         }), 504
 
 
     except requests.exceptions.RequestException as erro:
 
         logger.exception(
-            "Erro de conexão com OpenRouter: %s",
+            "Erro de conexão: %s",
             erro
         )
 
         return jsonify({
-
             "success": False,
-
             "error":
                 "Não foi possível conectar à OpenRouter."
-
         }), 502
 
 
@@ -652,22 +628,19 @@ def chat():
     except ValueError:
 
         logger.error(
-            "Resposta não JSON: %s",
+            "Resposta inválida: %s",
             resposta_http.text[:1000]
         )
 
         return jsonify({
-
             "success": False,
-
             "error":
                 "A OpenRouter devolveu uma resposta inválida."
-
         }), 502
 
 
     # --------------------------------------------------------
-    # ERRO OPENROUTER
+    # ERROS OPENROUTER
     # --------------------------------------------------------
 
     if not resposta_http.ok:
@@ -677,32 +650,28 @@ def chat():
             resultado
         )
 
-        erro_openrouter = resultado.get(
+        erro = resultado.get(
             "error",
             {}
         )
 
         if isinstance(
-            erro_openrouter,
+            erro,
             dict
         ):
 
             mensagem_erro = (
-                erro_openrouter.get(
-                    "message"
-                )
+                erro.get("message")
                 or
-                erro_openrouter.get(
-                    "code"
-                )
+                erro.get("code")
                 or
-                "Erro desconhecido da OpenRouter."
+                "Erro desconhecido."
             )
 
         else:
 
             mensagem_erro = str(
-                erro_openrouter
+                erro
             )
 
 
@@ -712,7 +681,7 @@ def chat():
 
 
         # ----------------------------------------------------
-        # CRÉDITOS
+        # CRÉDITOS / LIMITE
         # ----------------------------------------------------
 
         if (
@@ -731,10 +700,10 @@ def chat():
 
                 "error": (
                     "A OpenRouter recusou a requisição "
-                    "porque a chave não possui créditos "
-                    "suficientes para este pedido. "
-                    "O código está configurado para "
-                    f"{MAX_TOKENS} tokens."
+                    "por limite de créditos ou capacidade "
+                    "da chave. "
+                    "O código da Mello IA está configurado "
+                    "para enviar apenas 300 tokens."
                 )
 
             }), 402
@@ -759,12 +728,16 @@ def chat():
                 "success": False,
 
                 "error": (
-                    "O modelo configurado não está "
-                    "disponível neste momento."
+                    "O modelo gratuito da OpenRouter "
+                    "não está disponível neste momento."
                 )
 
             }), 503
 
+
+        # ----------------------------------------------------
+        # OUTRO ERRO
+        # ----------------------------------------------------
 
         return jsonify({
 
@@ -785,6 +758,7 @@ def chat():
         []
     )
 
+
     if not choices:
 
         logger.error(
@@ -803,19 +777,24 @@ def chat():
 
 
     # --------------------------------------------------------
-    # RESPOSTA
+    # MESSAGE
     # --------------------------------------------------------
 
-    mensagem_modelo = choices[0].get(
+    message = choices[0].get(
         "message",
         {}
     )
 
-    texto = mensagem_modelo.get(
+
+    texto = message.get(
         "content",
         ""
     )
 
+
+    # --------------------------------------------------------
+    # CONTENT EM LISTA
+    # --------------------------------------------------------
 
     if isinstance(
         texto,
@@ -849,6 +828,10 @@ def chat():
         )
 
 
+    # --------------------------------------------------------
+    # TEXTO FINAL
+    # --------------------------------------------------------
+
     texto = str(
         texto or ""
     ).strip()
@@ -867,6 +850,10 @@ def chat():
     )
 
 
+    # --------------------------------------------------------
+    # RESPOSTA
+    # --------------------------------------------------------
+
     return jsonify({
 
         "success":
@@ -882,12 +869,10 @@ def chat():
 
 
 # ============================================================
-# UTILIZADOR
+# API DO UTILIZADOR
 # ============================================================
 
-@app.route(
-    "/api/me"
-)
+@app.route("/api/me")
 def api_me():
 
     usuario = usuario_atual()
@@ -895,10 +880,8 @@ def api_me():
     if not usuario:
 
         return jsonify({
-
             "authenticated":
                 False
-
         }), 401
 
 
@@ -930,12 +913,10 @@ def api_me():
 
 
 # ============================================================
-# HEALTH
+# HEALTH CHECK
 # ============================================================
 
-@app.route(
-    "/health"
-)
+@app.route("/health")
 def health():
 
     return jsonify({
@@ -963,7 +944,7 @@ def health():
 
 
 # ============================================================
-# EXECUÇÃO
+# INICIAR
 # ============================================================
 
 if __name__ == "__main__":
@@ -1003,6 +984,7 @@ if __name__ == "__main__":
     logger.info(
         "======================================"
     )
+
 
     app.run(
 
